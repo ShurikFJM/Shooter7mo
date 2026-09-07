@@ -63,7 +63,240 @@ MonoBehaviour:
   scrollDirectionX: 1
   scrollDirectionY: 1
   generalScrollSpeed: 18
-  sessions: []
-  tipsShown: 01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  sessions:
+  - tracker:
+      mostClicked:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Obstacle1 (1)[0]"}'
+        count: 4
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Obstacle1[0]"}'
+        count: 4
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
+        count: 4
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Obstacle1 (2)[0]"}'
+        count: 2
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - 
+        count: 2
+        gameObjects:
+        - {fileID: 0}
+      recentlyClicked:
+      - paths:
+        - 
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Obstacle1 (2)[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Obstacle1[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Obstacle1 (1)[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      mostClickedContents: []
+      recentlyClickedContents: []
+    sceneGUID: c000273e43838594b97148ea2cdbee9a
+    sceneName: RUSPOINT
+    lastSaveTimePrint: 04:08 AM (September 7, 2026)
+    gracePeriod: 3
+    activeIndex: 0
+    checkingToLoad: 0
+    assetsCollapsed: 0
+    lockedAsset: 0
+    maximizedAssetView: 0
+    showImportSettings: 0
+    suggestedHeight: 0
+    userAssetViewSize: -1
+    previewHeight: 0
+    scrollPosition: {x: 0, y: 0}
+    toolbarScrollPosition: {x: 0, y: 0}
+    rawUserHeight: 0
+    lastValidTabWidth: 141
+    alreadyCalculatedHeight: 0
+    lastKnownHeight: 0
+    tabs:
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"NetworkPlayer(Clone)[0]"}'
+      paths: []
+      tabWidth: 138
+      name: Piso
+      icon: {fileID: 2244882685325231567, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: NetworkPlayer(Clone)
+      filterString: 
+      newTab: 0
+      scrollPosition: 0
+      isSelected: 1
+      allCollapsed: 0
+      runtimeFoldouts: 
+      runtimeMultiComponents: []
+      tabTextContent:
+        m_Text: Piso
+        m_Image: {fileID: 0}
+        m_Tooltip: 
+        m_TextWithWhitespace: "Piso\u200B"
+      multiEditMode: 0
+      locked: 0
+      hasPreview: 0
+      previewHeight: 150
+      debug: 0
+      filtering: 0
+      prefab: 0
+      multiFoldout: 1
+      target: {fileID: 0}
+      targets: []
+      linkedPrefabs: []
+      trackMultiTarget: {fileID: 0}
+      serializedTransform:
+        owner: {fileID: 0}
+        localPosition: {x: 0, y: 0, z: 0}
+        localRotation: {x: 0, y: 0, z: 0, w: 0}
+        localScale: {x: 0, y: 0, z: 0}
+        originalPosition: {x: 0, y: 0, z: 0}
+        originalRotation: {x: 0, y: 0, z: 0, w: 0}
+        originalLocalScale: {x: 0, y: 0, z: 0}
+        anchorMin: {x: 0, y: 0}
+        anchorMax: {x: 0, y: 0}
+        anchoredPosition: {x: 0, y: 0}
+        sizeDelta: {x: 0, y: 0}
+        pivot: {x: 0, y: 0}
+        originalAnchorMin: {x: 0, y: 0}
+        originalAnchorMax: {x: 0, y: 0}
+        originalAnchoredPosition: {x: 0, y: 0}
+        originalSizeDelta: {x: 0, y: 0}
+        originalPivot: {x: 0, y: 0}
+        isRectTransform: 0
+        appliedTransform: 0
+        undidTransform: 0
+        autoSave: 0
+      serializedTransforms: []
+      savePlayModeTransform: 0
+      index: 0
+      historyPosition: 0
+      componentMaps:
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: transform
+        niceComponentName: transform
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: charactercontroller
+        niceComponentName: character controller
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: networkobject
+        niceComponentName: network object
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: networktransform
+        niceComponentName: network transform
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: playerinput
+        niceComponentName: player input
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: networkplayercontroller
+        niceComponentName: network player controller
+      historyPaths:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"NetworkPlayer(Clone)[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
+        prefab: 0
+      owner: {fileID: 0}
+    closedTabs: []
+    playModeTransforms: []
+    historyAssets:
+    - assetGUIDs:
+      - a6fd360511e64274b99ea5110a1c2cd2
+    - assetGUIDs:
+      - 23b3b56b8ea620b4c8e3ef01590d59f3
+    - assetGUIDs:
+      - 933d3bee96d1658448e7cf0f857c415e
+    - assetGUIDs:
+      - f381e7cd838fc12408522d9bebf20ba9
+    - assetGUIDs:
+      - c1318c971da43e04ea177379193a3b66
+    targetObject: {fileID: 11400000, guid: a6fd360511e64274b99ea5110a1c2cd2, type: 2}
+    targetObjects: []
+    lastSelectedAsset: Assets/_RUSHPOINT/Core/Roles/Role_Assault.asset
+    lastClickedTab: -1
+    previousTab: 1
+  tipsShown: 01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000001000000000000000000000000000000
   playModeStartScene: {}
   enteringPlayMode: 0
