@@ -22,16 +22,14 @@ public class WeaponBase : MonoBehaviour
     public Vector3 kickbackRotation = new Vector3(-3f, 1f, 0f);
     public float returnSpeed = 15f;
 
-    // Estado Interno
     private int currentAmmo;
     private bool isReloading = false;
     private float nextTimeToFire = 0f;
 
-    // Control de Retroceso
     private int currentShotIndex = 0;
     private float lastShotTime = 0f;
+    private float firingSpreadPenalty = 0f;
 
-    // Posicionamiento, Audio y Corrutinas
     private Vector3 targetPosition;
     private Quaternion targetRotation;
     private Coroutine muzzleFlashCoroutine;
@@ -67,12 +65,17 @@ public class WeaponBase : MonoBehaviour
         weaponModelTransform.localPosition = Vector3.Lerp(weaponModelTransform.localPosition, targetPosition, Time.deltaTime * returnSpeed * 2f);
         weaponModelTransform.localRotation = Quaternion.Slerp(weaponModelTransform.localRotation, targetRotation, Time.deltaTime * returnSpeed * 2f);
 
-        if (isReloading) return;
+        if (firingSpreadPenalty > 0f)
+        {
+            firingSpreadPenalty = Mathf.Lerp(firingSpreadPenalty, 0f, Time.deltaTime * 12f);
+        }
 
         if (Time.time - lastShotTime > data.recoilResetTime)
         {
             currentShotIndex = 0;
         }
+
+        if (isReloading) return;
 
         if (Input.GetKeyDown(KeyCode.R) && currentAmmo < data.maxAmmo)
         {
@@ -91,23 +94,41 @@ public class WeaponBase : MonoBehaviour
             }
         }
     }
+    public float GetCurrentSpread()
+    {
+        if (data == null) return 0f;
+
+        float totalSpread = data.baseSpread + firingSpreadPenalty;
+
+        if (playerController != null)
+        {
+            if (!playerController.IsGrounded)
+            {
+                totalSpread += data.airSpreadMultiplier;
+            }
+            else if (playerController.IsMoving)
+            {
+                totalSpread += data.movementSpreadMultiplier;
+            }
+        }
+
+        return totalSpread;
+    }
 
     void Shoot()
     {
         currentAmmo--;
         lastShotTime = Time.time;
+        firingSpreadPenalty += data.spreadPerShot * 1.5f;
 
-        // 1. Sonido de disparo aleatorio
         PlayRandomShootSound();
 
-        // 2. Disparar animación
         if (weaponAnimator != null)
         {
             weaponAnimator.ResetTrigger(shootTriggerHash);
             weaponAnimator.SetTrigger(shootTriggerHash);
         }
 
-        // 3. Raycast
         Camera mainCam = Camera.main;
         Ray centerRay = mainCam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         Vector3 rayOrigin = centerRay.origin;
@@ -119,23 +140,13 @@ public class WeaponBase : MonoBehaviour
             recoilOffset = data.recoilPattern[index];
         }
 
-        float totalSpread = data.baseSpread + (currentShotIndex * data.spreadPerShot);
-
+        float currentSpread = GetCurrentSpread();
         bool isMoving = playerController != null && playerController.IsMoving;
         bool inAir = playerController != null && !playerController.IsGrounded;
 
         float minSpreadOffset = 0f;
-
-        if (inAir)
-        {
-            totalSpread += data.airSpreadMultiplier;
-            minSpreadOffset = data.airSpreadMultiplier * 0.5f;
-        }
-        else if (isMoving)
-        {
-            totalSpread += data.movementSpreadMultiplier;
-            minSpreadOffset = data.movementSpreadMultiplier * 0.35f;
-        }
+        if (inAir) minSpreadOffset = data.airSpreadMultiplier * 0.5f;
+        else if (isMoving) minSpreadOffset = data.movementSpreadMultiplier * 0.35f;
 
         currentShotIndex++;
 
@@ -143,12 +154,12 @@ public class WeaponBase : MonoBehaviour
         if (minSpreadOffset > 0f)
         {
             float angle = Random.Range(0f, Mathf.PI * 2f);
-            float radius = Random.Range(minSpreadOffset, totalSpread);
+            float radius = Random.Range(minSpreadOffset, currentSpread);
             randomSpread = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
         }
         else
         {
-            randomSpread = Random.insideUnitCircle * totalSpread;
+            randomSpread = Random.insideUnitCircle * currentSpread;
         }
 
         float yawInDegrees = recoilOffset.x + randomSpread.x;
@@ -158,7 +169,6 @@ public class WeaponBase : MonoBehaviour
         Vector3 finalDirection = mainCam.transform.rotation * spreadRotation * Vector3.forward;
 
         Vector3 targetPoint;
-
         if (Physics.Raycast(rayOrigin, finalDirection, out RaycastHit hit, data.range))
         {
             targetPoint = hit.point;
@@ -182,10 +192,7 @@ public class WeaponBase : MonoBehaviour
         {
             int randomIndex = Random.Range(0, data.shootSounds.Length);
             AudioClip clip = data.shootSounds[randomIndex];
-            if (clip != null)
-            {
-                audioSource.PlayOneShot(clip);
-            }
+            if (clip != null) audioSource.PlayOneShot(clip);
         }
     }
 
@@ -193,32 +200,21 @@ public class WeaponBase : MonoBehaviour
     {
         isReloading = true;
 
-        if (data.reloadSound != null && audioSource != null)
-        {
-            audioSource.PlayOneShot(data.reloadSound);
-        }
-
-        if (weaponAnimator != null)
-        {
-            weaponAnimator.SetTrigger(reloadTriggerHash);
-        }
+        if (data.reloadSound != null && audioSource != null) audioSource.PlayOneShot(data.reloadSound);
+        if (weaponAnimator != null) weaponAnimator.SetTrigger(reloadTriggerHash);
 
         yield return new WaitForSeconds(data.reloadTime);
 
         currentAmmo = data.maxAmmo;
         isReloading = false;
         currentShotIndex = 0;
+        firingSpreadPenalty = 0f;
     }
 
     void TriggerMuzzleFlash()
     {
         if (muzzleFlash == null) return;
-
-        if (muzzleFlashCoroutine != null)
-        {
-            StopCoroutine(muzzleFlashCoroutine);
-        }
-
+        if (muzzleFlashCoroutine != null) StopCoroutine(muzzleFlashCoroutine);
         muzzleFlashCoroutine = StartCoroutine(MuzzleFlashRoutine());
     }
 
@@ -227,9 +223,7 @@ public class WeaponBase : MonoBehaviour
         muzzleFlash.gameObject.SetActive(true);
         muzzleFlash.Clear();
         muzzleFlash.Play();
-
-        yield return new WaitForSeconds(0.1f);
-
+        yield return new WaitForSeconds(0.5f);
         muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         muzzleFlash.gameObject.SetActive(false);
     }
@@ -240,7 +234,6 @@ public class WeaponBase : MonoBehaviour
         {
             int randomIndex = Random.Range(0, data.impactPrefabs.Length);
             GameObject selectedPrefab = data.impactPrefabs[randomIndex];
-
             if (selectedPrefab != null)
             {
                 Quaternion impactRotation = Quaternion.LookRotation(hit.normal) * Quaternion.Euler(0, 180f, 0);
@@ -254,7 +247,6 @@ public class WeaponBase : MonoBehaviour
     {
         GameObject tracerObj = new GameObject("BulletTracer");
         LineRenderer line = tracerObj.AddComponent<LineRenderer>();
-
         line.startWidth = 0.02f;
         line.endWidth = 0.005f;
         line.material = tracerMaterial != null ? tracerMaterial : new Material(Shader.Find("Sprites/Default"));

@@ -16,9 +16,13 @@ public class WeaponData : ScriptableObject
     public int maxAmmo = 12;
     public float reloadTime = 1.5f;
 
+    [Header("UI / HUD")]
+    public Texture ammoIcon;
+
     [Header("Retroceso (Patrón CS2)")]
     public float recoilResetTime = 0.3f;
     public Vector2[] recoilPattern = new Vector2[]
+
     {
         new Vector2(0f, 0f),
         new Vector2(0f, 0.25f),
@@ -38,4 +42,5 @@ public class WeaponData : ScriptableObject
 
     [Header("Efectos Visuales (Variaciones Aleatorias)")]
     public GameObject[] impactPrefabs; 
+
 }

@@ -10,34 +10,40 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b013d4e59a7952f45bf28165f85235a4, type: 3}
-  m_Name: SimplePistol
+  m_Name: AK_Chivito
   m_EditorClassIdentifier: Assembly-CSharp::WeaponData
-  weaponName: Pistola Base
-  isAutomatic: 0
-  damage: 25
+  weaponName: Ak_Chivito
+  isAutomatic: 1
+  damage: 50
   range: 100
-  fireRate: 0.19
-  maxAmmo: 12
-  reloadTime: 1.8
-  ammoIcon: {fileID: 2800000, guid: e508ee3014e74d14eb5659e0c22bc171, type: 3}
-  recoilResetTime: 0.35
+  fireRate: 0.15
+  maxAmmo: 24
+  reloadTime: 2
+  ammoIcon: {fileID: 2800000, guid: d2ed4396f80d60a46b62b739dd7d48b7, type: 3}
+  recoilResetTime: 0.3
   recoilPattern:
   - {x: 0, y: 0}
-  - {x: 0, y: 5}
-  - {x: 3, y: 2}
-  - {x: 2, y: 3}
-  - {x: 2, y: 5}
-  - {x: 5, y: 5}
-  - {x: 5, y: 2}
-  - {x: 5, y: 2}
-  baseSpread: 0.5
-  spreadPerShot: 0.005
-  movementSpreadMultiplier: 2.5
-  airSpreadMultiplier: 0.15
+  - {x: 0, y: 2}
+  - {x: 0, y: 3}
+  - {x: 0, y: 4}
+  - {x: 0, y: 6}
+  - {x: 0, y: 7}
+  - {x: 0, y: 10}
+  - {x: 1, y: 10}
+  - {x: 2, y: 10}
+  - {x: 3, y: 10}
+  - {x: 4, y: 10}
+  - {x: 5, y: 10}
+  - {x: 6, y: 10}
+  - {x: 7, y: 10}
+  baseSpread: 0
+  spreadPerShot: 0.08
+  movementSpreadMultiplier: 5
+  airSpreadMultiplier: 12
   shootSounds:
-  - {fileID: 8300000, guid: 7bd2600146711b04db580d3985bcdf52, type: 3}
-  - {fileID: 8300000, guid: 6ce3b44051a393647b2756fe6aad6ad6, type: 3}
   - {fileID: 8300000, guid: 22591d64820866e48bbf6c51ed3954bd, type: 3}
+  - {fileID: 8300000, guid: 6ce3b44051a393647b2756fe6aad6ad6, type: 3}
+  - {fileID: 8300000, guid: 7bd2600146711b04db580d3985bcdf52, type: 3}
   reloadSound: {fileID: 8300000, guid: 6cb082d89b7f54d41848bffa0f6aa253, type: 3}
   impactPrefabs:
   - {fileID: 2766617808642064096, guid: 7f344191bfd226543ad11976c26ebd9f, type: 3}
