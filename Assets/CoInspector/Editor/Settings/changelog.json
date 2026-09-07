@@ -1,0 +1,54 @@
+{
+  "version": "1.7.5",
+  "date": "2026-07-25",
+  "entries": [
+    {
+      "section": "new",
+      "title": "Support for Unity 6000.5",
+      "description": "",
+      "important": true
+    },
+    {
+      "section": "new",
+      "title": "Option to hide the update alert in Settings",
+      "description": "",
+      "important": true
+    },
+    {
+      "section": "changed",
+      "title": "Migrated from Instance Id to Unity's new Entity Id system",
+      "description": "",
+      "important": true
+    },
+    {
+      "section": "changed",
+      "title": "To reduce missed clicks, Tabs now require more cursor movement before a drag begins",
+      "description": "",
+      "important": true
+    },
+    {
+      "section": "fixed",
+      "title": "Sprite Atlas inspectors showing a limited inspector",
+      "description": "",
+      "important": true
+    },
+    {
+      "section": "fixed",
+      "title": "Timing display issues with animation previews (wrong %)",
+      "description": "",
+      "important": true
+    },
+    {
+      "section": "fixed",
+      "title": "Error when opening CoInspector without an existing valid session",
+      "description": "",
+      "important": true
+    },
+    {
+      "section": "fixed",
+      "title": "Error with single component tabs not finding a default Icon",
+      "description": "",
+      "important": true
+    }
+  ]
+}

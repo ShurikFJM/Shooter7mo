@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 0a076cc91ed3c8d4ab40c9ce88f98f6e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278831
+  packageName: CoInspector | Inline Asset Inspection, Tabs & More!
+  packageVersion: 1.7.5
+  assetPath: Assets/CoInspector/Editor/Core/Helpers/TabMapManager.cs
+  uploadId: 960056

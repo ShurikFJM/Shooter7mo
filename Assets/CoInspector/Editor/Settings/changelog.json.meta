@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 736b929d1c5cb75418035992c93d66b6
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278831
+  packageName: CoInspector | Inline Asset Inspection, Tabs & More!
+  packageVersion: 1.7.5
+  assetPath: Assets/CoInspector/Editor/Settings/changelog.json
+  uploadId: 960056

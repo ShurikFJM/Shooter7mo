@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 093c65823261c004c8fe2295a2201e8b
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278831
+  packageName: CoInspector | Inline Asset Inspection, Tabs & More!
+  packageVersion: 1.7.5
+  assetPath: Assets/CoInspector/Editor/Custom/CustomGUIStyles.cs
+  uploadId: 960056

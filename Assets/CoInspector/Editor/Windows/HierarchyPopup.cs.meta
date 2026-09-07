@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: e5988f4536914f04f8c5a13b6d4adbed
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278831
+  packageName: CoInspector | Inline Asset Inspection, Tabs & More!
+  packageVersion: 1.7.5
+  assetPath: Assets/CoInspector/Editor/Windows/HierarchyPopup.cs
+  uploadId: 960056

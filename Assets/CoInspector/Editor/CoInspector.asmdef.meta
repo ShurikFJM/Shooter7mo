@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6d668cec650db004589d6d4ae7b977ae
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278831
+  packageName: CoInspector | Inline Asset Inspection, Tabs & More!
+  packageVersion: 1.7.5
+  assetPath: Assets/CoInspector/Editor/CoInspector.asmdef
+  uploadId: 960056

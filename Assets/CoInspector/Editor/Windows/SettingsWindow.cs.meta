@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: d1a379c89460c634c93ebf561607343e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - m_ViewDataDictionary: {instanceID: 0}
+  - userSaveData: {fileID: 11400000, guid: 8e3e0a369cbf7c3449929ff61acbd727, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278831
+  packageName: CoInspector | Inline Asset Inspection, Tabs & More!
+  packageVersion: 1.7.5
+  assetPath: Assets/CoInspector/Editor/Windows/SettingsWindow.cs
+  uploadId: 960056
