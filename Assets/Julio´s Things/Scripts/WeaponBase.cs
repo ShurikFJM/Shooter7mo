@@ -119,7 +119,11 @@ public class WeaponBase : MonoBehaviour
     {
         currentAmmo--;
         lastShotTime = Time.time;
-        firingSpreadPenalty += data.spreadPerShot * 1.5f;
+
+        if (data != null)
+        {
+            firingSpreadPenalty += data.spreadPerShot * 1.5f;
+        }
 
         PlayRandomShootSound();
 
@@ -130,11 +134,13 @@ public class WeaponBase : MonoBehaviour
         }
 
         Camera mainCam = Camera.main;
+        if (mainCam == null) return;
+
         Ray centerRay = mainCam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         Vector3 rayOrigin = centerRay.origin;
 
         Vector2 recoilOffset = Vector2.zero;
-        if (data.recoilPattern != null && data.recoilPattern.Length > 0)
+        if (data != null && data.recoilPattern != null && data.recoilPattern.Length > 0)
         {
             int index = Mathf.Min(currentShotIndex, data.recoilPattern.Length - 1);
             recoilOffset = data.recoilPattern[index];
@@ -145,8 +151,11 @@ public class WeaponBase : MonoBehaviour
         bool inAir = playerController != null && !playerController.IsGrounded;
 
         float minSpreadOffset = 0f;
-        if (inAir) minSpreadOffset = data.airSpreadMultiplier * 0.5f;
-        else if (isMoving) minSpreadOffset = data.movementSpreadMultiplier * 0.35f;
+        if (data != null)
+        {
+            if (inAir) minSpreadOffset = data.airSpreadMultiplier * 0.5f;
+            else if (isMoving) minSpreadOffset = data.movementSpreadMultiplier * 0.35f;
+        }
 
         currentShotIndex++;
 
@@ -169,21 +178,37 @@ public class WeaponBase : MonoBehaviour
         Vector3 finalDirection = mainCam.transform.rotation * spreadRotation * Vector3.forward;
 
         Vector3 targetPoint;
-        if (Physics.Raycast(rayOrigin, finalDirection, out RaycastHit hit, data.range))
+        float weaponRange = data != null ? data.range : 100f;
+
+        if (Physics.Raycast(rayOrigin, finalDirection, out RaycastHit hit, weaponRange))
         {
             targetPoint = hit.point;
-            CreateImpactVisual(hit);
+
+            // Detección del componente Hitbox en el objetivo
+            Hitbox hitTarget = hit.collider.GetComponent<Hitbox>();
+
+            if (hitTarget != null)
+            {
+                float baseDamage = data != null ? data.damage : 25f;
+                hitTarget.ReceiveHit(baseDamage, hit.point, hit.normal);
+            }
+            else
+            {
+                CreateImpactVisual(hit);
+            }
         }
         else
         {
-            targetPoint = rayOrigin + finalDirection * data.range;
+            targetPoint = rayOrigin + finalDirection * weaponRange;
         }
 
         targetPosition += kickbackOffset;
         targetRotation *= Quaternion.Euler(kickbackRotation);
 
         TriggerMuzzleFlash();
-        StartCoroutine(RenderTracer(firePoint.position, targetPoint));
+
+        Vector3 tracerStart = firePoint != null ? firePoint.position : rayOrigin;
+        StartCoroutine(RenderTracer(tracerStart, targetPoint));
     }
 
     void PlayRandomShootSound()
@@ -223,7 +248,7 @@ public class WeaponBase : MonoBehaviour
         muzzleFlash.gameObject.SetActive(true);
         muzzleFlash.Clear();
         muzzleFlash.Play();
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.15f);
         muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         muzzleFlash.gameObject.SetActive(false);
     }
