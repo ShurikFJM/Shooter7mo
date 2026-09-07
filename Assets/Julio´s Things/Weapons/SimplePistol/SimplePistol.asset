@@ -21,8 +21,22 @@ MonoBehaviour:
   reloadTime: 1.8
   recoilResetTime: 0.35
   recoilPattern:
+  - {x: 0, y: 0}
   - {x: 0, y: 5}
+  - {x: 3, y: 2}
+  - {x: 2, y: 3}
+  - {x: 2, y: 5}
   baseSpread: 0.5
+  spreadPerShot: 0.005
   movementSpreadMultiplier: 2.5
   airSpreadMultiplier: 0.15
-  impactPrefab: {fileID: 2766617808642064096, guid: 7f344191bfd226543ad11976c26ebd9f, type: 3}
+  shootSounds:
+  - {fileID: 8300000, guid: 7bd2600146711b04db580d3985bcdf52, type: 3}
+  - {fileID: 8300000, guid: 6ce3b44051a393647b2756fe6aad6ad6, type: 3}
+  - {fileID: 8300000, guid: 22591d64820866e48bbf6c51ed3954bd, type: 3}
+  reloadSound: {fileID: 8300000, guid: 6cb082d89b7f54d41848bffa0f6aa253, type: 3}
+  impactPrefabs:
+  - {fileID: 2766617808642064096, guid: 7f344191bfd226543ad11976c26ebd9f, type: 3}
+  - {fileID: 1509670687724981931, guid: 7a5714e6cf4eb5344a9d53426a244f35, type: 3}
+  - {fileID: 795647749264762979, guid: dd6c2a02f622d5d41878f02256b8a19f, type: 3}
+  - {fileID: 6414987945843476718, guid: a31f14a5c06303e4cbaf303caf25bb43, type: 3}

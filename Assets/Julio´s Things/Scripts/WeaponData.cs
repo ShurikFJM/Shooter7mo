@@ -17,30 +17,25 @@ public class WeaponData : ScriptableObject
     public float reloadTime = 1.5f;
 
     [Header("Retroceso (Patrón CS2)")]
-    public float recoilResetTime = 0.3f; // Tiempo para reiniciar el patrón al dejar de disparar
+    public float recoilResetTime = 0.3f;
     public Vector2[] recoilPattern = new Vector2[]
     {
-        new Vector2(0f, 0f),       // Bala 1: Centro exacto (0,0)
-        new Vector2(0f, 0.25f),    // Bala 2: Sube levemente
-        new Vector2(0.05f, 0.5f),  // Bala 3
-        new Vector2(-0.1f, 0.8f),  // Bala 4
-        new Vector2(-0.25f, 1.1f), // Bala 5
-        new Vector2(0.2f, 1.2f)    // Bala 6
+        new Vector2(0f, 0f),
+        new Vector2(0f, 0.25f),
+        new Vector2(0.05f, 0.5f),
+        new Vector2(-0.1f, 0.8f)
     };
 
     [Header("Dispersión Táctica (Spread)")]
-    [Tooltip("Dispersión estando perfectamente quieto (0 = Precisión quirúrgica)")]
     public float baseSpread = 0.0f;
+    public float spreadPerShot = 0.08f;
+    public float movementSpreadMultiplier = 3.5f;
+    public float airSpreadMultiplier = 12.0f;
 
-    [Tooltip("Aumento de dispersión por cada disparo consecutivo en ráfaga")]
-    public float spreadPerShot = 0.005f;
+    [Header("Audio (Variaciones Aleatorias)")]
+    public AudioClip[] shootSounds; 
+    public AudioClip reloadSound;    
 
-    [Tooltip("Penalización de dispersión al caminar")]
-    public float movementSpreadMultiplier = 0.04f;
-
-    [Tooltip("Penalización masiva al estar en el aire")]
-    public float airSpreadMultiplier = 0.12f;
-
-    [Header("Efectos Visuales")]
-    public GameObject impactPrefab;
+    [Header("Efectos Visuales (Variaciones Aleatorias)")]
+    public GameObject[] impactPrefabs; 
 }

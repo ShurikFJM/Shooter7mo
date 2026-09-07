@@ -74,5 +74,7 @@ public class SimpleFPSController : MonoBehaviour
         controller.Move(velocity * Time.deltaTime);
 
     }
+    public bool IsMoving => Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0;
+    public bool IsGrounded => controller.isGrounded;
     public float CurrentHorizontalSpeed => new Vector3(controller.velocity.x, 0, controller.velocity.z).magnitude;
 }
