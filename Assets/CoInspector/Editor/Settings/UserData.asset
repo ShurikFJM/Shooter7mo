@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0d4c446e80a32c438a7ffd1c57696e2, type: 3}
+  m_Name: UserData
+  m_EditorClassIdentifier: CoInspector::CoInspector.UserSaveData
+  hideUpdateAlert: 0
+  recycleUnlockedTabs: 0
+  generalScrollSensitivity: 1
+  userInstalls:
+  - 1.7.5
+  tabPreviewExpanded: 0
+  softWheelScrolling: 1
+  middleScrollMode: 1
+  newTabIfLocked: 0
+  rootPath: Assets/CoInspector
+  showHistory: 1
+  showTabName: 1
+  showTabTree: 1
+  showFilterBar: 1
+  hideEmptyComponents: 0
+  showInstallMessage: 0
+  showSceneToolsMessage: 1
+  softSelection: 1
+  showCollapseTool: 1
+  showHierarchyButton: 1
+  showInspectorButton: 1
+  showFocusButton: 1
+  showSelectButton: 1
+  showMaximizeButton: 0
+  assetPreviewExpanded: 1
+  showLastClicked: 1
+  showMostClicked: 1
+  showIcons: 1
+  richNames: 1
+  showScrollBar: 1
+  showAdditionalOptions: 1
+  rememberSessions: 1
+  useThumbKeys: 1
+  ignoreFolders: 1
+  collapsePrefabComponents: 1
+  openPrefabsInNewTab: 1
+  showTextAssetPreviews: 1
+  showAssetLabels: 0
+  autoFocus: 0
+  assetInspection: 1
+  componentCulling: 1
+  reuseTabs: 0
+  overrideSceneTools: 0
+  sessionsMode: 0
+  tabCompactMode: 1
+  doubleClickMode: 1
+  scrollSpeedX: 2
+  scrollSpeedY: 2
+  scrollDirectionX: 1
+  scrollDirectionY: 1
+  generalScrollSpeed: 18
+  sessions: []
+  tipsShown: 01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  playModeStartScene: {}
+  enteringPlayMode: 0
