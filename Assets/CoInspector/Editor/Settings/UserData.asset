@@ -67,82 +67,31 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/ak[0]"}'
-        count: 5
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/ak[0]"}'
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/USP_45[0]"}'
-        count: 2
-        gameObjects:
-        - {fileID: 0}
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/ProceduralPivot[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/USP_45[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       recentlyClicked:
       - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/ak[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/ak[0]"}'
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/USP_45[0]"}'
+      - paths: []
         count: 1
-        gameObjects:
-        - {fileID: 0}
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/USP_45[0]"}'
+        gameObjects: []
+      - paths: []
         count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/ProceduralPivot[0]"}'
+        gameObjects: []
+      - paths: []
         count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]"}'
+        gameObjects: []
+      - paths: []
         count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]"}'
+        gameObjects: []
+      - paths: []
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths: []
         count: 1
         gameObjects: []
@@ -159,7 +108,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 09:28 AM (September 9, 2026)
+    lastSaveTimePrint: 01:41 PM (September 9, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -172,129 +121,29 @@ MonoBehaviour:
     previewHeight: 0
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
-    rawUserHeight: 1
-    lastValidTabWidth: 110
+    rawUserHeight: 0
+    lastValidTabWidth: 123
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 1
+    lastKnownHeight: 0
     tabs:
-    - path: '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]"}'
+    - path: 
       paths: []
-      tabWidth: 107
-      name: PrimaryWeapon
-      icon: {fileID: 5988843443690612340, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: PrimaryWeapon
+      tabWidth: 62
+      name: 
+      icon: {fileID: 0}
+      shortName: New Tab
       filterString: 
-      newTab: 0
-      scrollPosition: 0
-      isSelected: 1
-      allCollapsed: 0
-      runtimeFoldouts: 
-      runtimeMultiComponents: []
-      tabTextContent:
-        m_Text: PrimaryWeapon
-        m_Image: {fileID: 0}
-        m_Tooltip: 
-        m_TextWithWhitespace: "PrimaryWeapon\u200B"
-      multiEditMode: 0
-      locked: 0
-      hasPreview: 0
-      previewHeight: 150
-      debug: 0
-      filtering: 0
-      prefab: 1
-      multiFoldout: 1
-      target: {fileID: 0}
-      targets: []
-      linkedPrefabs: []
-      trackMultiTarget: {fileID: 0}
-      serializedTransform:
-        owner: {fileID: 0}
-        localPosition: {x: 0, y: 0, z: 0}
-        localRotation: {x: 0, y: 0, z: 0, w: 0}
-        localScale: {x: 0, y: 0, z: 0}
-        originalPosition: {x: 0, y: 0, z: 0}
-        originalRotation: {x: 0, y: 0, z: 0, w: 0}
-        originalLocalScale: {x: 0, y: 0, z: 0}
-        anchorMin: {x: 0, y: 0}
-        anchorMax: {x: 0, y: 0}
-        anchoredPosition: {x: 0, y: 0}
-        sizeDelta: {x: 0, y: 0}
-        pivot: {x: 0, y: 0}
-        originalAnchorMin: {x: 0, y: 0}
-        originalAnchorMax: {x: 0, y: 0}
-        originalAnchoredPosition: {x: 0, y: 0}
-        originalSizeDelta: {x: 0, y: 0}
-        originalPivot: {x: 0, y: 0}
-        isRectTransform: 0
-        appliedTransform: 0
-        undidTransform: 0
-        autoSave: 0
-      serializedTransforms: []
-      savePlayModeTransform: 0
-      index: 0
-      historyPosition: 0
-      componentMaps:
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: transform
-        niceComponentName: transform
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: audiosource
-        niceComponentName: audio source
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: weaponbase
-        niceComponentName: weapon base
-      historyPaths:
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]"}'
-        prefab: 1
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]/ak[0]"}'
-        prefab: 1
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/SecondaryWeapon[0]"}'
-        prefab: 1
-      owner: {fileID: 0}
-    closedTabs:
-    - path: '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-        Camera[0]/WeaponHolder[0]/ak[0]"}'
-      paths: []
-      tabWidth: 39
-      name: ak
-      icon: {fileID: -5093997336329155648, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: ak
-      filterString: 
-      newTab: 0
+      newTab: 1
       scrollPosition: 0
       isSelected: 0
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: ak
+        m_Text: New Tab
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "ak\u200B"
+        m_TextWithWhitespace: "New Tab\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
@@ -333,71 +182,69 @@ MonoBehaviour:
       savePlayModeTransform: 0
       index: 0
       historyPosition: 0
-      componentMaps:
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: transform
-        niceComponentName: transform
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: weaponbase
-        niceComponentName: weapon base
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: audiosource
-        niceComponentName: audio source
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: animator
-        niceComponentName: animator
-      historyPaths:
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/ak[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/SecondaryWeapon[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]/ak[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/ak[0]"}'
-        - '{"sceneGUID":"315dd3b7d22909c48977d427ad38807d","path":"Capsule[0]/Main
-          Camera[0]/WeaponHolder[0]/USP_45[0]"}'
-        prefab: 0
+      componentMaps: []
+      historyPaths: []
       owner: {fileID: 0}
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
+      paths: []
+      tabWidth: 58
+      name: Site A
+      icon: {fileID: 5725305819640465133, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: Site A
+      filterString: 
+      newTab: 0
+      scrollPosition: 0
+      isSelected: 1
+      allCollapsed: 0
+      runtimeFoldouts: 
+      runtimeMultiComponents: []
+      tabTextContent:
+        m_Text: Site A
+        m_Image: {fileID: 0}
+        m_Tooltip: 
+        m_TextWithWhitespace: "Site A\u200B"
+      multiEditMode: 0
+      locked: 0
+      hasPreview: 0
+      previewHeight: 150
+      debug: 0
+      filtering: 0
+      prefab: 0
+      multiFoldout: 1
+      target: {fileID: 0}
+      targets: []
+      linkedPrefabs: []
+      trackMultiTarget: {fileID: 0}
+      serializedTransform:
+        owner: {fileID: 0}
+        localPosition: {x: 0, y: 0, z: 0}
+        localRotation: {x: 0, y: 0, z: 0, w: 0}
+        localScale: {x: 0, y: 0, z: 0}
+        originalPosition: {x: 0, y: 0, z: 0}
+        originalRotation: {x: 0, y: 0, z: 0, w: 0}
+        originalLocalScale: {x: 0, y: 0, z: 0}
+        anchorMin: {x: 0, y: 0}
+        anchorMax: {x: 0, y: 0}
+        anchoredPosition: {x: 0, y: 0}
+        sizeDelta: {x: 0, y: 0}
+        pivot: {x: 0, y: 0}
+        originalAnchorMin: {x: 0, y: 0}
+        originalAnchorMax: {x: 0, y: 0}
+        originalAnchoredPosition: {x: 0, y: 0}
+        originalSizeDelta: {x: 0, y: 0}
+        originalPivot: {x: 0, y: 0}
+        isRectTransform: 0
+        appliedTransform: 0
+        undidTransform: 0
+        autoSave: 0
+      serializedTransforms: []
+      savePlayModeTransform: 0
+      index: 1
+      historyPosition: 0
+      componentMaps: []
+      historyPaths: []
+      owner: {fileID: 0}
+    closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
@@ -425,7 +272,7 @@ MonoBehaviour:
     targetObject: {fileID: 0}
     targetObjects: []
     lastSelectedAsset: 
-    lastClickedTab: 1
+    lastClickedTab: -1
     previousTab: 0
   - tracker:
       mostClicked:
@@ -629,6 +476,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/RUSPOINT.unity
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000010000000000000001000000000000000000000000000000000000000000000000000000010000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000010000000000000001000000000000000000000001000000000000000000000001000000
+  tipsShown: 01000000000000000000000000000000010000000000000000000000000000000100000000000000000000000000000000000000010000000000000001000000000000000000000000000000000000000000000000000000010000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000010000000000000001000000000000000000000001000000000000000000000001000000
   playModeStartScene: {}
   enteringPlayMode: 0

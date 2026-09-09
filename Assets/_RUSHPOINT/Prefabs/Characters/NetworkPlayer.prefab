@@ -245,7 +245,7 @@ Transform:
   m_GameObject: {fileID: 3973672152315432193}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.5, y: -1.2, z: 0.45}
+  m_LocalPosition: {x: 1.61, y: -0.034, z: 0.084}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -267,7 +267,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WeaponInventory
   ShowTopMostFoldoutHeaderGroup: 1
   weaponHolder: {fileID: 9010424332264134401}
-  primaryWeapon: {fileID: 0}
+  primaryWeapon: {fileID: 219230432708958544}
   secondaryWeapon: {fileID: 4507048667735610904}
   meleeWeapon: {fileID: 0}
 --- !u!1 &4401801006161931269
@@ -316,6 +316,7 @@ GameObject:
   - component: {fileID: 2575800205389349684}
   - component: {fileID: 2836447743696831566}
   - component: {fileID: 5862416640053250531}
+  - component: {fileID: 8513250139149931668}
   m_Layer: 0
   m_Name: NetworkPlayer
   m_TagString: Untagged
@@ -338,6 +339,7 @@ Transform:
   m_Children:
   - {fileID: 2745469733686981276}
   - {fileID: 146813479000506641}
+  - {fileID: 2849758425874812486}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!143 &5092822756275291844
@@ -377,7 +379,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2397595995
+  GlobalObjectIdHash: 1871180684
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -513,6 +515,28 @@ MonoBehaviour:
   mouseSensitivity: 0.15
   upDownLookLimit: 85
   activeRole: {fileID: 11400000, guid: a6fd360511e64274b99ea5110a1c2cd2, type: 2}
+--- !u!114 &8513250139149931668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5347775635805665784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40a70974aafb634428d16c0fb09b1a30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BombInteractor
+  ShowTopMostFoldoutHeaderGroup: 1
+  interactOrigin: {fileID: 2849758425874812486}
+  interactRange: 5
+  bombLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  siteLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  plantHoldTime: 4
 --- !u!1 &5650862837141661167
 GameObject:
   m_ObjectHideFlags: 0
@@ -640,6 +664,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Hitbox
   type: 0
   targetHealth: {fileID: 2836447743696831566}
+--- !u!1 &6217312771158793283
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2849758425874812486}
+  m_Layer: 0
+  m_Name: Bomb
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2849758425874812486
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6217312771158793283}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: 0.7071072, w: 0.7071064}
+  m_LocalPosition: {x: -0.55, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4191669248889999246}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!1 &6303011516431457110
 GameObject:
   m_ObjectHideFlags: 0
@@ -984,7 +1039,7 @@ Transform:
   m_GameObject: {fileID: 8436871319239758968}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.21, z: 0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
