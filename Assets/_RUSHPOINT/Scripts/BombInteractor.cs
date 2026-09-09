@@ -33,6 +33,8 @@ public class BombInteractor : NetworkBehaviour
     public bool IsCarryingBomb => carriedBomb != null;
     public bool IsPlanting => isPlanting;
     public float PlantProgress01 => plantHoldTime > 0f ? plantProgress / plantHoldTime : 0f;
+    public bool HasNearbyBomb => nearbyBomb != null;
+    public bool IsInSite => currentSite != null;
 
     private void Update()
     {

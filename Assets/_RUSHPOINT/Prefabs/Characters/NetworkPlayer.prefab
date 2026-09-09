@@ -529,7 +529,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BombInteractor
   ShowTopMostFoldoutHeaderGroup: 1
   interactOrigin: {fileID: 2849758425874812486}
-  interactRange: 5
+  interactRange: 3
   bombLayer:
     serializedVersion: 2
     m_Bits: 128
@@ -688,13 +688,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6217312771158793283}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: 0.7071072, w: 0.7071064}
-  m_LocalPosition: {x: -0.55, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.81, y: 0, z: -0.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4191669248889999246}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6303011516431457110
 GameObject:
   m_ObjectHideFlags: 0
