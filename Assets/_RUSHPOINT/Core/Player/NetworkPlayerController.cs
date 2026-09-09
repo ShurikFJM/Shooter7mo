@@ -26,6 +26,11 @@ public class NetworkPlayerController : NetworkBehaviour
     private bool jumpRequested;
     private float cameraPitch = 0f;
 
+    // Propiedades públicas que consume WeaponBase
+    public Camera PlayerCamera => playerCamera;
+    public bool IsGrounded => characterController != null && characterController.isGrounded;
+    public bool IsMoving => moveInput.sqrMagnitude > 0.01f;
+
     private void Awake()
     {
         if (characterController == null)
@@ -35,6 +40,16 @@ public class NetworkPlayerController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+
+        if (IsOwner)
+        {
+            TacticalHUD hud = FindFirstObjectByType<TacticalHUD>();
+            if (hud != null)
+            {
+                hud.playerHealth = GetComponent<NetworkHealth>();
+                hud.inventory = GetComponentInChildren<WeaponInventory>();
+            }
+        }
 
         if (IsOwner)
         {
@@ -63,7 +78,7 @@ public class NetworkPlayerController : NetworkBehaviour
     public void OnSprint(InputValue value) => isSprinting = value.isPressed;
     public void OnJump(InputValue value)
     {
-        if (value.isPressed && characterController.isGrounded)
+        if (value.isPressed && IsGrounded)
             jumpRequested = true;
     }
 
@@ -81,15 +96,14 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (activeRole == null) return;
 
-        bool isGrounded = characterController.isGrounded;
-        if (isGrounded && verticalVelocity.y < 0)
+        if (IsGrounded && verticalVelocity.y < 0)
             verticalVelocity.y = -2f;
 
         Vector3 moveDir = transform.right * moveInput.x + transform.forward * moveInput.y;
         float currentSpeed = isSprinting ? activeRole.sprintSpeed : activeRole.walkSpeed;
         characterController.Move(moveDir * currentSpeed * Time.deltaTime);
 
-        if (jumpRequested && isGrounded)
+        if (jumpRequested && IsGrounded)
         {
             verticalVelocity.y = Mathf.Sqrt(activeRole.jumpForce * -2f * gravity);
             jumpRequested = false;

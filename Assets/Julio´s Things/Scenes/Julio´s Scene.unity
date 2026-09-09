@@ -24477,7 +24477,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c2cd5403745811498d5f420cbadf9b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TacticalHUD
-  playerStats: {fileID: 2092990286}
+  playerHealth: {fileID: 0}
   inventory: {fileID: 2092990285}
   healthText: {fileID: 1634275063}
   armorText: {fileID: 828479384}
@@ -31561,6 +31561,7 @@ GameObject:
   - component: {fileID: 2092990284}
   - component: {fileID: 2092990279}
   - component: {fileID: 2092990283}
+  - component: {fileID: 2092990287}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
@@ -31720,6 +31721,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6dc5f43b3f4c7a4197a352f2fcf1e66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponInventory
+  ShowTopMostFoldoutHeaderGroup: 1
   weaponHolder: {fileID: 1698120593}
   primaryWeapon: {fileID: 1668392830}
   secondaryWeapon: {fileID: 2132391853341865601}
@@ -31739,6 +31741,33 @@ MonoBehaviour:
   health: 100
   armor: 100
   hasHelmet: 1
+--- !u!114 &2092990287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2092990278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 2956230112
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  m_InScenePlacedDisabledByDefault: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  m_InScenePlaced: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &2101527817
 GameObject:
   m_ObjectHideFlags: 0
