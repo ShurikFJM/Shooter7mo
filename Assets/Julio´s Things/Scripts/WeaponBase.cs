@@ -22,14 +22,20 @@ public class WeaponBase : MonoBehaviour
     public Vector3 kickbackRotation = new Vector3(-3f, 1f, 0f);
     public float returnSpeed = 15f;
 
+    // Estado Interno
     private int currentAmmo;
     private bool isReloading = false;
     private float nextTimeToFire = 0f;
 
+    // Control de Retroceso y Dispersión
     private int currentShotIndex = 0;
     private float lastShotTime = 0f;
     private float firingSpreadPenalty = 0f;
 
+    // Control de Gatillo Xbox (Estado previo para disparo único)
+    private bool wasRtPressedLastFrame = false;
+
+    // Posicionamiento y Audio
     private Vector3 targetPosition;
     private Quaternion targetRotation;
     private Coroutine muzzleFlashCoroutine;
@@ -70,30 +76,59 @@ public class WeaponBase : MonoBehaviour
             firingSpreadPenalty = Mathf.Lerp(firingSpreadPenalty, 0f, Time.deltaTime * 12f);
         }
 
-        if (Time.time - lastShotTime > data.recoilResetTime)
+        if (Time.time - lastShotTime > (data != null ? data.recoilResetTime : 0.3f))
         {
             currentShotIndex = 0;
         }
 
         if (isReloading) return;
 
-        if (Input.GetKeyDown(KeyCode.R) && currentAmmo < data.maxAmmo)
+        // --- ENTRADA DE RECARGA (Tecla 'R' O Botón 'X' de Xbox) ---
+        bool reloadInput = Input.GetKeyDown(KeyCode.R) || Input.GetKeyDown(KeyCode.JoystickButton2);
+        if (reloadInput && currentAmmo < MaxAmmo)
         {
             StartCoroutine(ReloadCoroutine());
             return;
         }
 
-        bool shootInput = data.isAutomatic ? Input.GetButton("Fire1") : Input.GetButtonDown("Fire1");
+        // --- ENTRADA DE DISPARO (Clic Izquierdo O Gatillo Derecho RT) ---
+        float rtAxis = GetRightTriggerAxis();
+        bool rtHeld = rtAxis > 0.2f;
+        bool rtDown = rtHeld && !wasRtPressedLastFrame;
+        wasRtPressedLastFrame = rtHeld;
+
+        bool shootInput = false;
+        if (data != null && data.isAutomatic)
+        {
+            shootInput = Input.GetButton("Fire1") || rtHeld;
+        }
+        else
+        {
+            shootInput = Input.GetButtonDown("Fire1") || rtDown;
+        }
 
         if (shootInput && Time.time >= nextTimeToFire)
         {
             if (currentAmmo > 0)
             {
-                nextTimeToFire = Time.time + data.fireRate;
+                nextTimeToFire = Time.time + (data != null ? data.fireRate : 0.1f);
                 Shoot();
             }
         }
     }
+
+    // Helper para detectar el Gatillo Derecho (RT) independientemente de la configuración de Unity
+    private float GetRightTriggerAxis()
+    {
+        float trigger = 0f;
+        try { trigger = Input.GetAxis("RightTrigger"); } catch { }
+        if (Mathf.Approximately(trigger, 0f))
+        {
+            try { trigger = Input.GetAxis("Triggers"); } catch { }
+        }
+        return Mathf.Clamp01(trigger);
+    }
+
     public float GetCurrentSpread()
     {
         if (data == null) return 0f;
@@ -184,7 +219,6 @@ public class WeaponBase : MonoBehaviour
         {
             targetPoint = hit.point;
 
-            // Detección del componente Hitbox en el objetivo
             Hitbox hitTarget = hit.collider.GetComponent<Hitbox>();
 
             if (hitTarget != null)
@@ -213,7 +247,7 @@ public class WeaponBase : MonoBehaviour
 
     void PlayRandomShootSound()
     {
-        if (data.shootSounds != null && data.shootSounds.Length > 0 && audioSource != null)
+        if (data != null && data.shootSounds != null && data.shootSounds.Length > 0 && audioSource != null)
         {
             int randomIndex = Random.Range(0, data.shootSounds.Length);
             AudioClip clip = data.shootSounds[randomIndex];
@@ -225,12 +259,16 @@ public class WeaponBase : MonoBehaviour
     {
         isReloading = true;
 
-        if (data.reloadSound != null && audioSource != null) audioSource.PlayOneShot(data.reloadSound);
-        if (weaponAnimator != null) weaponAnimator.SetTrigger(reloadTriggerHash);
+        if (data != null && data.reloadSound != null && audioSource != null)
+            audioSource.PlayOneShot(data.reloadSound);
 
-        yield return new WaitForSeconds(data.reloadTime);
+        if (weaponAnimator != null)
+            weaponAnimator.SetTrigger(reloadTriggerHash);
 
-        currentAmmo = data.maxAmmo;
+        float waitTime = data != null ? data.reloadTime : 1.5f;
+        yield return new WaitForSeconds(waitTime);
+
+        currentAmmo = MaxAmmo;
         isReloading = false;
         currentShotIndex = 0;
         firingSpreadPenalty = 0f;
@@ -248,14 +286,14 @@ public class WeaponBase : MonoBehaviour
         muzzleFlash.gameObject.SetActive(true);
         muzzleFlash.Clear();
         muzzleFlash.Play();
-        yield return new WaitForSeconds(0.15f);
+        yield return new WaitForSeconds(0.5f);
         muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         muzzleFlash.gameObject.SetActive(false);
     }
 
     void CreateImpactVisual(RaycastHit hit)
     {
-        if (data.impactPrefabs != null && data.impactPrefabs.Length > 0)
+        if (data != null && data.impactPrefabs != null && data.impactPrefabs.Length > 0)
         {
             int randomIndex = Random.Range(0, data.impactPrefabs.Length);
             GameObject selectedPrefab = data.impactPrefabs[randomIndex];
