@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b013d4e59a7952f45bf28165f85235a4, type: 3}
+  m_Name: SimplePistol
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponData
+  weaponName: Pistola Base
+  isAutomatic: 0
+  damage: 25
+  range: 100
+  fireRate: 0.19
+  maxAmmo: 12
+  reloadTime: 1.8
+  ammoIcon: {fileID: 2800000, guid: e508ee3014e74d14eb5659e0c22bc171, type: 3}
+  recoilResetTime: 0.35
+  recoilPattern:
+  - {x: 0, y: 0}
+  - {x: 0, y: 5}
+  - {x: 3, y: 2}
+  - {x: 2, y: 3}
+  - {x: 2, y: 5}
+  - {x: 5, y: 5}
+  - {x: 5, y: 2}
+  - {x: 5, y: 2}
+  baseSpread: 0.5
+  spreadPerShot: 0.005
+  movementSpreadMultiplier: 2.5
+  airSpreadMultiplier: 0.15
+  shootSounds:
+  - {fileID: 8300000, guid: 7bd2600146711b04db580d3985bcdf52, type: 3}
+  - {fileID: 8300000, guid: 6ce3b44051a393647b2756fe6aad6ad6, type: 3}
+  - {fileID: 8300000, guid: 22591d64820866e48bbf6c51ed3954bd, type: 3}
+  reloadSound: {fileID: 8300000, guid: 6cb082d89b7f54d41848bffa0f6aa253, type: 3}
+  impactPrefabs:
+  - {fileID: 2766617808642064096, guid: 7f344191bfd226543ad11976c26ebd9f, type: 3}
+  - {fileID: 1509670687724981931, guid: 7a5714e6cf4eb5344a9d53426a244f35, type: 3}
+  - {fileID: 795647749264762979, guid: dd6c2a02f622d5d41878f02256b8a19f, type: 3}
+  - {fileID: 6414987945843476718, guid: a31f14a5c06303e4cbaf303caf25bb43, type: 3}
