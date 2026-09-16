@@ -33425,7 +33425,6 @@ MonoBehaviour:
   deadColorHex: '#FF4444'
   messageColorHex: '#FFFFFF'
   playerController: {fileID: 2092990284}
-  activeWeapon: {fileID: 1668392830}
 --- !u!1 &1908620758
 GameObject:
   m_ObjectHideFlags: 0
@@ -34742,7 +34741,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 444, y: -14}
+  m_AnchoredPosition: {x: 428, y: -27}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2090773318
@@ -34765,7 +34764,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 0}
+  m_Texture: {fileID: 2800000, guid: e508ee3014e74d14eb5659e0c22bc171, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
