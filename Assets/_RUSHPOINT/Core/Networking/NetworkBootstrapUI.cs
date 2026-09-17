@@ -5,6 +5,9 @@ public class NetworkBootstrapUI : MonoBehaviour
 {
     private void OnGUI()
     {
+
+        if (NetworkManager.Singleton == null) return;
+
         GUILayout.BeginArea(new Rect(10, 10, 220, 150));
 
         if (!NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)

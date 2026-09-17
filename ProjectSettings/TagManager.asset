@@ -11,10 +11,10 @@ TagManager:
   - Hitbox
   - Water
   - UI
-  - siteLayer
-  - bombLayer
-  - 
-  - 
+  - Site
+  - Bomb
+  - FirstPersonArms
+  - ThirdPersonBody
   - 
   - 
   - 

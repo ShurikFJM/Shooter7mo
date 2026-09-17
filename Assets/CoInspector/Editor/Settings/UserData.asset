@@ -67,13 +67,48 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]"}'
+        count: 9
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]/PlantPointA[0]"}'
+        count: 8
+        gameObjects:
+        - {fileID: 0}
+      - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
+        count: 8
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Bomb[0]"}'
+        count: 7
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]/PlantPointB[0]"}'
+        count: 6
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       recentlyClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]/PlantPointB[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
@@ -83,21 +118,21 @@ MonoBehaviour:
       - paths: []
         count: 1
         gameObjects: []
-      - paths: []
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
         count: 1
-        gameObjects: []
-      - paths: []
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]/PlantPointA[0]"}'
         count: 1
-        gameObjects: []
-      - paths: []
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Bomb[0]"}'
         count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
+        gameObjects:
+        - {fileID: 0}
       - paths: []
         count: 1
         gameObjects: []
@@ -108,7 +143,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 01:41 PM (September 9, 2026)
+    lastSaveTimePrint: 11:14 PM (September 16, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -122,28 +157,28 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 123
+    lastValidTabWidth: 52
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 0
+    lastKnownHeight: 1
     tabs:
-    - path: 
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
       paths: []
-      tabWidth: 62
-      name: 
-      icon: {fileID: 0}
-      shortName: New Tab
+      tabWidth: 49
+      name: Piso
+      icon: {fileID: 2244882685325231567, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: Piso
       filterString: 
-      newTab: 1
+      newTab: 0
       scrollPosition: 0
       isSelected: 0
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: New Tab
+        m_Text: Piso
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "New Tab\u200B"
+        m_TextWithWhitespace: "Piso\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
@@ -182,93 +217,96 @@ MonoBehaviour:
       savePlayModeTransform: 0
       index: 0
       historyPosition: 0
-      componentMaps: []
-      historyPaths: []
-      owner: {fileID: 0}
-    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
-      paths: []
-      tabWidth: 58
-      name: Site A
-      icon: {fileID: 5725305819640465133, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: Site A
-      filterString: 
-      newTab: 0
-      scrollPosition: 0
-      isSelected: 1
-      allCollapsed: 0
-      runtimeFoldouts: 
-      runtimeMultiComponents: []
-      tabTextContent:
-        m_Text: Site A
-        m_Image: {fileID: 0}
-        m_Tooltip: 
-        m_TextWithWhitespace: "Site A\u200B"
-      multiEditMode: 0
-      locked: 0
-      hasPreview: 0
-      previewHeight: 150
-      debug: 0
-      filtering: 0
-      prefab: 0
-      multiFoldout: 1
-      target: {fileID: 0}
-      targets: []
-      linkedPrefabs: []
-      trackMultiTarget: {fileID: 0}
-      serializedTransform:
-        owner: {fileID: 0}
-        localPosition: {x: 0, y: 0, z: 0}
-        localRotation: {x: 0, y: 0, z: 0, w: 0}
-        localScale: {x: 0, y: 0, z: 0}
-        originalPosition: {x: 0, y: 0, z: 0}
-        originalRotation: {x: 0, y: 0, z: 0, w: 0}
-        originalLocalScale: {x: 0, y: 0, z: 0}
-        anchorMin: {x: 0, y: 0}
-        anchorMax: {x: 0, y: 0}
-        anchoredPosition: {x: 0, y: 0}
-        sizeDelta: {x: 0, y: 0}
-        pivot: {x: 0, y: 0}
-        originalAnchorMin: {x: 0, y: 0}
-        originalAnchorMax: {x: 0, y: 0}
-        originalAnchoredPosition: {x: 0, y: 0}
-        originalSizeDelta: {x: 0, y: 0}
-        originalPivot: {x: 0, y: 0}
-        isRectTransform: 0
-        appliedTransform: 0
-        undidTransform: 0
-        autoSave: 0
-      serializedTransforms: []
-      savePlayModeTransform: 0
-      index: 1
-      historyPosition: 0
-      componentMaps: []
-      historyPaths: []
+      componentMaps:
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: transform
+        niceComponentName: transform
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: meshfilter
+        niceComponentName: mesh filter
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: meshrenderer
+        niceComponentName: mesh renderer
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: boxcollider
+        niceComponentName: box collider
+      historyPaths:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]/PlantPointB[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]/PlantPointA[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Bomb[0]"}'
+        prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
+      - 1626479aafbb0b546aef83acd8ecabb3
+    - assetGUIDs:
       - 23b3b56b8ea620b4c8e3ef01590d59f3
     - assetGUIDs:
-      - a0f7beadf1740184cbb9c48db3526548
+      - 8e58c5f376c03654fb710736a221e8e3
     - assetGUIDs:
-      - 0ce53365b9b805b4dae916acf6cc64c1
+      - 40a70974aafb634428d16c0fb09b1a30
     - assetGUIDs:
-      - b2b691b9bf54e074ea544fb911929835
+      - 2da46b308d8957248a88ac3d8e1ecf95
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
     - assetGUIDs:
-      - c1387d69074177a4e84cfd809ad64fb2
+      - 2da46b308d8957248a88ac3d8e1ecf95
     - assetGUIDs:
-      - 1562786dfff06f94790af949b3c096ae
+      - 933d3bee96d1658448e7cf0f857c415e
     - assetGUIDs:
-      - 7cfe7f91b1b9ec34d9ae422b379a66c7
+      - 2da46b308d8957248a88ac3d8e1ecf95
+      - 40a70974aafb634428d16c0fb09b1a30
+      - 8e58c5f376c03654fb710736a221e8e3
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
     - assetGUIDs:
-      - 6438b930bfd627a4594a550d5082172d
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
     - assetGUIDs:
-      - c000273e43838594b97148ea2cdbee9a
+      - f381e7cd838fc12408522d9bebf20ba9
     - assetGUIDs:
-      - 315dd3b7d22909c48977d427ad38807d
-    - assetGUIDs:
-      - a6fd360511e64274b99ea5110a1c2cd2
+      - f2d6972855548644e84f1e6ebb37c576
     targetObject: {fileID: 0}
     targetObjects: []
     lastSelectedAsset: 
@@ -476,6 +514,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/RUSPOINT.unity
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000000000000000000000000000010000000000000000000000000000000100000000000000000000000000000000000000010000000000000001000000000000000000000000000000000000000000000000000000010000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000010000000000000001000000000000000000000001000000000000000000000001000000
+  tipsShown: 01000000000000000000000000000000010000000000000000000000000000000100000000000000000000000000000000000000010000000000000001000000000000000000000000000000010000000000000000000000010000000000000001000000010000000000000000000000000000000000000000000000010000000000000000000000000000000100000000000000010000000000000001000000000000000000000001000000000000000000000001000000
   playModeStartScene: {}
   enteringPlayMode: 0

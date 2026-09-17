@@ -36,6 +36,16 @@ public class BombInteractor : NetworkBehaviour
     public bool HasNearbyBomb => nearbyBomb != null;
     public bool IsInSite => currentSite != null;
 
+    private void Awake()
+    {
+        if (interactOrigin == null)
+        {
+            // Si olvidaste asignarlo, usa la cámara o este mismo transform como respaldo
+            Camera cam = GetComponentInChildren<Camera>();
+            interactOrigin = cam != null ? cam.transform : transform;
+        }
+    }
+
     private void Update()
     {
         if (!IsOwner) return;

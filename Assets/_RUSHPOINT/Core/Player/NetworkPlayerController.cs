@@ -18,6 +18,10 @@ public class NetworkPlayerController : NetworkBehaviour
     [Header("Role Configuration")]
     [SerializeField] private RoleDataSO activeRole;
 
+    [Header("Visual Meshes")]
+    [SerializeField] private GameObject firstPersonRoot;
+    [SerializeField] private GameObject thirdPersonRoot;
+
     private float gravity = -19.62f;
     private Vector3 verticalVelocity;
     private Vector2 moveInput;
@@ -43,6 +47,16 @@ public class NetworkPlayerController : NetworkBehaviour
 
         if (IsOwner)
         {
+            playerCamera.gameObject.SetActive(true);
+            audioListener.enabled = true;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+
+            // El jugador local ve sus brazos, apaga su cuerpo externo
+            if (firstPersonRoot != null) firstPersonRoot.SetActive(true);
+            if (thirdPersonRoot != null) thirdPersonRoot.SetActive(false);
+
+            // Enlazar HUD táctico automáticamente
             TacticalHUD hud = FindFirstObjectByType<TacticalHUD>();
             if (hud != null)
             {
@@ -50,18 +64,14 @@ public class NetworkPlayerController : NetworkBehaviour
                 hud.inventory = GetComponentInChildren<WeaponInventory>();
             }
         }
-
-        if (IsOwner)
-        {
-            playerCamera.gameObject.SetActive(true);
-            audioListener.enabled = true;
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
         else
         {
             playerCamera.gameObject.SetActive(false);
             audioListener.enabled = false;
+
+            // Clientes remotos ven el cuerpo completo, apagan los brazos internos
+            if (firstPersonRoot != null) firstPersonRoot.SetActive(false);
+            if (thirdPersonRoot != null) thirdPersonRoot.SetActive(true);
         }
     }
 
