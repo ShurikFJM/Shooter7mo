@@ -741,9 +741,14 @@ MonoBehaviour:
   audioListener: {fileID: 3740326465607362252}
   mouseSensitivity: 0.15
   upDownLookLimit: 85
-  activeRole: {fileID: 11400000, guid: a6fd360511e64274b99ea5110a1c2cd2, type: 2}
+  roleDatabase: {fileID: 11400000, guid: 42f8182d1a7df26418afbf0c38ab59c6, type: 2}
   firstPersonRoot: {fileID: 6944663374582365644}
   thirdPersonRoot: {fileID: 1465683191712507328}
+  SelectedRole:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 1
 --- !u!114 &8513250139149931668
 MonoBehaviour:
   m_ObjectHideFlags: 0

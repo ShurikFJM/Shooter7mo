@@ -23,7 +23,6 @@ public class NetworkPlayerController : NetworkBehaviour
     [SerializeField] private GameObject firstPersonRoot;
     [SerializeField] private GameObject thirdPersonRoot;
 
-    
     public NetworkVariable<PlayerRoleType> SelectedRole = new NetworkVariable<PlayerRoleType>(
         PlayerRoleType.Assault,
         NetworkVariableReadPermission.Everyone,
@@ -53,11 +52,21 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
+        // Escuchar cambios de rol y cargar las estadísticas iniciales
         SelectedRole.OnValueChanged += OnRoleChanged;
         ApplyRoleData(SelectedRole.Value);
 
         if (IsOwner)
         {
+            // Restablecer foco del Input System
+            PlayerInput pInput = GetComponent<PlayerInput>();
+            if (pInput != null)
+            {
+                pInput.enabled = false;
+                pInput.enabled = true;
+                pInput.ActivateInput();
+            }
+
             playerCamera.gameObject.SetActive(true);
             audioListener.enabled = true;
             Cursor.lockState = CursorLockMode.Locked;
@@ -86,6 +95,7 @@ public class NetworkPlayerController : NetworkBehaviour
     public void SetInitialRole(PlayerRoleType role)
     {
         SelectedRole.Value = role;
+        ApplyRoleData(role);
     }
 
     public override void OnNetworkDespawn()
@@ -100,12 +110,20 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void ApplyRoleData(PlayerRoleType roleType)
     {
-        if (roleDatabase == null) return;
+        if (roleDatabase == null)
+        {
+            Debug.LogError("[NetworkPlayerController] No se asignó RoleDatabaseSO en el Inspector del prefab!", this);
+            return;
+        }
 
         activeRole = roleDatabase.GetRole(roleType);
-        if (activeRole == null) return;
 
-        
+        if (activeRole == null)
+        {
+            Debug.LogError($"[NetworkPlayerController] No se encontró la data del rol {roleType} en RoleDatabase!", this);
+            return;
+        }
+
         if (IsServer)
         {
             NetworkHealth health = GetComponent<NetworkHealth>();
@@ -114,12 +132,6 @@ public class NetworkPlayerController : NetworkBehaviour
                 health.SetMaxStatsServer(activeRole.maxHealth, activeRole.maxArmor);
             }
         }
-    }
-
-    [ServerRpc]
-    public void SelectRoleServerRpc(PlayerRoleType newRole)
-    {
-        SelectedRole.Value = newRole;
     }
 
     private void Update()
