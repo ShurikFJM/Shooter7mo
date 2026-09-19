@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c1318c971da43e04ea177379193a3b66, type: 3}
-  m_Name: Role_Assault
+  m_Name: Role_Medic
   m_EditorClassIdentifier: Assembly-CSharp::RoleDataSO
-  roleType: 1
-  roleName: Asalto
-  roleDescription: Eres el rol el cual esta en la infanteria dandolo todo
-  maxHealth: 100
-  maxArmor: 50
-  walkSpeed: 5
-  sprintSpeed: 7.5
+  roleType: 2
+  roleName: Medico
+  roleDescription: 
+  maxHealth: 90
+  maxArmor: 40
+  walkSpeed: 5.1
+  sprintSpeed: 7
   jumpForce: 5

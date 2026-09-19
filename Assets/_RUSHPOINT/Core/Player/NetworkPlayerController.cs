@@ -16,11 +16,19 @@ public class NetworkPlayerController : NetworkBehaviour
     [SerializeField] private float upDownLookLimit = 85f;
 
     [Header("Role Configuration")]
-    [SerializeField] private RoleDataSO activeRole;
+    [SerializeField] private RoleDatabaseSO roleDatabase;
+    private RoleDataSO activeRole;
 
     [Header("Visual Meshes")]
     [SerializeField] private GameObject firstPersonRoot;
     [SerializeField] private GameObject thirdPersonRoot;
+
+    
+    public NetworkVariable<PlayerRoleType> SelectedRole = new NetworkVariable<PlayerRoleType>(
+        PlayerRoleType.Assault,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     private float gravity = -19.62f;
     private Vector3 verticalVelocity;
@@ -30,10 +38,10 @@ public class NetworkPlayerController : NetworkBehaviour
     private bool jumpRequested;
     private float cameraPitch = 0f;
 
-    // Propiedades públicas que consume WeaponBase
     public Camera PlayerCamera => playerCamera;
     public bool IsGrounded => characterController != null && characterController.isGrounded;
     public bool IsMoving => moveInput.sqrMagnitude > 0.01f;
+    public RoleDataSO ActiveRole => activeRole;
 
     private void Awake()
     {
@@ -45,6 +53,9 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
+        SelectedRole.OnValueChanged += OnRoleChanged;
+        ApplyRoleData(SelectedRole.Value);
+
         if (IsOwner)
         {
             playerCamera.gameObject.SetActive(true);
@@ -52,11 +63,9 @@ public class NetworkPlayerController : NetworkBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
-            // El jugador local ve sus brazos, apaga su cuerpo externo
             if (firstPersonRoot != null) firstPersonRoot.SetActive(true);
             if (thirdPersonRoot != null) thirdPersonRoot.SetActive(false);
 
-            // Enlazar HUD táctico automáticamente
             TacticalHUD hud = FindFirstObjectByType<TacticalHUD>();
             if (hud != null)
             {
@@ -69,10 +78,48 @@ public class NetworkPlayerController : NetworkBehaviour
             playerCamera.gameObject.SetActive(false);
             audioListener.enabled = false;
 
-            // Clientes remotos ven el cuerpo completo, apagan los brazos internos
             if (firstPersonRoot != null) firstPersonRoot.SetActive(false);
             if (thirdPersonRoot != null) thirdPersonRoot.SetActive(true);
         }
+    }
+
+    public void SetInitialRole(PlayerRoleType role)
+    {
+        SelectedRole.Value = role;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        SelectedRole.OnValueChanged -= OnRoleChanged;
+    }
+
+    private void OnRoleChanged(PlayerRoleType previous, PlayerRoleType current)
+    {
+        ApplyRoleData(current);
+    }
+
+    private void ApplyRoleData(PlayerRoleType roleType)
+    {
+        if (roleDatabase == null) return;
+
+        activeRole = roleDatabase.GetRole(roleType);
+        if (activeRole == null) return;
+
+        
+        if (IsServer)
+        {
+            NetworkHealth health = GetComponent<NetworkHealth>();
+            if (health != null)
+            {
+                health.SetMaxStatsServer(activeRole.maxHealth, activeRole.maxArmor);
+            }
+        }
+    }
+
+    [ServerRpc]
+    public void SelectRoleServerRpc(PlayerRoleType newRole)
+    {
+        SelectedRole.Value = newRole;
     }
 
     private void Update()

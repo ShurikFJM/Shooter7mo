@@ -19,6 +19,17 @@ public class NetworkHealth : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    public void SetMaxStatsServer(float newMaxHealth, float newMaxArmor)
+    {
+        if (!IsServer) return;
+
+        maxHealth = newMaxHealth;
+        maxArmor = newMaxArmor;
+
+        CurrentHealth.Value = maxHealth;
+        CurrentArmor.Value = maxArmor;
+    }
+
     public override void OnNetworkSpawn()
     {
         if (IsServer)

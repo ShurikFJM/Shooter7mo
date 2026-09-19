@@ -67,13 +67,28 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Obstacle1 (3)[0]"}'
+        count: 14
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]"}'
+        count: 13
+        gameObjects:
+        - {fileID: 0}
+      - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]"}'
         count: 9
         gameObjects:
         - {fileID: 0}
       - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]/PlantPointA[0]"}'
-        count: 8
+        count: 9
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
+        count: 9
         gameObjects:
         - {fileID: 0}
       - paths:
@@ -83,7 +98,7 @@ MonoBehaviour:
         - {fileID: 0}
       - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Bomb[0]"}'
-        count: 7
+        count: 8
         gameObjects:
         - {fileID: 0}
       - paths:
@@ -92,50 +107,67 @@ MonoBehaviour:
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
+        count: 3
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/SpeedText[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       recentlyClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/SpeedText[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/HealthText[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]/PlantPointB[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/DescText[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]/PlantPointA[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/NameText[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Bomb[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
-      - paths: []
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]"}'
         count: 1
-        gameObjects: []
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/NameText[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/DescText[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/HealthText[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/SpeedText[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Select[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Roles[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
       - paths: []
         count: 1
         gameObjects: []
@@ -143,7 +175,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 11:14 PM (September 16, 2026)
+    lastSaveTimePrint: 09:43 PM (September 18, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -157,32 +189,32 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 52
+    lastValidTabWidth: 86
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 1
+    lastKnownHeight: 0
     tabs:
-    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/SpeedText[0]"}'
       paths: []
-      tabWidth: 49
-      name: Piso
-      icon: {fileID: 2244882685325231567, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: Piso
+      tabWidth: 83
+      name: SpeedText
+      icon: {fileID: -3593279590788295529, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: SpeedText
       filterString: 
       newTab: 0
       scrollPosition: 0
-      isSelected: 0
+      isSelected: 1
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: Piso
+        m_Text: SpeedText
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "Piso\u200B"
+        m_TextWithWhitespace: "SpeedText\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
-      previewHeight: 150
+      previewHeight: 13
       debug: 0
       filtering: 0
       prefab: 0
@@ -226,8 +258,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: transform
-        niceComponentName: transform
+        componentName: recttransform
+        niceComponentName: rect transform
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -236,8 +268,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: meshfilter
-        niceComponentName: mesh filter
+        componentName: canvasrenderer
+        niceComponentName: canvas renderer
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -246,67 +278,85 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: meshrenderer
-        niceComponentName: mesh renderer
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: boxcollider
-        niceComponentName: box collider
+        componentName: textmeshprougui
+        niceComponentName: text mesh pro ugui
       historyPaths:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Piso[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/SpeedText[0]"}'
         prefab: 0
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/HealthText[0]"}'
         prefab: 0
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]/PlantPointB[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/DescText[0]"}'
         prefab: 0
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/NameText[0]"}'
         prefab: 0
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]/PlantPointA[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]"}'
         prefab: 0
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Bomb[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/NameText[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/DescText[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/HealthText[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Stats[0]/SpeedText[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Select[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Roles[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Roles[0]/Tank[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Roles[0]/Assault[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Roles[0]/Medic[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Roles[0]/Mobility[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Roles[0]/Sniper[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Roles[0]/Support[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleSelecter[0]/Roles[0]/Tank[0]"}'
         prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - 1626479aafbb0b546aef83acd8ecabb3
+      - 42f8182d1a7df26418afbf0c38ab59c6
     - assetGUIDs:
-      - 23b3b56b8ea620b4c8e3ef01590d59f3
+      - a6fd360511e64274b99ea5110a1c2cd2
+      - 93536632a2429584c845e889f0426318
+      - a55fb00e854537242b45f21610d9e8e4
+      - 517780f3edda80f43baa50dc5ba044c4
+      - 2d9024111334b1443990f9af61b7c39d
+      - 0fa3122525660de4a8b9c9d26d4f36c5
     - assetGUIDs:
-      - 8e58c5f376c03654fb710736a221e8e3
+      - a6fd360511e64274b99ea5110a1c2cd2
     - assetGUIDs:
-      - 40a70974aafb634428d16c0fb09b1a30
+      - 0fa3122525660de4a8b9c9d26d4f36c5
     - assetGUIDs:
-      - 2da46b308d8957248a88ac3d8e1ecf95
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 93536632a2429584c845e889f0426318
+      - a55fb00e854537242b45f21610d9e8e4
+      - 517780f3edda80f43baa50dc5ba044c4
+      - 2d9024111334b1443990f9af61b7c39d
+      - 0fa3122525660de4a8b9c9d26d4f36c5
     - assetGUIDs:
-      - 2da46b308d8957248a88ac3d8e1ecf95
+      - 93536632a2429584c845e889f0426318
     - assetGUIDs:
-      - 933d3bee96d1658448e7cf0f857c415e
+      - b3aefab6f4408894ca6b55610e0bb4ff
     - assetGUIDs:
-      - 2da46b308d8957248a88ac3d8e1ecf95
-      - 40a70974aafb634428d16c0fb09b1a30
-      - 8e58c5f376c03654fb710736a221e8e3
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 3c1496308b8f780449f6ef99ba39dccf
     - assetGUIDs:
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 4fd10b3a4de3ded44bca58a1aaa50a90
+    - assetGUIDs:
+      - 6d9aec29deb88c04ba7d6cb37cadc8dc
     - assetGUIDs:
       - f381e7cd838fc12408522d9bebf20ba9
-    - assetGUIDs:
-      - f2d6972855548644e84f1e6ebb37c576
     targetObject: {fileID: 0}
     targetObjects: []
     lastSelectedAsset: 
@@ -514,6 +564,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/RUSPOINT.unity
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000000000000000000000000000010000000000000000000000000000000100000000000000000000000000000000000000010000000000000001000000000000000000000000000000010000000000000000000000010000000000000001000000010000000000000000000000000000000000000000000000010000000000000000000000000000000100000000000000010000000000000001000000000000000000000001000000000000000000000001000000
+  tipsShown: 01000000000000000000000000000000010000000000000000000000010000000100000000000000000000000000000000000000010000000000000001000000000000000000000000000000010000000000000000000000010000000000000001000000010000000000000000000000000000000000000000000000010000000100000000000000000000000100000000000000010000000000000001000000000000000000000001000000000000000100000001000000
   playModeStartScene: {}
   enteringPlayMode: 0
