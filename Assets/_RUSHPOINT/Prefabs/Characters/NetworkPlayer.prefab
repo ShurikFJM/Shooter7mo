@@ -606,7 +606,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1871180684
+  GlobalObjectIdHash: 2397595995
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -741,9 +741,14 @@ MonoBehaviour:
   audioListener: {fileID: 3740326465607362252}
   mouseSensitivity: 0.15
   upDownLookLimit: 85
-  activeRole: {fileID: 11400000, guid: a6fd360511e64274b99ea5110a1c2cd2, type: 2}
+  roleDatabase: {fileID: 11400000, guid: 42f8182d1a7df26418afbf0c38ab59c6, type: 2}
   firstPersonRoot: {fileID: 6944663374582365644}
   thirdPersonRoot: {fileID: 1465683191712507328}
+  SelectedRole:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 1
 --- !u!114 &8513250139149931668
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1435,7 +1440,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3566946473563299876, guid: b2b691b9bf54e074ea544fb911929835, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2091010043
+      value: 1561909812
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

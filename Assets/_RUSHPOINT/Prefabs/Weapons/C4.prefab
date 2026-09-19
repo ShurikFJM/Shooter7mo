@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 3217160544809793302}
   - component: {fileID: 9221344759493067602}
   - component: {fileID: 3848719315728107247}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: C4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -106,8 +106,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1789473011
-  InScenePlacedSourceGlobalObjectIdHash: 3757609280
+  GlobalObjectIdHash: 1693040567
+  InScenePlacedSourceGlobalObjectIdHash: 1366868768
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
   Ownership: 1
