@@ -67,8 +67,15 @@ public class WeaponBase : NetworkBehaviour
 
     void Update()
     {
-        // Solo el jugador dueño de este personaje puede procesar disparos e inputs
+
         if (!IsOwner) return;
+
+        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
+        {
+            return;
+        }
+
+        // Solo el jugador dueño de este personaje puede procesar disparos e inputs
 
         targetPosition = Vector3.Lerp(targetPosition, Vector3.zero, Time.deltaTime * returnSpeed);
         targetRotation = Quaternion.Slerp(targetRotation, Quaternion.identity, Time.deltaTime * returnSpeed);
