@@ -52,6 +52,7 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
+        // Escuchar cambios de rol y cargar las estadísticas iniciales
         SelectedRole.OnValueChanged += OnRoleChanged;
         ApplyRoleData(SelectedRole.Value);
 
@@ -74,19 +75,7 @@ public class NetworkPlayerController : NetworkBehaviour
             if (firstPersonRoot != null) firstPersonRoot.SetActive(true);
             if (thirdPersonRoot != null) thirdPersonRoot.SetActive(false);
 
-            // Inyectar cámara local en todos los Canvas (incluso los inactivos)
-            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (Canvas c in allCanvases)
-            {
-                if (c.renderMode == RenderMode.ScreenSpaceCamera)
-                {
-                    c.worldCamera = playerCamera;
-                    c.planeDistance = 1f;
-                }
-            }
-
-            // Enlazar HUD táctico
-            TacticalHUD hud = FindFirstObjectByType<TacticalHUD>();
+            TacticalHUD hud = FindAnyObjectByType<TacticalHUD>();
             if (hud != null)
             {
                 hud.playerHealth = GetComponent<NetworkHealth>();

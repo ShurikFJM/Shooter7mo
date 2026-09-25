@@ -545,7 +545,9 @@ GameObject:
   - component: {fileID: 2836447743696831566}
   - component: {fileID: 5862416640053250531}
   - component: {fileID: 8513250139149931668}
-  m_Layer: 0
+  - component: {fileID: 219256414515823687}
+  - component: {fileID: 8695485612168533332}
+  m_Layer: 11
   m_Name: NetworkPlayer
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -771,6 +773,41 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   plantHoldTime: 4
+--- !u!114 &219256414515823687
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5347775635805665784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa5b81ef299e84f4984d05e5f5c08d7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerTeam
+  ShowTopMostFoldoutHeaderGroup: 1
+  CurrentTeam:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+--- !u!114 &8695485612168533332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5347775635805665784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92b583773b8aad040be7a5b720d5b569, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerZoneDetector
+  ShowTopMostFoldoutHeaderGroup: 1
+  zoneLayer:
+    serializedVersion: 2
+    m_Bits: 1024
+  detectRadius: 0.2
 --- !u!1 &5650862837141661167
 GameObject:
   m_ObjectHideFlags: 0
@@ -1440,7 +1477,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3566946473563299876, guid: b2b691b9bf54e074ea544fb911929835, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2091010043
+      value: 1561909812
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
