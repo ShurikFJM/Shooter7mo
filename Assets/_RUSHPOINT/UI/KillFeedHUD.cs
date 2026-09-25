@@ -1,164 +1,106 @@
-using System.Collections;
 using UnityEngine;
-using TMPro;
 
 public class KillFeedHUD : MonoBehaviour
 {
     public static KillFeedHUD Instance;
 
-    [Header("UI Elementos")]
-    public GameObject killImageObject;     
-    public TextMeshProUGUI killCountText;  
+    [Header("UI - Imágenes por Conteo de Kills")]
+    [Tooltip("Arrastra los objetos en orden: \nElement 0 = 0 Kills (Default)\nElement 1 = 1 Kill\nElement 2 = 2 Kills\nElement 3 = 3 Kills\nElement 4 = 4 Kills\nElement 5 = 5 Kills\nElement 6 = 6 Kills")]
+    public GameObject[] killImages;
 
     [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip killSound;
     public AudioClip headshotKillSound;
 
-    [Header("Configuración de Tiempos")]
-    public float displayDuration = 2f;     
-
-    [Header("Feedback de Bajas Consecutivas (Punch UI)")]
-    public bool useScalePunch = true;       
-    public float punchScaleAmount = 1.25f;  
-    public float punchDuration = 0.1f;      
-
     private int totalKills = 0;
-    private Coroutine hideCoroutine;
-    private Coroutine punchCoroutine;
-    private Vector3 originalImageScale = Vector3.one;
-    private Vector3 originalTextScale = Vector3.one;
 
-    private Animator imageAnimator;
-    private Animation imageLegacyAnim;
+    public int TotalKills => totalKills;
 
     void Awake()
     {
         Instance = this;
 
-        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
+    }
 
-        if (killImageObject != null)
-        {
-            originalImageScale = killImageObject.transform.localScale;
-            imageAnimator = killImageObject.GetComponent<Animator>();
-            imageLegacyAnim = killImageObject.GetComponent<Animation>();
-        }
-
-        if (killCountText != null)
-        {
-            originalTextScale = killCountText.transform.localScale;
-        }
-
-        SetUIActive(false);
+    void Start()
+    {
+        // Al iniciar la partida, mostramos la imagen por defecto (0 kills)
+        ResetKills();
     }
 
     public void TriggerKillNotification(bool isHeadshot)
     {
+        // 1. Incrementar el contador de bajas
         totalKills++;
 
-        if (killCountText != null)
-        {
-            killCountText.text = totalKills.ToString();
-        }
+        // 2. Actualizar la imagen en pantalla y reproducir su animación
+        UpdateKillImageDisplay();
 
+        // 3. Reproducir el sonido correspondiente
         AudioClip clipToPlay = isHeadshot ? (headshotKillSound != null ? headshotKillSound : killSound) : killSound;
         if (clipToPlay != null && audioSource != null)
         {
             audioSource.PlayOneShot(clipToPlay);
         }
-
-        SetUIActive(true);
-
-        RestartUIAnimations();
-
-        if (useScalePunch)
-        {
-            if (punchCoroutine != null) StopCoroutine(punchCoroutine);
-            punchCoroutine = StartCoroutine(PunchScaleRoutine());
-        }
-
-        if (hideCoroutine != null) StopCoroutine(hideCoroutine);
-        hideCoroutine = StartCoroutine(HidePanelRoutine());
     }
 
-    private void RestartUIAnimations()
+    private void UpdateKillImageDisplay()
     {
-      
-        if (imageAnimator != null)
-        {
-            imageAnimator.Rebind();
-            imageAnimator.Update(0f);
-            imageAnimator.Play(0, -1, 0f);
-        }
+        if (killImages == null || killImages.Length == 0) return;
 
-        if (imageLegacyAnim != null)
-        {
-            imageLegacyAnim.Stop();
-            imageLegacyAnim.Rewind();
-            imageLegacyAnim.Play();
-        }
+        // Determinamos el índice seguro para el arreglo
+        int targetIndex = Mathf.Clamp(totalKills, 0, killImages.Length - 1);
 
-        if (killCountText != null)
+        // Apagar absolutamente todas las imágenes
+        for (int i = 0; i < killImages.Length; i++)
         {
-            Animator textAnim = killCountText.GetComponent<Animator>();
-            if (textAnim != null)
+            if (killImages[i] != null)
             {
-                textAnim.Rebind();
-                textAnim.Update(0f);
-                textAnim.Play(0, -1, 0f);
-            }
-
-            Animation textLegacyAnim = killCountText.GetComponent<Animation>();
-            if (textLegacyAnim != null)
-            {
-                textLegacyAnim.Stop();
-                textLegacyAnim.Rewind();
-                textLegacyAnim.Play();
+                killImages[i].SetActive(false);
             }
         }
+
+        // Encender únicamente la imagen correspondiente a las kills actuales
+        GameObject activeKillObject = killImages[targetIndex];
+        if (activeKillObject != null)
+        {
+            activeKillObject.SetActive(true);
+
+            // Reiniciar e interrumpir la animación desde el segundo 0
+            RestartObjectAnimation(activeKillObject);
+        }
     }
 
-    IEnumerator PunchScaleRoutine()
+    private void RestartObjectAnimation(GameObject obj)
     {
-        float timer = 0f;
+        if (obj == null) return;
 
-        if (killImageObject != null) killImageObject.transform.localScale = originalImageScale * punchScaleAmount;
-        if (killCountText != null) killCountText.transform.localScale = originalTextScale * punchScaleAmount;
-
-        while (timer < punchDuration)
+        // Si utiliza el sistema de Animator de Unity
+        Animator animator = obj.GetComponent<Animator>();
+        if (animator != null)
         {
-            timer += Time.deltaTime;
-            float progress = timer / punchDuration;
-
-            if (killImageObject != null)
-                killImageObject.transform.localScale = Vector3.Lerp(originalImageScale * punchScaleAmount, originalImageScale, progress);
-
-            if (killCountText != null)
-                killCountText.transform.localScale = Vector3.Lerp(originalTextScale * punchScaleAmount, originalTextScale, progress);
-
-            yield return null;
+            animator.Rebind();
+            animator.Update(0f);
+            animator.Play(0, -1, 0f);
         }
 
-        if (killImageObject != null) killImageObject.transform.localScale = originalImageScale;
-        if (killCountText != null) killCountText.transform.localScale = originalTextScale;
+        // Si utiliza el sistema de Animation Legacy
+        Animation legacyAnim = obj.GetComponent<Animation>();
+        if (legacyAnim != null)
+        {
+            legacyAnim.Stop();
+            legacyAnim.Rewind();
+            legacyAnim.Play();
+        }
     }
 
-    IEnumerator HidePanelRoutine()
-    {
-        yield return new WaitForSeconds(displayDuration);
-        SetUIActive(false);
-    }
-
-    private void SetUIActive(bool active)
-    {
-        if (killImageObject != null) killImageObject.SetActive(active);
-        if (killCountText != null) killCountText.gameObject.SetActive(active);
-    }
-
+    // Llama a esta función para reiniciar el contador a 0 Kills (Ej: nueva ronda)
     public void ResetKills()
     {
         totalKills = 0;
-        if (killCountText != null) killCountText.text = "0";
+        UpdateKillImageDisplay();
     }
 }
