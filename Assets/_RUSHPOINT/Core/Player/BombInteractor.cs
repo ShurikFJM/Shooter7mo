@@ -2,17 +2,6 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Agregar junto a NetworkPlayerController. Detecta bombas cercanas y sitios
-/// de plantado, y traduce el input de "Interactuar" en las acciones de
-/// recoger / dropear / plantar sobre Bomb.cs.
-///
-/// Requiere en el Input Actions Asset:
-///  - Acción "Interact" (botón, ej. tecla E) -> OnInteract
-/// Y en el proyecto:
-///  - Los jugadores deben tener el tag "Player"
-///  - Definir Layers para la bomba y para los BombSite, y asignarlas en el inspector
-/// </summary>
 public class BombInteractor : NetworkBehaviour
 {
     [Header("Referencias")]
@@ -30,7 +19,9 @@ public class BombInteractor : NetworkBehaviour
     private float plantProgress;
     private bool isPlanting;
 
-    public bool IsCarryingBomb => carriedBomb != null;
+    // Validación estricta: solo se considera que llevas la bomba si el NetworkVariable del servidor confirma que eres el portador (IA)
+    public bool IsCarryingBomb => carriedBomb != null && carriedBomb.State.Value == BombState.Carried && carriedBomb.CarrierClientId.Value == NetworkManager.Singleton.LocalClientId;
+
     public bool IsPlanting => isPlanting;
     public float PlantProgress01 => plantHoldTime > 0f ? plantProgress / plantHoldTime : 0f;
     public bool HasNearbyBomb => nearbyBomb != null;
@@ -40,7 +31,6 @@ public class BombInteractor : NetworkBehaviour
     {
         if (interactOrigin == null)
         {
-            // Si olvidaste asignarlo, usa la cámara o este mismo transform como respaldo
             Camera cam = GetComponentInChildren<Camera>();
             interactOrigin = cam != null ? cam.transform : transform;
         }
@@ -50,9 +40,42 @@ public class BombInteractor : NetworkBehaviour
     {
         if (!IsOwner) return;
 
+        // Limpiar referencia de bomba si ya no la poseemos en red
+        VerifyCarriedBombState();
+
+        // Bloquear si la pausa o el chat están abiertos
+        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
+        {
+            if (isPlanting) StopPlant();
+            return;
+        }
+
+        if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
+        {
+            if (isPlanting) StopPlant();
+            return;
+        }
+
         DetectNearbyBomb();
         DetectCurrentSite();
         HandlePlantHold();
+    }
+
+    private void VerifyCarriedBombState()
+    {
+        if (carriedBomb != null)
+        {
+            // Si la bomba fue dropeada, plantada o tomada por otro cliente, anulamos la posesión de inmediato
+            if (carriedBomb.State.Value != BombState.Carried ||
+                carriedBomb.CarrierClientId.Value != NetworkManager.Singleton.LocalClientId)
+            {
+                carriedBomb = null;
+                if (isPlanting)
+                {
+                    StopPlant();
+                }
+            }
+        }
     }
 
     private void DetectNearbyBomb()
@@ -83,7 +106,7 @@ public class BombInteractor : NetworkBehaviour
 
     private void DetectCurrentSite()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, 0.15f, siteLayer);
+        Collider[] hits = Physics.OverlapSphere(transform.position, 0.5f, siteLayer);
         currentSite = null;
 
         foreach (Collider hit in hits)
@@ -97,11 +120,6 @@ public class BombInteractor : NetworkBehaviour
         }
     }
 
-    // Enlazar en el Player Input component (Behavior: Send Messages).
-    // La acción "Interact" debe usar la interacción "Press" con
-    // Trigger Behavior = "Press and Release", así este mismo método
-    // se llama tanto al presionar (isPressed = true) como al soltar
-    // (isPressed = false) el botón.
     public void OnInteract(InputValue value)
     {
         if (!IsOwner) return;
@@ -112,21 +130,23 @@ public class BombInteractor : NetworkBehaviour
         }
         else
         {
-            // Soltaste el botón: si estabas plantando, se cancela.
             StopPlant();
         }
     }
 
     private void HandleInteractPressed()
     {
+        // 1. Si estás dentro del site y realmente posees la bomba -> Iniciar plantado
         if (IsCarryingBomb && currentSite != null)
         {
             BeginPlant();
         }
+        // 2. Si posees la bomba pero estás fuera del site -> Dropear
         else if (IsCarryingBomb)
         {
             RequestDrop();
         }
+        // 3. Si no tienes la bomba pero hay una cerca tirada -> Recoger
         else if (nearbyBomb != null)
         {
             RequestPickup(nearbyBomb);
@@ -137,7 +157,7 @@ public class BombInteractor : NetworkBehaviour
     {
         if (!isPlanting) return;
 
-        // Si te sales del sitio o sueltas la bomba (por otra vía) a mitad de plantado, cancelar
+        // Cancelar si sales del site o si dejas de tener la bomba autorizada
         if (currentSite == null || !IsCarryingBomb)
         {
             StopPlant();
@@ -166,17 +186,31 @@ public class BombInteractor : NetworkBehaviour
 
     private void FinishPlant()
     {
-        if (carriedBomb == null || currentSite == null) return;
+        if (carriedBomb == null || currentSite == null || !IsCarryingBomb) return;
 
+        Vector3 plantPosition = transform.position;
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, Vector3.down, out RaycastHit groundHit, 2f))
+        {
+            plantPosition = groundHit.point;
+        }
+
+        Quaternion plantRotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
         var siteRef = new NetworkBehaviourReference(currentSite);
-        carriedBomb.RequestPlantServerRpc(NetworkManager.Singleton.LocalClientId, siteRef);
+
+        carriedBomb.RequestPlantServerRpc(
+            NetworkManager.Singleton.LocalClientId,
+            siteRef,
+            plantPosition,
+            plantRotation
+        );
+
         carriedBomb = null;
     }
 
     private void RequestPickup(Bomb bomb)
     {
         bomb.RequestPickupServerRpc(NetworkManager.Singleton.LocalClientId);
-        carriedBomb = bomb; // asignación optimista local; el estado real lo confirma el NetworkVariable
+        carriedBomb = bomb;
     }
 
     private void RequestDrop()
@@ -184,5 +218,6 @@ public class BombInteractor : NetworkBehaviour
         if (carriedBomb == null) return;
         carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId);
         carriedBomb = null;
+        StopPlant();
     }
 }

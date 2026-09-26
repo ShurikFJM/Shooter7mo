@@ -75,6 +75,17 @@ public class WeaponBase : NetworkBehaviour
             return;
         }
 
+        if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
+        {
+            return;
+        }
+
+        BombInteractor bombInteractor = GetComponentInParent<BombInteractor>();
+        if (bombInteractor != null && bombInteractor.IsPlanting)
+        {
+            return;
+        }
+
         // Solo el jugador dueño de este personaje puede procesar disparos e inputs
 
         targetPosition = Vector3.Lerp(targetPosition, Vector3.zero, Time.deltaTime * returnSpeed);

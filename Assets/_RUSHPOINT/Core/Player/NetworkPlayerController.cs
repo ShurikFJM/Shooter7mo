@@ -52,13 +52,11 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
-        // Escuchar cambios de rol y cargar las estadísticas iniciales
         SelectedRole.OnValueChanged += OnRoleChanged;
         ApplyRoleData(SelectedRole.Value);
 
         if (IsOwner)
         {
-            // Restablecer foco del Input System
             PlayerInput pInput = GetComponent<PlayerInput>();
             if (pInput != null)
             {
@@ -75,7 +73,17 @@ public class NetworkPlayerController : NetworkBehaviour
             if (firstPersonRoot != null) firstPersonRoot.SetActive(true);
             if (thirdPersonRoot != null) thirdPersonRoot.SetActive(false);
 
-            TacticalHUD hud = FindAnyObjectByType<TacticalHUD>();
+            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (Canvas c in allCanvases)
+            {
+                if (c.renderMode == RenderMode.ScreenSpaceCamera)
+                {
+                    c.worldCamera = playerCamera;
+                    c.planeDistance = 1f;
+                }
+            }
+
+            TacticalHUD hud = FindFirstObjectByType<TacticalHUD>();
             if (hud != null)
             {
                 hud.playerHealth = GetComponent<NetworkHealth>();
@@ -165,6 +173,13 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (activeRole == null) return;
 
+        // NUEVO: Bloquear desplazamiento si se está plantando la bomba
+        BombInteractor bombInteractor = GetComponent<BombInteractor>();
+        if (bombInteractor != null && bombInteractor.IsPlanting)
+        {
+            moveInput = Vector2.zero; // Limpia la inercia del input
+        }
+
         if (IsGrounded && verticalVelocity.y < 0)
             verticalVelocity.y = -2f;
 
@@ -172,9 +187,13 @@ public class NetworkPlayerController : NetworkBehaviour
         float currentSpeed = isSprinting ? activeRole.sprintSpeed : activeRole.walkSpeed;
         characterController.Move(moveDir * currentSpeed * Time.deltaTime);
 
+        // Bloquear salto si se está plantando
         if (jumpRequested && IsGrounded)
         {
-            verticalVelocity.y = Mathf.Sqrt(activeRole.jumpForce * -2f * gravity);
+            if (bombInteractor == null || !bombInteractor.IsPlanting)
+            {
+                verticalVelocity.y = Mathf.Sqrt(activeRole.jumpForce * -2f * gravity);
+            }
             jumpRequested = false;
         }
 

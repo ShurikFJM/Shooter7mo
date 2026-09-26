@@ -142,7 +142,7 @@ public class Bomb : NetworkBehaviour
 
     // ---------------- PLANTAR ----------------
     [ServerRpc(RequireOwnership = false)]
-    public void RequestPlantServerRpc(ulong requesterClientId, NetworkBehaviourReference siteReference)
+    public void RequestPlantServerRpc(ulong requesterClientId, NetworkBehaviourReference siteReference, Vector3 plantPosition, Quaternion plantRotation)
     {
         if (State.Value != BombState.Carried) return;
         if (CarrierClientId.Value != requesterClientId) return;
@@ -154,8 +154,17 @@ public class Bomb : NetworkBehaviour
         if (requesterObject == null) return;
         if (!site.IsPositionInside(requesterObject.transform.position)) return;
 
+        // Desvincular del jugador
         NetworkObject.TryRemoveParent(true);
-        transform.SetPositionAndRotation(site.PlantPoint.position, site.PlantPoint.rotation);
+
+        // Validar que la posición solicitada esté razonablemente cerca del jugador para evitar desync
+        if (Vector3.Distance(requesterObject.transform.position, plantPosition) > 3f)
+        {
+            plantPosition = requesterObject.transform.position;
+        }
+
+        // Colocar la bomba en la ubicación y rotación exactas del suelo donde se plantó
+        transform.SetPositionAndRotation(plantPosition, plantRotation);
 
         plantedSite = site;
         detonationTimer = 0f;
@@ -168,6 +177,6 @@ public class Bomb : NetworkBehaviour
     private void DetonateServer()
     {
         State.Value = BombState.Exploded;
-        // TODO: enganchar aquí el evento de fin de ronda (gana el equipo atacante).
+        // Enganchar aquí la condición de fin de ronda para el Game Loop
     }
 }
