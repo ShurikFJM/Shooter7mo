@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using TMPro;
 using Unity.Netcode;
@@ -18,32 +17,39 @@ public class TacticalChatManager : NetworkBehaviour
     public static TacticalChatManager Instance { get; private set; }
 
     [Header("UI Containers & Inputs")]
-    [SerializeField] private GameObject chatInputContainer;
-    [SerializeField] private TMP_InputField chatInputField;
-    [SerializeField] private TextMeshProUGUI channelPromptText;
-    [SerializeField] private TextMeshProUGUI chatLogText;
+    [SerializeField] private GameObject _chatInputContainer;
+    [SerializeField] private TMP_InputField _chatInputField;
+    [SerializeField] private TextMeshProUGUI _channelPromptText;
+    [SerializeField] private TextMeshProUGUI _chatLogText;
 
     [Header("Configuración")]
-    [SerializeField] private float chatLogDisplayDuration = 6f;
-    private const int maxMessageHistory = 10;
+    [SerializeField] private float _chatLogDisplayDuration = 6f;
+    private const int MaxMessageHistory = 10;
 
     [Header("Paleta de Colores")]
-    [SerializeField] private string tColorHex = "#FFA500";       // Naranja Terroristas
-    [SerializeField] private string ctColorHex = "#4DA6FF";      // Azul Counter-Terrorists
-    [SerializeField] private string deadColorHex = "#FF4444";    // Rojo muertos
-    [SerializeField] private string messageColorHex = "#FFFFFF"; // Blanco texto general
+    [SerializeField] private string _tColorHex = "#FFA500";
+    [SerializeField] private string _ctColorHex = "#4DA6FF";
+    [SerializeField] private string _deadColorHex = "#FF4444";
+    [SerializeField] private string _messageColorHex = "#FFFFFF";
 
     [Header("Datos Jugador Local")]
     public string localPlayerName = "Jugador";
     public TeamSide localTeam = TeamSide.CounterTerrorist;
-    public bool isLocalPlayerDead = false;
+    public bool isLocalPlayerDead;
 
-    private bool isChatOpen = false;
-    private bool isTeamChatOnly = false;
-    private List<string> messageHistory = new List<string>();
-    private Coroutine hideChatLogCoroutine;
+    private bool _isChatOpen;
+    private bool _isTeamChatOnly;
 
-    public bool IsChatOpen => isChatOpen;
+    private readonly List<string> _messageHistory = new();
+
+    private Coroutine _hideChatLogCoroutine;
+
+    private InputAction _globalChatAction;
+    private InputAction _teamChatAction;
+    private InputAction _sendMessageAction;
+    private InputAction _closeChatAction;
+
+    public bool IsChatOpen => _isChatOpen;
 
     private void Awake()
     {
@@ -52,97 +58,233 @@ public class TacticalChatManager : NetworkBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
 
-        if (chatInputContainer != null) chatInputContainer.SetActive(false);
+        ConfigureInputActions();
+        ConfigureInitialUI();
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        if (chatLogText != null)
+        SubscribeToInputEvents();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromInputEvents();
+    }
+
+    private void OnDestroy()
+    {
+        DisposeInputActions();
+    }
+
+    private void ConfigureInitialUI()
+    {
+        if (_chatInputContainer != null)
         {
-            chatLogText.gameObject.SetActive(false);
+            _chatInputContainer.SetActive(false);
+        }
+
+        if (_chatLogText != null)
+        {
+            _chatLogText.gameObject.SetActive(false);
         }
     }
 
-    private void Update()
+    private void ConfigureInputActions()
     {
-        // No abrir chat si el menú de pausa está activo
-        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
+        _globalChatAction = new InputAction(
+            name: "GlobalChat",
+            type: InputActionType.Button,
+            binding: "<Keyboard>/y"
+        );
+
+        _teamChatAction = new InputAction(
+            name: "TeamChat",
+            type: InputActionType.Button,
+            binding: "<Keyboard>/t"
+        );
+
+        _sendMessageAction = new InputAction(
+            name: "SendChatMessage",
+            type: InputActionType.Button
+        );
+
+        _sendMessageAction.AddBinding("<Keyboard>/enter");
+        _sendMessageAction.AddBinding("<Keyboard>/numpadEnter");
+
+        _closeChatAction = new InputAction(
+            name: "CloseChat",
+            type: InputActionType.Button,
+            binding: "<Keyboard>/escape"
+        );
+    }
+
+    private void SubscribeToInputEvents()
+    {
+        if (_globalChatAction != null)
         {
-            if (isChatOpen) CloseChat();
+            _globalChatAction.performed += OnGlobalChatPerformed;
+            _globalChatAction.Enable();
+        }
+
+        if (_teamChatAction != null)
+        {
+            _teamChatAction.performed += OnTeamChatPerformed;
+            _teamChatAction.Enable();
+        }
+
+        if (_sendMessageAction != null)
+        {
+            _sendMessageAction.performed += OnSendMessagePerformed;
+            _sendMessageAction.Enable();
+        }
+
+        if (_closeChatAction != null)
+        {
+            _closeChatAction.performed += OnCloseChatPerformed;
+            _closeChatAction.Enable();
+        }
+    }
+
+    private void UnsubscribeFromInputEvents()
+    {
+        if (_globalChatAction != null)
+        {
+            _globalChatAction.performed -= OnGlobalChatPerformed;
+            _globalChatAction.Disable();
+        }
+
+        if (_teamChatAction != null)
+        {
+            _teamChatAction.performed -= OnTeamChatPerformed;
+            _teamChatAction.Disable();
+        }
+
+        if (_sendMessageAction != null)
+        {
+            _sendMessageAction.performed -= OnSendMessagePerformed;
+            _sendMessageAction.Disable();
+        }
+
+        if (_closeChatAction != null)
+        {
+            _closeChatAction.performed -= OnCloseChatPerformed;
+            _closeChatAction.Disable();
+        }
+    }
+
+    private void DisposeInputActions()
+    {
+        _globalChatAction?.Dispose();
+        _teamChatAction?.Dispose();
+        _sendMessageAction?.Dispose();
+        _closeChatAction?.Dispose();
+    }
+
+    private void OnGlobalChatPerformed(InputAction.CallbackContext context)
+    {
+        if (_isChatOpen)
+        {
             return;
         }
 
-        if (!isChatOpen)
+        if (IsPauseMenuActive())
         {
-            // Y = Chat Global | T = Chat de Equipo
-            if (Keyboard.current != null)
-            {
-                if (Keyboard.current.yKey.wasPressedThisFrame) OpenChat(teamOnly: false);
-                if (Keyboard.current.tKey.wasPressedThisFrame) OpenChat(teamOnly: true);
-            }
-            else
-            {
-                if (Input.GetKeyDown(KeyCode.Y)) OpenChat(teamOnly: false);
-                if (Input.GetKeyDown(KeyCode.T)) OpenChat(teamOnly: true);
-            }
+            return;
         }
-        else
+
+        OpenChat(false);
+    }
+
+    private void OnTeamChatPerformed(InputAction.CallbackContext context)
+    {
+        if (_isChatOpen)
         {
-            // Enter para enviar, Escape para cancelar
-            bool enterPressed = (Keyboard.current != null && (Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.numpadEnterKey.wasPressedThisFrame))
-                                || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter);
-
-            bool escPressed = (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-                              || Input.GetKeyDown(KeyCode.Escape);
-
-            if (enterPressed)
-            {
-                SendCurrentMessage();
-            }
-            else if (escPressed)
-            {
-                CloseChat();
-            }
+            return;
         }
+
+        if (IsPauseMenuActive())
+        {
+            return;
+        }
+
+        OpenChat(true);
+    }
+
+    private void OnSendMessagePerformed(InputAction.CallbackContext context)
+    {
+        if (!_isChatOpen)
+        {
+            return;
+        }
+
+        SendCurrentMessage();
+    }
+
+    private void OnCloseChatPerformed(InputAction.CallbackContext context)
+    {
+        if (!_isChatOpen)
+        {
+            return;
+        }
+
+        CloseChat();
     }
 
     public void OpenChat(bool teamOnly)
     {
-        isChatOpen = true;
-        isTeamChatOnly = teamOnly;
+        if (IsPauseMenuActive())
+        {
+            return;
+        }
 
-        if (chatInputContainer != null) chatInputContainer.SetActive(true);
+        _isChatOpen = true;
+        _isTeamChatOnly = teamOnly;
+
+        if (_chatInputContainer != null)
+        {
+            _chatInputContainer.SetActive(true);
+        }
 
         ShowChatLog();
-        if (hideChatLogCoroutine != null) StopCoroutine(hideChatLogCoroutine);
 
-        if (channelPromptText != null)
+        StopHideChatLogCoroutine();
+
+        if (_channelPromptText != null)
         {
-            channelPromptText.text = teamOnly ? "<color=#FFFF00>[EQUIPO]:</color>" : "<color=#FFFFFF>[TODOS]:</color>";
+            _channelPromptText.text = teamOnly
+                ? "<color=#FFFF00>[EQUIPO]:</color>"
+                : "<color=#FFFFFF>[TODOS]:</color>";
         }
 
         SetPlayerInputLock(true);
 
-        if (chatInputField != null)
+        if (_chatInputField != null)
         {
-            chatInputField.text = "";
-            chatInputField.Select();
-            chatInputField.ActivateInputField();
+            _chatInputField.text = string.Empty;
+            _chatInputField.Select();
+            _chatInputField.ActivateInputField();
         }
     }
 
     public void CloseChat()
     {
-        isChatOpen = false;
+        _isChatOpen = false;
 
-        if (chatInputField != null) chatInputField.DeactivateInputField();
-        if (chatInputContainer != null) chatInputContainer.SetActive(false);
+        if (_chatInputField != null)
+        {
+            _chatInputField.DeactivateInputField();
+        }
 
-        // Si la pausa no está puesta, devolvemos el cursor y el control al jugador
-        bool pauseActive = PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused;
-        if (!pauseActive)
+        if (_chatInputContainer != null)
+        {
+            _chatInputContainer.SetActive(false);
+        }
+
+        if (!IsPauseMenuActive())
         {
             SetPlayerInputLock(false);
         }
@@ -152,82 +294,127 @@ public class TacticalChatManager : NetworkBehaviour
 
     private void SendCurrentMessage()
     {
-        if (chatInputField != null && !string.IsNullOrWhiteSpace(chatInputField.text))
+        if (_chatInputField == null || string.IsNullOrWhiteSpace(_chatInputField.text))
         {
-            string rawText = chatInputField.text.Trim();
-
-            // Revisar si el jugador local está muerto consultando su NetworkHealth
-            CheckLocalPlayerDeathState();
-
-            // Enviar mensaje al servidor para que lo replique
-            SendMessageServerRpc(localPlayerName, localTeam, isLocalPlayerDead, isTeamChatOnly, rawText);
+            CloseChat();
+            return;
         }
+
+        string rawText = _chatInputField.text.Trim();
+
+        CheckLocalPlayerDeathState();
+
+        SendMessageServerRpc(
+            localPlayerName,
+            localTeam,
+            isLocalPlayerDead,
+            _isTeamChatOnly,
+            rawText
+        );
 
         CloseChat();
     }
 
     private void CheckLocalPlayerDeathState()
     {
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
+        if (NetworkManager.Singleton == null)
         {
-            NetworkObject localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
-            if (localPlayer != null)
-            {
-                NetworkHealth health = localPlayer.GetComponent<NetworkHealth>();
-                if (health != null)
-                {
-                    // Si la vida actual llegó a 0, se considera muerto
-                    isLocalPlayerDead = health.CurrentHealth.Value <= 0;
-                }
-            }
+            return;
         }
+
+        if (NetworkManager.Singleton.SpawnManager == null)
+        {
+            return;
+        }
+
+        NetworkObject localPlayer =
+            NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+
+        if (localPlayer == null)
+        {
+            return;
+        }
+
+        NetworkHealth health = localPlayer.GetComponent<NetworkHealth>();
+
+        if (health == null)
+        {
+            return;
+        }
+
+        isLocalPlayerDead = health.CurrentHealth.Value <= 0;
     }
 
-    // --- RPCs DE RED ---
-
     [ServerRpc(RequireOwnership = false)]
-    private void SendMessageServerRpc(string senderName, TeamSide senderTeam, bool isDead, bool isTeamOnly, string message)
+    private void SendMessageServerRpc(
+        string senderName,
+        TeamSide senderTeam,
+        bool isDead,
+        bool isTeamOnly,
+        string message)
     {
-        ReceiveMessageClientRpc(senderName, senderTeam, isDead, isTeamOnly, message);
+        ReceiveMessageClientRpc(
+            senderName,
+            senderTeam,
+            isDead,
+            isTeamOnly,
+            message
+        );
     }
 
     [ClientRpc]
-    private void ReceiveMessageClientRpc(string senderName, TeamSide senderTeam, bool isDead, bool isTeamOnly, string message)
+    private void ReceiveMessageClientRpc(
+        string senderName,
+        TeamSide senderTeam,
+        bool isDead,
+        bool isTeamOnly,
+        string message)
     {
-        // Si el mensaje es solo de equipo y el receptor no es del mismo equipo, se ignora
         if (isTeamOnly && senderTeam != localTeam)
         {
             return;
         }
 
-        string teamColor = (senderTeam == TeamSide.Terrorist) ? tColorHex : ctColorHex;
-        string teamLabel = (senderTeam == TeamSide.Terrorist) ? "(Equipo - T)" : "(Equipo - CT)";
-        string formattedLine = "";
+        string teamColor = senderTeam == TeamSide.Terrorist
+            ? _tColorHex
+            : _ctColorHex;
+
+        string teamLabel = senderTeam == TeamSide.Terrorist
+            ? "(Equipo - T)"
+            : "(Equipo - CT)";
+
+        string formattedLine = string.Empty;
 
         if (isDead)
         {
-            formattedLine += $"<color={deadColorHex}>*MUERTO*</color> ";
+            formattedLine +=
+                $"<color={_deadColorHex}>*MUERTO*</color> ";
         }
 
         if (isTeamOnly)
         {
-            formattedLine += $"<color={teamColor}>{teamLabel} {senderName}</color>: <color={messageColorHex}>{message}</color>";
+            formattedLine +=
+                $"<color={teamColor}>{teamLabel} {senderName}</color>: " +
+                $"<color={_messageColorHex}>{message}</color>";
         }
         else
         {
-            formattedLine += $"<color={teamColor}>{senderName}</color>: <color={messageColorHex}>{message}</color>";
+            formattedLine +=
+                $"<color={teamColor}>{senderName}</color>: " +
+                $"<color={_messageColorHex}>{message}</color>";
         }
 
-        messageHistory.Add(formattedLine);
-        if (messageHistory.Count > maxMessageHistory)
+        _messageHistory.Add(formattedLine);
+
+        if (_messageHistory.Count > MaxMessageHistory)
         {
-            messageHistory.RemoveAt(0);
+            _messageHistory.RemoveAt(0);
         }
 
         UpdateChatUI();
         ShowChatLog();
 
-        if (!isChatOpen)
+        if (!_isChatOpen)
         {
             ResetHideTimer();
         }
@@ -235,51 +422,94 @@ public class TacticalChatManager : NetworkBehaviour
 
     private void UpdateChatUI()
     {
-        if (chatLogText == null) return;
-        chatLogText.text = string.Join("\n", messageHistory);
+        if (_chatLogText == null)
+        {
+            return;
+        }
+
+        _chatLogText.text = string.Join("\n", _messageHistory);
     }
 
     private void ShowChatLog()
     {
-        if (chatLogText != null && !chatLogText.gameObject.activeSelf)
+        if (_chatLogText == null)
         {
-            chatLogText.gameObject.SetActive(true);
+            return;
+        }
+
+        if (!_chatLogText.gameObject.activeSelf)
+        {
+            _chatLogText.gameObject.SetActive(true);
         }
     }
 
     private void ResetHideTimer()
     {
-        if (hideChatLogCoroutine != null) StopCoroutine(hideChatLogCoroutine);
-        hideChatLogCoroutine = StartCoroutine(HideChatLogRoutine());
+        StopHideChatLogCoroutine();
+
+        _hideChatLogCoroutine = StartCoroutine(HideChatLogRoutine());
+    }
+
+    private void StopHideChatLogCoroutine()
+    {
+        if (_hideChatLogCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(_hideChatLogCoroutine);
+        _hideChatLogCoroutine = null;
     }
 
     private IEnumerator HideChatLogRoutine()
     {
-        yield return new WaitForSeconds(chatLogDisplayDuration);
-        if (!isChatOpen && chatLogText != null)
+        yield return new WaitForSeconds(_chatLogDisplayDuration);
+
+        if (!_isChatOpen && _chatLogText != null)
         {
-            chatLogText.gameObject.SetActive(false);
+            _chatLogText.gameObject.SetActive(false);
         }
+
+        _hideChatLogCoroutine = null;
     }
 
     private void SetPlayerInputLock(bool locked)
     {
-        // Obtener al jugador local autoritativo sin depender de referencias estáticas de escena
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
+        if (NetworkManager.Singleton != null &&
+            NetworkManager.Singleton.SpawnManager != null)
         {
-            NetworkObject localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+            NetworkObject localPlayer =
+                NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+
             if (localPlayer != null)
             {
-                PlayerInput pInput = localPlayer.GetComponent<PlayerInput>();
-                if (pInput != null)
+                PlayerInput playerInput =
+                    localPlayer.GetComponent<PlayerInput>();
+
+                if (playerInput != null)
                 {
-                    if (locked) pInput.DeactivateInput();
-                    else pInput.ActivateInput();
+                    if (locked)
+                    {
+                        playerInput.DeactivateInput();
+                    }
+                    else
+                    {
+                        playerInput.ActivateInput();
+                    }
                 }
             }
         }
 
-        Cursor.lockState = locked ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.lockState = locked
+            ? CursorLockMode.None
+            : CursorLockMode.Locked;
+
         Cursor.visible = locked;
+    }
+
+    private bool IsPauseMenuActive()
+    {
+        return PauseMenuManager.Instance != null &&
+               PauseMenuManager.Instance.IsPaused;
     }
 }

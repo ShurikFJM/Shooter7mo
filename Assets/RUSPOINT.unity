@@ -5903,8 +5903,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16.8
-  m_fontSizeBase: 16.8
+  m_fontSize: 35
+  m_fontSizeBase: 35
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -5942,7 +5942,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: -32.070923, w: 0}
+  m_margin: {x: 0, y: 0, z: -112.97055, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -5972,7 +5972,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -725.4, y: -325}
+  m_AnchoredPosition: {x: -837.8, y: -444.1}
   m_SizeDelta: {x: 500, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &683925976
@@ -6255,7 +6255,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.099998474}
+  m_AnchoredPosition: {x: -11, y: -0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &704214261
@@ -6325,8 +6325,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 42.4
-  m_fontSizeBase: 42.4
+  m_fontSize: 70
+  m_fontSizeBase: 70
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -6364,7 +6364,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: -663.65753, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -8446,8 +8446,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 44, y: 0}
-  m_SizeDelta: {x: 442.2, y: 101.3}
+  m_AnchoredPosition: {x: 196, y: 0}
+  m_SizeDelta: {x: 1074.09, y: 101.3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1004663999
 MonoBehaviour:
@@ -11603,7 +11603,7 @@ RectTransform:
   m_GameObject: {fileID: 1442411379}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.18888706, y: 0.18888706, z: 0.18888706}
+  m_LocalScale: {x: 0.18888706, y: 0.18507423, z: 0.18888706}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2137501611}
@@ -11612,8 +11612,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -761, y: -403}
-  m_SizeDelta: {x: 67.4686, y: -318.9386}
+  m_AnchoredPosition: {x: -811.2, y: -521.1}
+  m_SizeDelta: {x: -417.6875, y: -941.789}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1442411381
 MonoBehaviour:
@@ -12044,15 +12044,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TacticalChatManager
   ShowTopMostFoldoutHeaderGroup: 1
-  chatInputContainer: {fileID: 1442411379}
-  chatInputField: {fileID: 1004664001}
-  channelPromptText: {fileID: 2137501609}
-  chatLogText: {fileID: 678371327}
-  chatLogDisplayDuration: 5
-  tColorHex: '#FFA500'
-  ctColorHex: '#4DA6FF'
-  deadColorHex: '#FF4444'
-  messageColorHex: '#FFFFFF'
+  _chatInputContainer: {fileID: 1442411379}
+  _chatInputField: {fileID: 1004664001}
+  _channelPromptText: {fileID: 2137501609}
+  _chatLogText: {fileID: 678371327}
+  _chatLogDisplayDuration: 6
+  _tColorHex: '#FFA500'
+  _ctColorHex: '#4DA6FF'
+  _deadColorHex: '#FF4444'
+  _messageColorHex: '#FFFFFF'
   localPlayerName: Jugador1
   localTeam: 1
   isLocalPlayerDead: 0
@@ -14200,7 +14200,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.70000076}
+  m_AnchoredPosition: {x: -106.99997, y: -0.79984665}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1757464278
@@ -14250,8 +14250,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 42.4
-  m_fontSizeBase: 42.4
+  m_fontSize: 70
+  m_fontSizeBase: 70
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -16323,15 +16323,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TacticalChatManager
   ShowTopMostFoldoutHeaderGroup: 1
-  chatInputContainer: {fileID: 0}
-  chatInputField: {fileID: 0}
-  channelPromptText: {fileID: 0}
-  chatLogText: {fileID: 0}
-  chatLogDisplayDuration: 6
-  tColorHex: '#FFA500'
-  ctColorHex: '#4DA6FF'
-  deadColorHex: '#FF4444'
-  messageColorHex: '#FFFFFF'
+  _chatInputContainer: {fileID: 0}
+  _chatInputField: {fileID: 0}
+  _channelPromptText: {fileID: 0}
+  _chatLogText: {fileID: 0}
+  _chatLogDisplayDuration: 6
+  _tColorHex: '#FFA500'
+  _ctColorHex: '#4DA6FF'
+  _deadColorHex: '#FF4444'
+  _messageColorHex: '#FFFFFF'
   localPlayerName: Jugador
   localTeam: 1
   isLocalPlayerDead: 0
@@ -17633,7 +17633,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.5}
+  m_AnchoredPosition: {x: -12, y: -0.5}
   m_SizeDelta: {x: -20, y: -13}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2033782495
@@ -18426,8 +18426,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 50
-  m_fontSizeBase: 50
+  m_fontSize: 76.6
+  m_fontSizeBase: 76.6
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -18465,7 +18465,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: 119.31969, w: -17.558508}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -18495,7 +18495,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -150, y: 0}
+  m_AnchoredPosition: {x: -480, y: 7}
   m_SizeDelta: {x: 500, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &2146436747
