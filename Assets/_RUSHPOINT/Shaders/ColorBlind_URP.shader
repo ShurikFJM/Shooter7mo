@@ -1,4 +1,3 @@
-// URP (Unity 2022.3+ / Unity 6) - para usar con "Fullscreen Pass Renderer Feature"
 Shader "Hidden/Accessibility/ColorBlind_URP"
 {
     Properties
@@ -27,7 +26,7 @@ Shader "Hidden/Accessibility/ColorBlind_URP"
                 float _Correct;
             CBUFFER_END
 
-            // Matrices de Machado et al. 2009 (severidad 1.0)
+            
             static const float3x3 PROTAN = float3x3(
                  0.152286,  1.052583, -0.204868,
                  0.114503,  0.786281,  0.099216,
@@ -56,7 +55,7 @@ Shader "Hidden/Accessibility/ColorBlind_URP"
 
                 float3 result = sim;
 
-                // Daltonización: desplaza la información perdida a canales que sí se perciben
+                
                 if (_Correct > 0.5 && m >= 1 && m <= 3)
                 {
                     float3 err = c - sim;
