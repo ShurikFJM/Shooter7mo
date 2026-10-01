@@ -10,42 +10,37 @@ public enum BombState : byte
     Exploded
 }
 
-/// <summary>
-/// Objeto de bomba plantable. La autoridad de todo el estado vive en el servidor;
-/// los clientes solo leen NetworkVariables y piden acciones vía ServerRpc.
-/// Requiere un NetworkObject, un Collider (para detección de pickup) y,
-/// opcionalmente, un Rigidbody para que caiga físicamente al ser dropeada.
-/// </summary>
 [RequireComponent(typeof(NetworkObject))]
 public class Bomb : NetworkBehaviour
 {
-    [Header("Configuración")]
-    [SerializeField] private float pickupRadius = 2.5f;
-    [SerializeField] private float plantDuration = 4f;
-    [SerializeField] private float defuseDuration = 5f;
-    [SerializeField] private float detonationTime = 40f;
+    private const float _MAX_PERMISSIBLE_DESYNC_DISTANCE = 3f;
 
-    [Header("Física / Visual")]
-    [SerializeField] private Rigidbody bombRigidbody;
-    [SerializeField] private Collider bombCollider;
-    [SerializeField] private GameObject plantedVFX;
+    [SerializeField] private float _pickupRadius = 2.5f;
+    [SerializeField] private float _plantDuration = 4f;
+    [SerializeField] private float _defuseDuration = 5f;
+    [SerializeField] private float _detonationTime = 40f;
+    [SerializeField] private Rigidbody _bombRigidbody;
+    [SerializeField] private Collider _bombCollider;
+    [SerializeField] private GameObject _plantedVFX;
 
     public NetworkVariable<BombState> State = new NetworkVariable<BombState>(
         BombState.Dropped,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
+        NetworkVariableWritePermission.Server
+    );
 
     public NetworkVariable<ulong> CarrierClientId = new NetworkVariable<ulong>(
         ulong.MaxValue,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
+        NetworkVariableWritePermission.Server
+    );
 
-    private BombSite plantedSite;
-    private float detonationTimer;
+    private BombSite _plantedSite;
+    private float _detonationTimer;
 
-    public float DetonationTime => detonationTime;
-    public float PlantDuration => plantDuration;
-    public float DefuseDuration => defuseDuration;
+    public float DetonationTimeDuration => _detonationTime;
+    public float PlantDurationTime => _plantDuration;
+    public float DefuseDurationTime => _defuseDuration;
 
     public override void OnNetworkSpawn()
     {
@@ -58,40 +53,44 @@ public class Bomb : NetworkBehaviour
         State.OnValueChanged -= HandleStateChanged;
     }
 
-    private void HandleStateChanged(BombState previous, BombState current)
+    private void HandleStateChanged(BombState previousState, BombState currentState)
     {
-        switch (current)
+        switch (currentState)
         {
             case BombState.Dropped:
-                SetPhysicsEnabled(true);
-                if (plantedVFX != null) plantedVFX.SetActive(false);
+                ConfigurePhysicsState(true);
+                if (_plantedVFX != null) _plantedVFX.SetActive(false);
                 break;
 
             case BombState.Carried:
-                SetPhysicsEnabled(false);
-                if (plantedVFX != null) plantedVFX.SetActive(false);
+                ConfigurePhysicsState(false);
+                if (_plantedVFX != null) _plantedVFX.SetActive(false);
                 break;
 
             case BombState.Planted:
-                SetPhysicsEnabled(false);
-                if (plantedVFX != null) plantedVFX.SetActive(true);
+                ConfigurePhysicsState(false);
+                if (_plantedVFX != null) _plantedVFX.SetActive(true);
                 break;
 
             case BombState.Defused:
             case BombState.Exploded:
-                SetPhysicsEnabled(false);
-                if (plantedVFX != null) plantedVFX.SetActive(false);
+                ConfigurePhysicsState(false);
+                if (_plantedVFX != null) _plantedVFX.SetActive(false);
                 break;
         }
     }
 
-    private void SetPhysicsEnabled(bool physicsEnabled)
+    private void ConfigurePhysicsState(bool isEnabled)
     {
-        if (bombRigidbody != null)
-            bombRigidbody.isKinematic = !physicsEnabled;
+        if (_bombRigidbody != null)
+        {
+            _bombRigidbody.isKinematic = !isEnabled;
+        }
 
-        if (bombCollider != null)
-            bombCollider.enabled = physicsEnabled;
+        if (_bombCollider != null)
+        {
+            _bombCollider.enabled = isEnabled;
+        }
     }
 
     private void Update()
@@ -99,27 +98,26 @@ public class Bomb : NetworkBehaviour
         if (!IsServer) return;
         if (State.Value != BombState.Planted) return;
 
-        detonationTimer += Time.deltaTime;
-        if (detonationTimer >= detonationTime)
+        _detonationTimer += Time.deltaTime;
+        if (_detonationTimer >= _detonationTime)
         {
-            DetonateServer();
+            ExecuteServerDetonation();
         }
     }
 
-    // ---------------- RECOGER ----------------
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestPickupServerRpc(ulong requesterClientId)
     {
         if (State.Value != BombState.Dropped) return;
-        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(requesterClientId, out var client)) return;
+        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(requesterClientId, out NetworkClient connectedClient)) return;
 
-        NetworkObject requesterObject = client.PlayerObject;
-        if (requesterObject == null) return;
+        NetworkObject playerObject = connectedClient.PlayerObject;
+        if (playerObject == null) return;
 
-        float distance = Vector3.Distance(requesterObject.transform.position, transform.position);
-        if (distance > pickupRadius) return;
+        float distanceToPlayer = Vector3.Distance(playerObject.transform.position, transform.position);
+        if (distanceToPlayer > _pickupRadius) return;
 
-        NetworkObject.TrySetParent(requesterObject.transform, false);
+        NetworkObject.TrySetParent(playerObject.transform, false);
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
 
@@ -127,8 +125,7 @@ public class Bomb : NetworkBehaviour
         State.Value = BombState.Carried;
     }
 
-    // ---------------- DROPEAR ----------------
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestDropServerRpc(ulong requesterClientId)
     {
         if (State.Value != BombState.Carried) return;
@@ -140,43 +137,39 @@ public class Bomb : NetworkBehaviour
         CarrierClientId.Value = ulong.MaxValue;
     }
 
-    // ---------------- PLANTAR ----------------
-    [ServerRpc(RequireOwnership = false)]
-    public void RequestPlantServerRpc(ulong requesterClientId, NetworkBehaviourReference siteReference, Vector3 plantPosition, Quaternion plantRotation)
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestPlantServerRpc(ulong requesterClientId, NetworkBehaviourReference siteReference, Vector3 requestedPosition, Quaternion requestedRotation)
     {
         if (State.Value != BombState.Carried) return;
         if (CarrierClientId.Value != requesterClientId) return;
-        if (!siteReference.TryGet(out BombSite site)) return;
+        if (!siteReference.TryGet(out BombSite targetSite)) return;
 
-        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(requesterClientId, out var client)) return;
+        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(requesterClientId, out NetworkClient connectedClient)) return;
 
-        NetworkObject requesterObject = client.PlayerObject;
-        if (requesterObject == null) return;
-        if (!site.IsPositionInside(requesterObject.transform.position)) return;
+        NetworkObject playerObject = connectedClient.PlayerObject;
+        if (playerObject == null) return;
+        if (!targetSite.IsPositionInside(playerObject.transform.position)) return;
 
-        // Desvincular del jugador
         NetworkObject.TryRemoveParent(true);
 
-        // Validar que la posición solicitada esté razonablemente cerca del jugador para evitar desync
-        if (Vector3.Distance(requesterObject.transform.position, plantPosition) > 3f)
+        Vector3 authoritativePlantPosition = requestedPosition;
+        if (Vector3.Distance(playerObject.transform.position, requestedPosition) > _MAX_PERMISSIBLE_DESYNC_DISTANCE)
         {
-            plantPosition = requesterObject.transform.position;
+            authoritativePlantPosition = playerObject.transform.position;
         }
 
-        // Colocar la bomba en la ubicación y rotación exactas del suelo donde se plantó
-        transform.SetPositionAndRotation(plantPosition, plantRotation);
+        transform.SetPositionAndRotation(authoritativePlantPosition, requestedRotation);
 
-        plantedSite = site;
-        detonationTimer = 0f;
+        _plantedSite = targetSite;
+        _detonationTimer = 0f;
         State.Value = BombState.Planted;
         CarrierClientId.Value = ulong.MaxValue;
 
-        site.NotifyBombPlantedClientRpc();
+        targetSite.NotifyBombPlantedClientRpc();
     }
 
-    private void DetonateServer()
+    private void ExecuteServerDetonation()
     {
         State.Value = BombState.Exploded;
-        // Enganchar aquí la condición de fin de ronda para el Game Loop
     }
 }

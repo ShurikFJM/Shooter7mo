@@ -5,23 +5,25 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class NetworkPlayerController : NetworkBehaviour
 {
-    [Header("References")]
-    [SerializeField] private CharacterController characterController;
-    [SerializeField] private Transform cameraRoot;
-    [SerializeField] private Camera playerCamera;
-    [SerializeField] private AudioListener audioListener;
+    private const float _GRAVITY = -19.62f;
+    private const float _DEFAULT_WALK_SPEED = 5f;
+    private const float _DEFAULT_SPRINT_SPEED = 8f;
+    private const float _DEFAULT_JUMP_FORCE = 1.5f;
+    private const float _CROUCH_HEIGHT = 1f;
+    private const float _STANDING_HEIGHT = 2f;
+    private const float _CROUCH_SPEED_RATIO = 0.5f;
+    private const float _WALK_SLOW_RATIO = 0.5f;
+    private const float _CROUCH_TRANSITION_SPEED = 10f;
 
-    [Header("Look Settings")]
-    [SerializeField] private float mouseSensitivity = 0.15f;
-    [SerializeField] private float upDownLookLimit = 85f;
-
-    [Header("Role Configuration")]
-    [SerializeField] private RoleDatabaseSO roleDatabase;
-    private RoleDataSO activeRole;
-
-    [Header("Visual Meshes")]
-    [SerializeField] private GameObject firstPersonRoot;
-    [SerializeField] private GameObject thirdPersonRoot;
+    [SerializeField] private CharacterController _characterController;
+    [SerializeField] private Transform _cameraRoot;
+    [SerializeField] private Camera _playerCamera;
+    [SerializeField] private AudioListener _audioListener;
+    [SerializeField] private float _mouseSensitivity = 0.15f;
+    [SerializeField] private float _upDownLookLimit = 85f;
+    [SerializeField] private RoleDatabaseSO _roleDatabase;
+    [SerializeField] private GameObject _firstPersonRoot;
+    [SerializeField] private GameObject _thirdPersonRoot;
 
     public NetworkVariable<PlayerRoleType> SelectedRole = new NetworkVariable<PlayerRoleType>(
         PlayerRoleType.Assault,
@@ -29,115 +31,171 @@ public class NetworkPlayerController : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
-    private float gravity = -19.62f;
-    private Vector3 verticalVelocity;
-    private Vector2 moveInput;
-    private Vector2 lookInput;
-    private bool isSprinting;
-    private bool jumpRequested;
-    private float cameraPitch = 0f;
+    private RoleDataSO _activeRole;
+    private Vector3 _verticalVelocity;
+    private Vector2 _moveInput;
+    private Vector2 _lookInput;
+    private bool _isSprinting;
+    private bool _isWalkingSlow;
+    private bool _isCrouching;
+    private bool _jumpRequested;
+    private float _cameraPitch;
+    private float _defaultCameraLocalY;
 
-    public Camera PlayerCamera => playerCamera;
-    public bool IsGrounded => characterController != null && characterController.isGrounded;
-    public bool IsMoving => moveInput.sqrMagnitude > 0.01f;
-    public RoleDataSO ActiveRole => activeRole;
+    public Camera PlayerCamera => _playerCamera;
+    public bool IsGrounded => _characterController != null && _characterController.isGrounded;
+    public bool IsMoving => _moveInput.sqrMagnitude > 0.01f;
+    public RoleDataSO ActiveRole => _activeRole;
 
     private void Awake()
     {
-        if (characterController == null)
-            characterController = GetComponent<CharacterController>();
+        if (_characterController == null)
+        {
+            _characterController = GetComponent<CharacterController>();
+        }
+
+        if (_playerCamera == null)
+        {
+            _playerCamera = GetComponentInChildren<Camera>(true);
+        }
+
+        if (_cameraRoot == null)
+        {
+            _cameraRoot = _playerCamera != null ? _playerCamera.transform : transform;
+        }
+
+        if (_cameraRoot != null)
+        {
+            _defaultCameraLocalY = _cameraRoot.localPosition.y;
+        }
+
+        if (_audioListener == null && _playerCamera != null)
+        {
+            _audioListener = _playerCamera.GetComponent<AudioListener>();
+        }
     }
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
 
-        SelectedRole.OnValueChanged += OnRoleChanged;
+        SelectedRole.OnValueChanged += HandleRoleChanged;
         ApplyRoleData(SelectedRole.Value);
 
         if (IsOwner)
         {
-            PlayerInput pInput = GetComponent<PlayerInput>();
-            if (pInput != null)
+            PlayerInput playerInput = GetComponent<PlayerInput>();
+            if (playerInput != null)
             {
-                pInput.enabled = false;
-                pInput.enabled = true;
-                pInput.ActivateInput();
+                playerInput.enabled = false;
+                playerInput.enabled = true;
+                playerInput.ActivateInput();
             }
 
-            playerCamera.gameObject.SetActive(true);
-            audioListener.enabled = true;
+            if (_playerCamera != null)
+            {
+                _playerCamera.gameObject.SetActive(true);
+            }
+
+            if (_audioListener != null)
+            {
+                _audioListener.enabled = true;
+            }
+
+            if (_firstPersonRoot != null)
+            {
+                _firstPersonRoot.SetActive(true);
+            }
+
+            if (_thirdPersonRoot != null)
+            {
+                _thirdPersonRoot.SetActive(false);
+            }
+
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
-            if (firstPersonRoot != null) firstPersonRoot.SetActive(true);
-            if (thirdPersonRoot != null) thirdPersonRoot.SetActive(false);
-
-            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (Canvas c in allCanvases)
+            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include);
+            foreach (Canvas canvas in allCanvases)
             {
-                if (c.renderMode == RenderMode.ScreenSpaceCamera)
+                if (canvas.renderMode == RenderMode.ScreenSpaceCamera && _playerCamera != null)
                 {
-                    c.worldCamera = playerCamera;
-                    c.planeDistance = 1f;
+                    canvas.worldCamera = _playerCamera;
+                    canvas.planeDistance = 1f;
                 }
             }
 
-            TacticalHUD hud = FindFirstObjectByType<TacticalHUD>();
-            if (hud != null)
+            TacticalHUD tacticalHud = FindAnyObjectByType<TacticalHUD>();
+            if (tacticalHud != null)
             {
-                hud.playerHealth = GetComponent<NetworkHealth>();
-                hud.inventory = GetComponentInChildren<WeaponInventory>();
+                tacticalHud.playerHealth = GetComponent<NetworkHealth>();
+                tacticalHud.inventory = GetComponentInChildren<WeaponInventory>();
+            }
+
+            Camera lobbyCamera = GameObject.FindWithTag("LobbyCamera")?.GetComponent<Camera>();
+            if (lobbyCamera != null)
+            {
+                lobbyCamera.gameObject.SetActive(false);
             }
         }
         else
         {
-            playerCamera.gameObject.SetActive(false);
-            audioListener.enabled = false;
+            PlayerInput playerInput = GetComponent<PlayerInput>();
+            if (playerInput != null)
+            {
+                playerInput.enabled = false;
+            }
 
-            if (firstPersonRoot != null) firstPersonRoot.SetActive(false);
-            if (thirdPersonRoot != null) thirdPersonRoot.SetActive(true);
+            if (_playerCamera != null)
+            {
+                _playerCamera.gameObject.SetActive(false);
+            }
+
+            if (_audioListener != null)
+            {
+                _audioListener.enabled = false;
+            }
+
+            if (_firstPersonRoot != null)
+            {
+                _firstPersonRoot.SetActive(false);
+            }
+
+            if (_thirdPersonRoot != null)
+            {
+                _thirdPersonRoot.SetActive(true);
+            }
         }
     }
 
-    public void SetInitialRole(PlayerRoleType role)
+    public void SetInitialRole(PlayerRoleType roleType)
     {
-        SelectedRole.Value = role;
-        ApplyRoleData(role);
+        SelectedRole.Value = roleType;
+        ApplyRoleData(roleType);
     }
 
     public override void OnNetworkDespawn()
     {
-        SelectedRole.OnValueChanged -= OnRoleChanged;
+        SelectedRole.OnValueChanged -= HandleRoleChanged;
     }
 
-    private void OnRoleChanged(PlayerRoleType previous, PlayerRoleType current)
+    private void HandleRoleChanged(PlayerRoleType previousRole, PlayerRoleType currentRole)
     {
-        ApplyRoleData(current);
+        ApplyRoleData(currentRole);
     }
 
     private void ApplyRoleData(PlayerRoleType roleType)
     {
-        if (roleDatabase == null)
-        {
-            Debug.LogError("[NetworkPlayerController] No se asignó RoleDatabaseSO en el Inspector del prefab!", this);
-            return;
-        }
+        if (_roleDatabase == null) return;
 
-        activeRole = roleDatabase.GetRole(roleType);
+        _activeRole = _roleDatabase.GetRole(roleType);
 
-        if (activeRole == null)
+        if (IsServer && _activeRole != null)
         {
-            Debug.LogError($"[NetworkPlayerController] No se encontró la data del rol {roleType} en RoleDatabase!", this);
-            return;
-        }
-
-        if (IsServer)
-        {
-            NetworkHealth health = GetComponent<NetworkHealth>();
-            if (health != null)
+            NetworkHealth networkHealth = GetComponent<NetworkHealth>();
+            if (networkHealth != null)
             {
-                health.SetMaxStatsServer(activeRole.maxHealth, activeRole.maxArmor);
+                networkHealth.SetMaxStatsServer(_activeRole.maxHealth, _activeRole.maxArmor);
             }
         }
     }
@@ -146,58 +204,103 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        HandleLook();
-        HandleMovement();
+        if (_activeRole == null)
+        {
+            ApplyRoleData(SelectedRole.Value);
+        }
+
+        HandleCameraRotation();
+        HandleCrouchHeightTransition();
+        HandleMovementExecution();
     }
 
-    public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
-    public void OnLook(InputValue value) => lookInput = value.Get<Vector2>();
-    public void OnSprint(InputValue value) => isSprinting = value.isPressed;
+    public void OnMove(InputValue value) => _moveInput = value.Get<Vector2>();
+    public void OnLook(InputValue value) => _lookInput = value.Get<Vector2>();
+    public void OnSprint(InputValue value) => _isSprinting = value.isPressed;
+    public void OnWalk(InputValue value) => _isWalkingSlow = value.isPressed;
+    public void OnCrouch(InputValue value) => _isCrouching = value.isPressed;
+
     public void OnJump(InputValue value)
     {
-        if (value.isPressed && IsGrounded)
-            jumpRequested = true;
+        if (value.isPressed && IsGrounded && !_isCrouching)
+        {
+            _jumpRequested = true;
+        }
     }
 
-    private void HandleLook()
+    private void HandleCameraRotation()
     {
-        float yaw = lookInput.x * mouseSensitivity;
-        transform.Rotate(Vector3.up * yaw);
+        if (_cameraRoot == null) return;
 
-        cameraPitch -= lookInput.y * mouseSensitivity;
-        cameraPitch = Mathf.Clamp(cameraPitch, -upDownLookLimit, upDownLookLimit);
-        cameraRoot.localRotation = Quaternion.Euler(cameraPitch, 0f, 0f);
+        float mouseYaw = _lookInput.x * _mouseSensitivity;
+        transform.Rotate(Vector3.up * mouseYaw);
+
+        _cameraPitch -= _lookInput.y * _mouseSensitivity;
+        _cameraPitch = Mathf.Clamp(_cameraPitch, -_upDownLookLimit, _upDownLookLimit);
+        _cameraRoot.localRotation = Quaternion.Euler(_cameraPitch, 0f, 0f);
     }
 
-    private void HandleMovement()
+    private void HandleCrouchHeightTransition()
     {
-        if (activeRole == null) return;
+        if (_characterController == null || _cameraRoot == null) return;
 
-        // NUEVO: Bloquear desplazamiento si se está plantando la bomba
+        float targetHeight = _isCrouching ? _CROUCH_HEIGHT : _STANDING_HEIGHT;
+        _characterController.height = Mathf.Lerp(_characterController.height, targetHeight, Time.deltaTime * _CROUCH_TRANSITION_SPEED);
+        _characterController.center = new Vector3(0f, _characterController.height * 0.5f, 0f);
+
+        float targetCameraY = _isCrouching ? _defaultCameraLocalY * 0.5f : _defaultCameraLocalY;
+        Vector3 targetCameraPosition = _cameraRoot.localPosition;
+        targetCameraPosition.y = Mathf.Lerp(targetCameraPosition.y, targetCameraY, Time.deltaTime * _CROUCH_TRANSITION_SPEED);
+        _cameraRoot.localPosition = targetCameraPosition;
+    }
+
+    private void HandleMovementExecution()
+    {
+        if (_characterController == null) return;
+
         BombInteractor bombInteractor = GetComponent<BombInteractor>();
         if (bombInteractor != null && bombInteractor.IsPlanting)
         {
-            moveInput = Vector2.zero; // Limpia la inercia del input
+            _moveInput = Vector2.zero;
         }
 
-        if (IsGrounded && verticalVelocity.y < 0)
-            verticalVelocity.y = -2f;
+        if (IsGrounded && _verticalVelocity.y < 0)
+        {
+            _verticalVelocity.y = -2f;
+        }
 
-        Vector3 moveDir = transform.right * moveInput.x + transform.forward * moveInput.y;
-        float currentSpeed = isSprinting ? activeRole.sprintSpeed : activeRole.walkSpeed;
-        characterController.Move(moveDir * currentSpeed * Time.deltaTime);
+        float baseWalkSpeed = _activeRole != null ? _activeRole.walkSpeed : _DEFAULT_WALK_SPEED;
+        float baseSprintSpeed = _activeRole != null ? _activeRole.sprintSpeed : _DEFAULT_SPRINT_SPEED;
+        float baseJumpForce = _activeRole != null ? _activeRole.jumpForce : _DEFAULT_JUMP_FORCE;
 
-        // Bloquear salto si se está plantando
-        if (jumpRequested && IsGrounded)
+        float movementSpeed = baseWalkSpeed;
+
+        if (_isCrouching)
+        {
+            movementSpeed = baseWalkSpeed * _CROUCH_SPEED_RATIO;
+        }
+        else if (_isWalkingSlow)
+        {
+            movementSpeed = baseWalkSpeed * _WALK_SLOW_RATIO;
+        }
+        else if (_isSprinting)
+        {
+            movementSpeed = baseSprintSpeed;
+        }
+
+        Vector3 moveDirection = transform.right * _moveInput.x + transform.forward * _moveInput.y;
+        _characterController.Move(moveDirection * movementSpeed * Time.deltaTime);
+
+        if (_jumpRequested && IsGrounded)
         {
             if (bombInteractor == null || !bombInteractor.IsPlanting)
             {
-                verticalVelocity.y = Mathf.Sqrt(activeRole.jumpForce * -2f * gravity);
+                _verticalVelocity.y = Mathf.Sqrt(baseJumpForce * -2f * _GRAVITY);
             }
-            jumpRequested = false;
+            _jumpRequested = false;
         }
 
-        verticalVelocity.y += gravity * Time.deltaTime;
-        characterController.Move(verticalVelocity * Time.deltaTime);
+        _verticalVelocity.y += _GRAVITY * Time.deltaTime;
+        _characterController.Move(_verticalVelocity * Time.deltaTime);
     }
 }

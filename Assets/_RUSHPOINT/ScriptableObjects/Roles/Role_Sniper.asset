@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Role_Sniper
   m_EditorClassIdentifier: Assembly-CSharp::RoleDataSO
   roleType: 4
-  roleName: 
+  roleName: Francotirador
   roleDescription: 
   maxHealth: 80
   maxArmor: 25

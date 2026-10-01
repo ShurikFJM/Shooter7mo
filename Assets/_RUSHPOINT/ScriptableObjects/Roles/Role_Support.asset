@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Role_Support
   m_EditorClassIdentifier: Assembly-CSharp::RoleDataSO
   roleType: 5
-  roleName: 
+  roleName: Soporte
   roleDescription: 
   maxHealth: 100
   maxArmor: 60

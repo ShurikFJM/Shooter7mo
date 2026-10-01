@@ -1,34 +1,31 @@
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// Agregar junto a NetworkPlayerController / BombInteractor. Detecta en qué
-/// DominationZone está parado el jugador local (mismo patrón que
-/// BombInteractor.DetectCurrentSite). Solo corre para el owner, es puramente
-/// para feedback visual — la lógica de captura real vive en DominationZone,
-/// en el servidor.
-/// </summary>
 public class PlayerZoneDetector : NetworkBehaviour
 {
-    [SerializeField] private LayerMask zoneLayer;
-    [SerializeField] private float detectRadius = 0.2f;
+    private const int _MAX_COLLIDER_BUFFER = 8;
 
-    private DominationZone currentZone;
-    public DominationZone CurrentZone => currentZone;
+    [SerializeField] private LayerMask _zoneLayer;
+    [SerializeField] private float _detectRadius = 0.2f;
+
+    private readonly Collider[] _colliderBuffer = new Collider[_MAX_COLLIDER_BUFFER];
+    private DominationZone _currentZone;
+
+    public DominationZone CurrentZone => _currentZone;
 
     private void Update()
     {
         if (!IsOwner) return;
 
-        Collider[] hits = Physics.OverlapSphere(transform.position, detectRadius, zoneLayer);
-        currentZone = null;
+        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, _detectRadius, _colliderBuffer, _zoneLayer);
+        _currentZone = null;
 
-        foreach (Collider hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
-            DominationZone zone = hit.GetComponent<DominationZone>();
+            DominationZone zone = _colliderBuffer[i].GetComponent<DominationZone>();
             if (zone != null)
             {
-                currentZone = zone;
+                _currentZone = zone;
                 break;
             }
         }

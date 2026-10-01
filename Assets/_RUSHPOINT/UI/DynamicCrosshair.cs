@@ -2,56 +2,59 @@ using UnityEngine;
 
 public class DynamicCrosshair : MonoBehaviour
 {
-    [Header("Reticulacao")]
-    public RectTransform topTick;
-    public RectTransform bottomTick;
-    public RectTransform leftTick;
-    public RectTransform rightTick;
+    [SerializeField] private RectTransform _topTick;
+    [SerializeField] private RectTransform _bottomTick;
+    [SerializeField] private RectTransform _leftTick;
+    [SerializeField] private RectTransform _rightTick;
 
-    [Header("Sensibilidad y Calibracao")]
-    public float baseGap = 12f;         
-    public float gapScaleMultiplier = 25f; 
-    public float maxGap = 160f;         
-    public float expandSpeed = 35f;      
-    public float contractSpeed = 20f;    
+    [SerializeField] private float _baseGap = 12f;
+    [SerializeField] private float _gapScaleMultiplier = 25f;
+    [SerializeField] private float _maxGap = 160f;
+    [SerializeField] private float _expandSpeed = 35f;
+    [SerializeField] private float _contractSpeed = 20f;
 
-    [Header("Referencao")]
-    public WeaponInventory inventory;
+    [SerializeField] private WeaponInventory _inventory;
 
-    private float currentGap;
+    private float _currentGap;
 
-    void Start()
+    public WeaponInventory Inventory
     {
-        if (inventory == null)
-        {
-            inventory = FindFirstObjectByType<WeaponInventory>();
-        }
-
-        currentGap = baseGap;
+        get => _inventory;
+        set => _inventory = value;
     }
 
-    void Update()
+    private void Start()
     {
-        if (inventory == null || inventory.ActiveWeapon == null) return;
+        if (_inventory == null)
+        {
+            _inventory = FindAnyObjectByType<WeaponInventory>();
+        }
 
-        WeaponBase activeWeapon = inventory.ActiveWeapon;
+        _currentGap = _baseGap;
+    }
+
+    private void Update()
+    {
+        if (_inventory == null || _inventory.ActiveWeapon == null) return;
+
+        WeaponBase activeWeapon = _inventory.ActiveWeapon;
 
         float realTimeSpread = activeWeapon.GetCurrentSpread();
-        float targetGap = baseGap + (realTimeSpread * gapScaleMultiplier);
+        float targetGap = _baseGap + (realTimeSpread * _gapScaleMultiplier);
 
         if (activeWeapon.IsReloading)
         {
-            targetGap = baseGap;
+            targetGap = _baseGap;
         }
 
-        targetGap = Mathf.Clamp(targetGap, baseGap, maxGap);
+        targetGap = Mathf.Clamp(targetGap, _baseGap, _maxGap);
 
-        float lerpSpeed = (targetGap > currentGap) ? expandSpeed : contractSpeed;
-        currentGap = Mathf.Lerp(currentGap, targetGap, Time.deltaTime * lerpSpeed);
+        float lerpSpeed = (targetGap > _currentGap) ? _expandSpeed : _contractSpeed;
+        _currentGap = Mathf.Lerp(_currentGap, targetGap, Time.deltaTime * lerpSpeed);
 
-        if (topTick != null) topTick.anchoredPosition = new Vector2(0f, currentGap);
-        if (bottomTick != null) bottomTick.anchoredPosition = new Vector2(0f, -currentGap);
-        if (leftTick != null) leftTick.anchoredPosition = new Vector2(-currentGap, 0f);
-        if (rightTick != null) rightTick.anchoredPosition = new Vector2(currentGap, 0f);
+        if (_topTick != null) _topTick.anchoredPosition = new Vector2(0f, _currentGap);
+        if (_bottomTick != null) _bottomTick.anchoredPosition = new Vector2(0f, -_currentGap);
+        if (_leftTick != null) _leftTick.anchoredPosition = new Vector2(-_currentGap, 0f);
+        if (_rightTick != null) _rightTick.anchoredPosition = new Vector2(_currentGap, 0f);
     }
 }
