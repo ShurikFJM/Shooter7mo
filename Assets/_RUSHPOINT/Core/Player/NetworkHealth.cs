@@ -3,9 +3,10 @@ using UnityEngine;
 
 public class NetworkHealth : NetworkBehaviour
 {
-    [Header("Configuración de Salud")]
-    [SerializeField] private float maxHealth = 100f;
-    [SerializeField] private float maxArmor = 50f;
+    private const float _ARMOR_ABSORPTION_RATIO = 0.5f;
+
+    [SerializeField] private float _maxHealth = 100f;
+    [SerializeField] private float _maxArmor = 50f;
 
     public NetworkVariable<float> CurrentHealth = new NetworkVariable<float>(
         100f,
@@ -19,23 +20,32 @@ public class NetworkHealth : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    public float MaxHealth => _maxHealth;
+    public float MaxArmor => _maxArmor;
+
+    private bool _hasCustomStats;
+
     public void SetMaxStatsServer(float newMaxHealth, float newMaxArmor)
     {
         if (!IsServer) return;
 
-        maxHealth = newMaxHealth;
-        maxArmor = newMaxArmor;
+        _maxHealth = newMaxHealth;
+        _maxArmor = newMaxArmor;
+        _hasCustomStats = true;
 
-        CurrentHealth.Value = maxHealth;
-        CurrentArmor.Value = maxArmor;
+        if (IsSpawned)
+        {
+            CurrentHealth.Value = _maxHealth;
+            CurrentArmor.Value = _maxArmor;
+        }
     }
 
     public override void OnNetworkSpawn()
     {
-        if (IsServer)
+        if (IsServer && !_hasCustomStats)
         {
-            CurrentHealth.Value = maxHealth;
-            CurrentArmor.Value = maxArmor;
+            CurrentHealth.Value = _maxHealth;
+            CurrentArmor.Value = _maxArmor;
         }
     }
 
@@ -43,11 +53,10 @@ public class NetworkHealth : NetworkBehaviour
     {
         if (!IsServer || CurrentHealth.Value <= 0f) return;
 
-
         if (CurrentArmor.Value > 0f)
         {
-            float armorAbsorbed = amount * 0.5f;
-            float healthDamage = amount * 0.5f;
+            float armorAbsorbed = amount * _ARMOR_ABSORPTION_RATIO;
+            float healthDamage = amount * (1f - _ARMOR_ABSORPTION_RATIO);
 
             if (CurrentArmor.Value >= armorAbsorbed)
             {
@@ -72,7 +81,7 @@ public class NetworkHealth : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
+    [Rpc(SendTo.ClientsAndHost)]
     private void DieClientRpc(bool wasHeadshot, ulong killerId)
     {
         if (KillFeedHUD.Instance != null && NetworkManager.Singleton.LocalClientId == killerId)

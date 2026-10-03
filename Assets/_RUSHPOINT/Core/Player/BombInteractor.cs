@@ -67,7 +67,20 @@ public class BombInteractor : NetworkBehaviour
 
     private void ValidateCarriedBombAuthority()
     {
-        if (_carriedBomb != null)
+        if (_carriedBomb == null)
+        {
+            Bomb[] allBombs = FindObjectsByType<Bomb>();
+            for (int i = 0; i < allBombs.Length; i++)
+            {
+                if (allBombs[i].State.Value == BombState.Carried &&
+                    allBombs[i].CarrierClientId.Value == NetworkManager.Singleton.LocalClientId)
+                {
+                    _carriedBomb = allBombs[i];
+                    break;
+                }
+            }
+        }
+        else
         {
             if (_carriedBomb.State.Value != BombState.Carried ||
                 _carriedBomb.CarrierClientId.Value != NetworkManager.Singleton.LocalClientId)
@@ -218,7 +231,7 @@ public class BombInteractor : NetworkBehaviour
     private void RequestDropExecution()
     {
         if (_carriedBomb == null) return;
-        _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId);
+        _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId, transform.position);
         _carriedBomb = null;
         StopPlantingProcess();
     }

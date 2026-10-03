@@ -1,45 +1,70 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class WeaponInventory : NetworkBehaviour
 {
-    [Header("Contenedor de Armas")]
-    public Transform weaponHolder;
+    private const float _SCROLL_DEADZONE = 0.1f;
 
-    [Header("Slots de Armas (Componentes WeaponBase en los hijos)")]
-    public WeaponBase primaryWeapon;
-    public WeaponBase secondaryWeapon;
-    public WeaponBase meleeWeapon;
+    [SerializeField] private Transform _weaponHolder;
+    [SerializeField] private WeaponBase _primaryWeapon;
+    [SerializeField] private WeaponBase _secondaryWeapon;
+    [SerializeField] private WeaponBase _meleeWeapon;
 
-    private int activeSlotIndex = 2;
-    private WeaponBase activeWeapon;
+    private int _activeSlotIndex = 2;
+    private WeaponBase _activeWeapon;
 
-    public int ActiveSlotIndex => activeSlotIndex;
-    public WeaponBase ActiveWeapon => activeWeapon;
+    public int ActiveSlotIndex => _activeSlotIndex;
+    public WeaponBase ActiveWeapon => _activeWeapon;
 
-    void Start()
+    private void Start()
     {
-        EquipSlot(activeSlotIndex);
+        EquipSlot(_activeSlotIndex);
     }
 
-    void Update()
+    private void Update()
     {
         if (!IsOwner) return;
 
-        if (Input.GetKeyDown(KeyCode.Alpha1)) EquipSlot(1);
-        if (Input.GetKeyDown(KeyCode.Alpha2)) EquipSlot(2);
-        if (Input.GetKeyDown(KeyCode.Alpha3)) EquipSlot(3);
+        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
+        {
+            return;
+        }
 
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (scroll > 0f) CycleSlot(-1);
-        else if (scroll < 0f) CycleSlot(1);
+        if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
+        {
+            return;
+        }
+
+        if (Keyboard.current != null)
+        {
+            if (Keyboard.current.digit1Key.wasPressedThisFrame) EquipSlot(1);
+            if (Keyboard.current.digit2Key.wasPressedThisFrame) EquipSlot(2);
+            if (Keyboard.current.digit3Key.wasPressedThisFrame) EquipSlot(3);
+        }
+
+        if (Gamepad.current != null)
+        {
+            if (Gamepad.current.dpad.up.wasPressedThisFrame) EquipSlot(1);
+            if (Gamepad.current.dpad.right.wasPressedThisFrame) EquipSlot(2);
+            if (Gamepad.current.dpad.down.wasPressedThisFrame) EquipSlot(3);
+            if (Gamepad.current.buttonNorth.wasPressedThisFrame) CycleSlot(1);
+        }
+
+        if (Mouse.current != null)
+        {
+            float scroll = Mouse.current.scroll.ReadValue().y;
+            if (scroll > _SCROLL_DEADZONE) CycleSlot(-1);
+            else if (scroll < -_SCROLL_DEADZONE) CycleSlot(1);
+        }
     }
 
-    void CycleSlot(int direction)
+    private void CycleSlot(int direction)
     {
-        int newSlot = activeSlotIndex + direction;
+        int newSlot = _activeSlotIndex + direction;
         if (newSlot > 3) newSlot = 1;
         if (newSlot < 1) newSlot = 3;
+
         if (GetWeaponInSlot(newSlot) != null)
         {
             EquipSlot(newSlot);
@@ -51,22 +76,22 @@ public class WeaponInventory : NetworkBehaviour
         WeaponBase targetWeapon = GetWeaponInSlot(slotIndex);
 
         if (targetWeapon == null) return;
-        if (primaryWeapon != null) primaryWeapon.gameObject.SetActive(false);
-        if (secondaryWeapon != null) secondaryWeapon.gameObject.SetActive(false);
-        if (meleeWeapon != null) meleeWeapon.gameObject.SetActive(false);
+        if (_primaryWeapon != null) _primaryWeapon.gameObject.SetActive(false);
+        if (_secondaryWeapon != null) _secondaryWeapon.gameObject.SetActive(false);
+        if (_meleeWeapon != null) _meleeWeapon.gameObject.SetActive(false);
 
-        activeSlotIndex = slotIndex;
-        activeWeapon = targetWeapon;
-        activeWeapon.gameObject.SetActive(true);
+        _activeSlotIndex = slotIndex;
+        _activeWeapon = targetWeapon;
+        _activeWeapon.gameObject.SetActive(true);
     }
 
     public WeaponBase GetWeaponInSlot(int index)
     {
         switch (index)
         {
-            case 1: return primaryWeapon;
-            case 2: return secondaryWeapon;
-            case 3: return meleeWeapon;
+            case 1: return _primaryWeapon;
+            case 2: return _secondaryWeapon;
+            case 3: return _meleeWeapon;
             default: return null;
         }
     }

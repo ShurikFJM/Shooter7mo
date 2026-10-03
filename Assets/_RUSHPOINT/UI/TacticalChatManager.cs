@@ -75,8 +75,9 @@ public class TacticalChatManager : NetworkBehaviour
         UnsubscribeFromInputEvents();
     }
 
-    private void OnDestroy()
+    public override void OnDestroy()
     {
+        base.OnDestroy();
         DisposeInputActions();
     }
 
@@ -345,7 +346,7 @@ public class TacticalChatManager : NetworkBehaviour
         isLocalPlayerDead = health.CurrentHealth.Value <= 0;
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void SendMessageServerRpc(
         string senderName,
         TeamSide senderTeam,
