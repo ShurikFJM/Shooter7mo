@@ -47,22 +47,29 @@ public class BombPromptUI : MonoBehaviour
 
     private void RefreshUserInterface()
     {
-        if (_localInteractor.IsPlanting || _localInteractor.IsDefusing)
+        if (_localInteractor.IsPlanting)
         {
             HideActionPrompt();
-            ShowProgressDisplay(_localInteractor.IsDefusing ? _defusingLabel : _plantingLabel);
+            ShowProgressDisplay(_plantingLabel, _localInteractor.PlantProgressNormalized);
+            return;
+        }
+
+        if (_localInteractor.IsDefusing)
+        {
+            HideActionPrompt();
+            ShowProgressDisplay(_defusingLabel, _localInteractor.DefuseProgressNormalized);
             return;
         }
 
         HideProgressDisplay();
 
-        if (_localInteractor.HasNearbyPlantedBomb)
-        {
-            ShowActionPrompt(_defusePrompt);
-        }
-        else if (_localInteractor.IsCarryingBomb)
+        if (_localInteractor.IsCarryingBomb)
         {
             ShowActionPrompt(_localInteractor.IsInSite ? _plantPrompt : _dropPrompt);
+        }
+        else if (_localInteractor.HasNearbyPlantedBomb)
+        {
+            ShowActionPrompt(_defusePrompt);
         }
         else if (_localInteractor.HasNearbyBomb)
         {
@@ -85,10 +92,10 @@ public class BombPromptUI : MonoBehaviour
         if (_promptRoot != null) _promptRoot.SetActive(false);
     }
 
-    private void ShowProgressDisplay(string label)
+    private void ShowProgressDisplay(string label, float progressNormalized)
     {
         if (_progressRoot != null) _progressRoot.SetActive(true);
-        if (_progressFill != null) _progressFill.fillAmount = _localInteractor.ActionProgressNormalized;
+        if (_progressFill != null) _progressFill.fillAmount = progressNormalized;
         if (_progressLabel != null) _progressLabel.text = label;
     }
 
