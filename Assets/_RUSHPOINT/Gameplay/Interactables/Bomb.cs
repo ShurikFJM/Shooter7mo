@@ -11,7 +11,7 @@ public enum BombState : byte
 }
 
 [RequireComponent(typeof(NetworkObject))]
-public class Bomb : NetworkBehaviour
+public class Bomb : NetworkBehaviour, IInteractable
 {
     private const float _MAX_PERMISSIBLE_DESYNC_DISTANCE = 4f;
 
@@ -141,6 +141,36 @@ public class Bomb : NetworkBehaviour
         }
     }
 
+    public string GetInteractionPrompt()
+    {
+        switch (State.Value)
+        {
+            case BombState.Dropped:
+                return "[E] Recoger C4";
+            case BombState.Planted:
+                return "Mantén [E] para desactivar C4";
+            default:
+                return string.Empty;
+        }
+    }
+
+    public void Interact(ulong interactorClientId)
+    {
+        if (!IsServer) return;
+
+        if (State.Value == BombState.Dropped)
+        {
+            PickUpDirectServer(interactorClientId);
+        }
+    }
+
+    private void PickUpDirectServer(ulong requesterClientId)
+    {
+        if (State.Value != BombState.Dropped) return;
+        CarrierClientId.Value = requesterClientId;
+        State.Value = BombState.Carried;
+    }
+
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestPickupServerRpc(ulong requesterClientId)
     {
@@ -195,6 +225,21 @@ public class Bomb : NetworkBehaviour
         CarrierClientId.Value = ulong.MaxValue;
 
         targetSite.NotifyBombPlantedClientRpc();
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestDefuseServerRpc(ulong requesterClientId)
+    {
+        if (State.Value != BombState.Planted) return;
+        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(requesterClientId, out NetworkClient connectedClient)) return;
+
+        NetworkObject playerObject = connectedClient.PlayerObject;
+        if (playerObject == null) return;
+
+        float distanceToBomb = Vector3.Distance(playerObject.transform.position, transform.position);
+        if (distanceToBomb > _pickupRadius + 1f) return;
+
+        State.Value = BombState.Defused;
     }
 
     private void ExecuteServerDetonation()

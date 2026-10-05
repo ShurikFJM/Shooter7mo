@@ -65,13 +65,125 @@ MonoBehaviour:
   generalScrollSpeed: 18
   sessions:
   - tracker:
-      mostClicked: []
-      recentlyClicked: []
+      mostClicked:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        count: 15
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
+        count: 8
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn1[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn2[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn3[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn4[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn5[0]"}'
+        count: 5
+        gameObjects:
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn1[0]"}'
+        count: 3
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas[0]"}'
+        count: 2
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn1[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn2[0]"}'
+        count: 2
+        gameObjects:
+        - {fileID: 0}
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Directional Light[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn3[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      recentlyClicked:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4Spawn[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn1[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn2[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn3[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn4[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn5[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn5[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 01:36 AM (October 3, 2026)
+    lastSaveTimePrint: 02:07 PM (October 5, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -82,38 +194,38 @@ MonoBehaviour:
     suggestedHeight: 0
     userAssetViewSize: -1
     previewHeight: 0
-    scrollPosition: {x: 0, y: 0}
+    scrollPosition: {x: 0, y: 162}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 104
+    lastValidTabWidth: 67
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 0
+    lastKnownHeight: 1
     tabs:
-    - path: 
+    - path: '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/Canvas[0]"}'
       paths: []
-      tabWidth: 0
-      name: 
-      icon: {fileID: 0}
-      shortName: New Tab
+      tabWidth: 64
+      name: Canvas
+      icon: {fileID: 6918890264710435130, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: Canvas
       filterString: 
-      newTab: 1
-      scrollPosition: 0
-      isSelected: 0
+      newTab: 0
+      scrollPosition: 162
+      isSelected: 1
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: 
+        m_Text: Canvas
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: 
+        m_TextWithWhitespace: "Canvas\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
       previewHeight: 150
       debug: 0
       filtering: 0
-      prefab: 0
+      prefab: 1
       multiFoldout: 1
       target: {fileID: 0}
       targets: []
@@ -145,48 +257,104 @@ MonoBehaviour:
       savePlayModeTransform: 0
       index: 0
       historyPosition: 0
-      componentMaps: []
-      historyPaths: []
+      componentMaps:
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: recttransform
+        niceComponentName: rect transform
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: tacticalhud
+        niceComponentName: tactical hud
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: canvas
+        niceComponentName: canvas
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: canvasscaler
+        niceComponentName: canvas scaler
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: graphicraycaster
+        niceComponentName: graphic raycaster
+      historyPaths:
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/Canvas[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
+        prefab: 1
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - 2da46b308d8957248a88ac3d8e1ecf95
-    - assetGUIDs:
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
-      - 40a70974aafb634428d16c0fb09b1a30
-      - 8e58c5f376c03654fb710736a221e8e3
-      - 2da46b308d8957248a88ac3d8e1ecf95
-    - assetGUIDs:
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
-      - 40a70974aafb634428d16c0fb09b1a30
-      - 8e58c5f376c03654fb710736a221e8e3
-    - assetGUIDs:
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
-      - 40a70974aafb634428d16c0fb09b1a30
-    - assetGUIDs:
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
-    - assetGUIDs:
       - 23b3b56b8ea620b4c8e3ef01590d59f3
     - assetGUIDs:
-      - 649de373d04f9324385bdf92813c10d6
+      - 3c2cd5403745811498d5f420cbadf9b7
     - assetGUIDs:
-      - 6438b930bfd627a4594a550d5082172d
+      - dc1ac7c7748377c41a9f0ae32fa541c7
     - assetGUIDs:
-      - 7f344191bfd226543ad11976c26ebd9f
-      - 7a5714e6cf4eb5344a9d53426a244f35
-      - dd6c2a02f622d5d41878f02256b8a19f
-      - a31f14a5c06303e4cbaf303caf25bb43
+      - f381e7cd838fc12408522d9bebf20ba9
     - assetGUIDs:
-      - 7f344191bfd226543ad11976c26ebd9f
+      - 6d9aec29deb88c04ba7d6cb37cadc8dc
     - assetGUIDs:
-      - a31f14a5c06303e4cbaf303caf25bb43
-    targetObject: {fileID: 11500000, guid: 2da46b308d8957248a88ac3d8e1ecf95, type: 3}
+      - e2b51c37c65b71a44a703dffe71ee3f6
+    - assetGUIDs:
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+    - assetGUIDs:
+      - 2da46b308d8957248a88ac3d8e1ecf95
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - e2b51c37c65b71a44a703dffe71ee3f6
+      - f2d6972855548644e84f1e6ebb37c576
+    - assetGUIDs:
+      - 2da46b308d8957248a88ac3d8e1ecf95
+    - assetGUIDs:
+      - f2d6972855548644e84f1e6ebb37c576
+    - assetGUIDs:
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 40a70974aafb634428d16c0fb09b1a30
+      - 8e58c5f376c03654fb710736a221e8e3
+      - 2da46b308d8957248a88ac3d8e1ecf95
+    targetObject: {fileID: 0}
     targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Gameplay/Interactables/Bomb.cs
+    lastSelectedAsset: 
     lastClickedTab: -1
-    previousTab: 0
+    previousTab: 1
   - tracker:
       mostClicked:
       - paths:
@@ -733,6 +901,6 @@ MonoBehaviour:
     lastSelectedAsset: "Assets/Julio\xB4s Things/Scenes/Julio\xB4s Scene.unity"
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  tipsShown: 01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000010000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   playModeStartScene: {}
   enteringPlayMode: 0

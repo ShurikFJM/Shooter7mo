@@ -49,6 +49,25 @@ public class NetworkHealth : NetworkBehaviour
         }
     }
 
+    public void ResetHealthServer()
+    {
+        if (!IsServer) return;
+
+        CurrentHealth.Value = _maxHealth;
+        CurrentArmor.Value = _maxArmor;
+
+        ReviveClientRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void ReviveClientRpc()
+    {
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+    }
+
     public void TakeDamage(float amount, HitboxType hitboxType, ulong attackerId)
     {
         if (!IsServer || CurrentHealth.Value <= 0f) return;

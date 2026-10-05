@@ -14,7 +14,9 @@ public class BombPromptUI : MonoBehaviour
     [SerializeField] private string _pickupPrompt = "Press [E] to pick up bomb";
     [SerializeField] private string _dropPrompt = "Press [E] to drop bomb";
     [SerializeField] private string _plantPrompt = "Hold [E] to plant bomb";
+    [SerializeField] private string _defusePrompt = "Hold [E] to defuse bomb";
     [SerializeField] private string _plantingLabel = "Planting...";
+    [SerializeField] private string _defusingLabel = "Defusing...";
 
     private BombInteractor _localInteractor;
 
@@ -45,16 +47,20 @@ public class BombPromptUI : MonoBehaviour
 
     private void RefreshUserInterface()
     {
-        if (_localInteractor.IsPlanting)
+        if (_localInteractor.IsPlanting || _localInteractor.IsDefusing)
         {
             HideActionPrompt();
-            ShowProgressDisplay();
+            ShowProgressDisplay(_localInteractor.IsDefusing ? _defusingLabel : _plantingLabel);
             return;
         }
 
         HideProgressDisplay();
 
-        if (_localInteractor.IsCarryingBomb)
+        if (_localInteractor.HasNearbyPlantedBomb)
+        {
+            ShowActionPrompt(_defusePrompt);
+        }
+        else if (_localInteractor.IsCarryingBomb)
         {
             ShowActionPrompt(_localInteractor.IsInSite ? _plantPrompt : _dropPrompt);
         }
@@ -79,11 +85,11 @@ public class BombPromptUI : MonoBehaviour
         if (_promptRoot != null) _promptRoot.SetActive(false);
     }
 
-    private void ShowProgressDisplay()
+    private void ShowProgressDisplay(string label)
     {
         if (_progressRoot != null) _progressRoot.SetActive(true);
-        if (_progressFill != null) _progressFill.fillAmount = _localInteractor.PlantProgressNormalized;
-        if (_progressLabel != null) _progressLabel.text = _plantingLabel;
+        if (_progressFill != null) _progressFill.fillAmount = _localInteractor.ActionProgressNormalized;
+        if (_progressLabel != null) _progressLabel.text = label;
     }
 
     private void HideProgressDisplay()

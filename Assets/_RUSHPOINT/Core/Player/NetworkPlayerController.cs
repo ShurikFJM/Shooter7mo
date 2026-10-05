@@ -133,8 +133,8 @@ public class NetworkPlayerController : NetworkBehaviour
             TacticalHUD tacticalHud = FindAnyObjectByType<TacticalHUD>();
             if (tacticalHud != null)
             {
-                tacticalHud.playerHealth = GetComponent<NetworkHealth>();
-                tacticalHud.inventory = GetComponentInChildren<WeaponInventory>();
+                tacticalHud.PlayerHealth = GetComponent<NetworkHealth>();
+                tacticalHud.Inventory = GetComponentInChildren<WeaponInventory>();
             }
 
             Camera lobbyCamera = GameObject.FindWithTag(_LOBBY_CAMERA_TAG)?.GetComponent<Camera>();
@@ -222,6 +222,17 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void UpdateInputStates()
     {
+        bool isFreezeTime = RoundManager.Instance != null && RoundManager.Instance.CurrentPhase.Value == RoundPhase.FreezeTime;
+        BombInteractor bombInteractor = GetComponent<BombInteractor>();
+        bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
+
+        if (isFreezeTime || isInteractingBomb)
+        {
+            _isSprinting = false;
+            _isWalkingSlow = false;
+            return;
+        }
+
         bool crouchPressed = false;
         bool walkSlowPressed = false;
         bool sprintPressed = false;
@@ -279,6 +290,12 @@ public class NetworkPlayerController : NetworkBehaviour
 
     public void OnJump(InputValue value)
     {
+        bool isFreezeTime = RoundManager.Instance != null && RoundManager.Instance.CurrentPhase.Value == RoundPhase.FreezeTime;
+        BombInteractor bombInteractor = GetComponent<BombInteractor>();
+        bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
+
+        if (isFreezeTime || isInteractingBomb) return;
+
         if (value.isPressed && IsGrounded && !_isCrouching)
         {
             _jumpRequested = true;
@@ -359,11 +376,11 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (_characterController == null) return;
 
+        bool isFreezeTime = RoundManager.Instance != null && RoundManager.Instance.CurrentPhase.Value == RoundPhase.FreezeTime;
         BombInteractor bombInteractor = GetComponent<BombInteractor>();
-        if (bombInteractor != null && bombInteractor.IsPlanting)
-        {
-            _moveInput = Vector2.zero;
-        }
+        bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
+
+        Vector2 effectiveInput = (isFreezeTime || isInteractingBomb) ? Vector2.zero : _moveInput;
 
         if (IsGrounded && _verticalVelocity.y < 0)
         {
@@ -389,12 +406,12 @@ public class NetworkPlayerController : NetworkBehaviour
             movementSpeed = baseSprintSpeed;
         }
 
-        Vector3 moveDirection = transform.right * _moveInput.x + transform.forward * _moveInput.y;
+        Vector3 moveDirection = transform.right * effectiveInput.x + transform.forward * effectiveInput.y;
         _characterController.Move(moveDirection * movementSpeed * Time.deltaTime);
 
         if (_jumpRequested && IsGrounded)
         {
-            if (bombInteractor == null || !bombInteractor.IsPlanting)
+            if (!isFreezeTime && !isInteractingBomb)
             {
                 _verticalVelocity.y = Mathf.Sqrt(baseJumpForce * -2f * _GRAVITY);
             }

@@ -14,6 +14,7 @@ public class BombInteractor : NetworkBehaviour
     [SerializeField] private LayerMask _bombLayer;
     [SerializeField] private LayerMask _siteLayer;
     [SerializeField] private float _plantHoldTime = 4f;
+    [SerializeField] private float _defuseHoldTime = 5f;
 
     private readonly Collider[] _bombHitBuffer = new Collider[_MAX_BUFFER_HITS];
     private readonly Collider[] _siteHitBuffer = new Collider[_MAX_BUFFER_HITS];
@@ -21,16 +22,22 @@ public class BombInteractor : NetworkBehaviour
     private Bomb _carriedBomb;
     private Bomb _nearbyBomb;
     private BombSite _currentSite;
-    private float _plantProgress;
+    private float _actionProgress;
     private bool _isPlanting;
+    private bool _isDefusing;
 
     public bool IsCarryingBomb => _carriedBomb != null &&
                                   _carriedBomb.State.Value == BombState.Carried &&
                                   _carriedBomb.CarrierClientId.Value == NetworkManager.Singleton.LocalClientId;
 
     public bool IsPlanting => _isPlanting;
-    public float PlantProgressNormalized => _plantHoldTime > 0f ? _plantProgress / _plantHoldTime : 0f;
+    public bool IsDefusing => _isDefusing;
+    public float ActionProgressNormalized => _isDefusing
+        ? (_defuseHoldTime > 0f ? _actionProgress / _defuseHoldTime : 0f)
+        : (_plantHoldTime > 0f ? _actionProgress / _plantHoldTime : 0f);
+
     public bool HasNearbyBomb => _nearbyBomb != null;
+    public bool HasNearbyPlantedBomb => _nearbyBomb != null && _nearbyBomb.State.Value == BombState.Planted;
     public bool IsInSite => _currentSite != null;
 
     private void Awake()
@@ -50,19 +57,19 @@ public class BombInteractor : NetworkBehaviour
 
         if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
         {
-            if (_isPlanting) StopPlantingProcess();
+            CancelActionProcess();
             return;
         }
 
         if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
         {
-            if (_isPlanting) StopPlantingProcess();
+            CancelActionProcess();
             return;
         }
 
-        DetectNearbyDroppedBomb();
+        DetectNearbyBombs();
         DetectCurrentBombSite();
-        ExecutePlantingTimer();
+        ExecuteActionTimer();
     }
 
     private void ValidateCarriedBombAuthority()
@@ -88,13 +95,13 @@ public class BombInteractor : NetworkBehaviour
                 _carriedBomb = null;
                 if (_isPlanting)
                 {
-                    StopPlantingProcess();
+                    CancelActionProcess();
                 }
             }
         }
     }
 
-    private void DetectNearbyDroppedBomb()
+    private void DetectNearbyBombs()
     {
         if (IsCarryingBomb)
         {
@@ -110,7 +117,9 @@ public class BombInteractor : NetworkBehaviour
         {
             Collider colliderItem = _bombHitBuffer[i];
             Bomb detectedBomb = colliderItem.GetComponentInParent<Bomb>();
-            if (detectedBomb == null || detectedBomb.State.Value != BombState.Dropped) continue;
+            if (detectedBomb == null) continue;
+
+            if (detectedBomb.State.Value != BombState.Dropped && detectedBomb.State.Value != BombState.Planted) continue;
 
             float currentDistance = Vector3.Distance(_interactOrigin.position, detectedBomb.transform.position);
             if (currentDistance < closestDistance)
@@ -147,13 +156,17 @@ public class BombInteractor : NetworkBehaviour
         }
         else
         {
-            StopPlantingProcess();
+            CancelActionProcess();
         }
     }
 
     private void ProcessInteractionInput()
     {
-        if (IsCarryingBomb && _currentSite != null)
+        if (_nearbyBomb != null && _nearbyBomb.State.Value == BombState.Planted)
+        {
+            StartDefusingProcess();
+        }
+        else if (IsCarryingBomb && _currentSite != null)
         {
             StartPlantingProcess();
         }
@@ -161,40 +174,65 @@ public class BombInteractor : NetworkBehaviour
         {
             RequestDropExecution();
         }
-        else if (_nearbyBomb != null)
+        else if (_nearbyBomb != null && _nearbyBomb.State.Value == BombState.Dropped)
         {
             RequestPickupExecution(_nearbyBomb);
         }
     }
 
-    private void ExecutePlantingTimer()
+    private void ExecuteActionTimer()
     {
-        if (!_isPlanting) return;
-
-        if (_currentSite == null || !IsCarryingBomb)
+        if (_isPlanting)
         {
-            StopPlantingProcess();
-            return;
+            if (_currentSite == null || !IsCarryingBomb)
+            {
+                CancelActionProcess();
+                return;
+            }
+
+            _actionProgress += Time.deltaTime;
+            if (_actionProgress >= _plantHoldTime)
+            {
+                CompletePlantingProcess();
+                CancelActionProcess();
+            }
         }
-
-        _plantProgress += Time.deltaTime;
-        if (_plantProgress >= _plantHoldTime)
+        else if (_isDefusing)
         {
-            CompletePlantingProcess();
-            StopPlantingProcess();
+            if (_nearbyBomb == null || _nearbyBomb.State.Value != BombState.Planted)
+            {
+                CancelActionProcess();
+                return;
+            }
+
+            _actionProgress += Time.deltaTime;
+            if (_actionProgress >= _defuseHoldTime)
+            {
+                CompleteDefusingProcess();
+                CancelActionProcess();
+            }
         }
     }
 
     private void StartPlantingProcess()
     {
         _isPlanting = true;
-        _plantProgress = 0f;
+        _isDefusing = false;
+        _actionProgress = 0f;
     }
 
-    private void StopPlantingProcess()
+    private void StartDefusingProcess()
+    {
+        _isDefusing = true;
+        _isPlanting = false;
+        _actionProgress = 0f;
+    }
+
+    private void CancelActionProcess()
     {
         _isPlanting = false;
-        _plantProgress = 0f;
+        _isDefusing = false;
+        _actionProgress = 0f;
     }
 
     private void CompletePlantingProcess()
@@ -222,6 +260,13 @@ public class BombInteractor : NetworkBehaviour
         _carriedBomb = null;
     }
 
+    private void CompleteDefusingProcess()
+    {
+        if (_nearbyBomb == null || _nearbyBomb.State.Value != BombState.Planted) return;
+
+        _nearbyBomb.RequestDefuseServerRpc(NetworkManager.Singleton.LocalClientId);
+    }
+
     private void RequestPickupExecution(Bomb targetBomb)
     {
         targetBomb.RequestPickupServerRpc(NetworkManager.Singleton.LocalClientId);
@@ -233,6 +278,6 @@ public class BombInteractor : NetworkBehaviour
         if (_carriedBomb == null) return;
         _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId, transform.position);
         _carriedBomb = null;
-        StopPlantingProcess();
+        CancelActionProcess();
     }
 }

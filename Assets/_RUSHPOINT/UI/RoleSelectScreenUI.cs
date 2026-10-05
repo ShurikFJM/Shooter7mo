@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Netcode;
 
 public class RoleSelectScreenUI : MonoBehaviour
 {
@@ -16,6 +17,7 @@ public class RoleSelectScreenUI : MonoBehaviour
     [SerializeField] private TMP_Text _roleHealthText;
     [SerializeField] private TMP_Text _roleArmorText;
     [SerializeField] private TMP_Text _roleSpeedText;
+    [SerializeField] private Button _lockInButton;
 
     [SerializeField] private Button _selectTerroristButton;
     [SerializeField] private Button _selectCounterTerroristButton;
@@ -140,6 +142,19 @@ public class RoleSelectScreenUI : MonoBehaviour
         if (_confirmButton != null)
         {
             _confirmButton.interactable = true;
+        }
+    }
+
+    public void OnClickLockInRole()
+    {
+        if (_lockInButton != null)
+        {
+            _lockInButton.interactable = false;
+        }
+
+        if (RoundManager.Instance != null && NetworkManager.Singleton != null)
+        {
+            RoundManager.Instance.NotifyPlayerLockedInServerRpc(NetworkManager.Singleton.LocalClientId);
         }
     }
 
