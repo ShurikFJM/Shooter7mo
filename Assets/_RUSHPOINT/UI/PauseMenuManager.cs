@@ -1,39 +1,40 @@
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.InputSystem;
-using Unity.Netcode;
-using UnityEngine.SceneManagement;
 using TMPro;
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PauseMenuManager : MonoBehaviour
 {
+    private const string _MAIN_MENU_SCENE_NAME = "MainMenu";
+    private const string _GAMEPAD_DEVICE_TEXT = "Dispositivo: Mando / Gamepad";
+    private const string _KEYBOARD_DEVICE_TEXT = "Dispositivo: Teclado y Ratón";
+
     public static PauseMenuManager Instance { get; private set; }
 
-    [Header("Paneles UI")]
-    [Tooltip("Panel contenedor de todo el menú (el fondo oscuro completo)")]
-    [SerializeField] private GameObject pauseMenuRoot;
-    [Tooltip("Subpanel con los botones de Reanudar, Ajustes, etc.")]
-    [SerializeField] private GameObject mainPausePanel;
-    [SerializeField] private GameObject settingsPanel;
-    [SerializeField] private GameObject controlsPanel;
+    [SerializeField] private GameObject _pauseMenuRoot;
+    [SerializeField] private GameObject _mainPausePanel;
+    [SerializeField] private GameObject _settingsPanel;
+    [SerializeField] private GameObject _controlsPanel;
 
-    [Header("Botones Menú Principal de Pausa")]
-    [SerializeField] private Button resumeButton;
-    [SerializeField] private Button controlsButton;
-    [SerializeField] private Button settingsButton;
-    [SerializeField] private Button mainMenuButton;
+    [SerializeField] private Button _resumeButton;
+    [SerializeField] private Button _controlsButton;
+    [SerializeField] private Button _settingsButton;
+    [SerializeField] private Button _mainMenuButton;
 
-    [Header("Botones de Regreso en Subpaneles")]
-    [SerializeField] private Button closeControlsButton;
-    [SerializeField] private Button closeSettingsButton;
+    [SerializeField] private Button _closeControlsButton;
+    [SerializeField] private Button _closeSettingsButton;
 
-    [Header("Visualización de Controles Dinámicos")]
-    [SerializeField] private GameObject keyboardControlsView;
-    [SerializeField] private GameObject gamepadControlsView;
-    [SerializeField] private TMP_Text currentDeviceText;
+    [SerializeField] private GameObject _keyboardControlsView;
+    [SerializeField] private GameObject _gamepadControlsView;
+    [SerializeField] private TMP_Text _currentDeviceText;
 
-    private bool isPaused = false;
-    public bool IsPaused => isPaused;
+    private InputAction _pauseAction;
+    private bool _isPaused;
+
+    public bool IsPaused => _isPaused;
 
     private void Awake()
     {
@@ -42,51 +43,91 @@ public class PauseMenuManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
+
+        ConfigureInputActions();
     }
 
     private void Start()
     {
-        if (resumeButton != null) resumeButton.onClick.AddListener(ResumeGame);
-        if (controlsButton != null) controlsButton.onClick.AddListener(OpenControls);
-        if (settingsButton != null) settingsButton.onClick.AddListener(OpenSettings);
-        if (mainMenuButton != null) mainMenuButton.onClick.AddListener(ReturnToMainMenu);
+        if (_resumeButton != null) _resumeButton.onClick.AddListener(ResumeGame);
+        if (_controlsButton != null) _controlsButton.onClick.AddListener(OpenControls);
+        if (_settingsButton != null) _settingsButton.onClick.AddListener(OpenSettings);
+        if (_mainMenuButton != null) _mainMenuButton.onClick.AddListener(ReturnToMainMenu);
 
-        if (closeControlsButton != null) closeControlsButton.onClick.AddListener(ShowMainPausePanel);
-        if (closeSettingsButton != null) closeSettingsButton.onClick.AddListener(ShowMainPausePanel);
+        if (_closeControlsButton != null) _closeControlsButton.onClick.AddListener(ShowMainPausePanel);
+        if (_closeSettingsButton != null) _closeSettingsButton.onClick.AddListener(ShowMainPausePanel);
 
-        // Ocultar todo al iniciar la partida
         ForceHideAll();
     }
 
-    private void Update()
+    private void OnEnable()
     {
-        bool pausePressed = false;
-
-        if (Keyboard.current != null && (Keyboard.current.escapeKey.wasPressedThisFrame || Keyboard.current.pKey.wasPressedThisFrame))
-            pausePressed = true;
-        else if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
-            pausePressed = true;
-
-        if (Gamepad.current != null && Gamepad.current.startButton.wasPressedThisFrame)
-            pausePressed = true;
-        else if (Input.GetKeyDown(KeyCode.JoystickButton7))
-            pausePressed = true;
-
-        if (pausePressed)
+        if (_pauseAction != null)
         {
-            TogglePause();
+            _pauseAction.performed += HandlePausePerformed;
+            _pauseAction.Enable();
         }
 
-        if (isPaused && controlsPanel != null && controlsPanel.activeSelf)
+        InputSystem.onEvent += HandleInputDeviceChanged;
+    }
+
+    private void OnDisable()
+    {
+        if (_pauseAction != null)
         {
-            UpdateControlsDisplay();
+            _pauseAction.performed -= HandlePausePerformed;
+            _pauseAction.Disable();
+        }
+
+        InputSystem.onEvent -= HandleInputDeviceChanged;
+    }
+
+    private void OnDestroy()
+    {
+        _pauseAction?.Dispose();
+    }
+
+    private void ConfigureInputActions()
+    {
+        _pauseAction = new InputAction(name: "TogglePause", type: InputActionType.Button);
+        _pauseAction.AddBinding("<Keyboard>/escape");
+        _pauseAction.AddBinding("<Keyboard>/p");
+        _pauseAction.AddBinding("<Gamepad>/start");
+    }
+
+    private void HandlePausePerformed(InputAction.CallbackContext context)
+    {
+        if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
+        {
+            return;
+        }
+
+        TogglePause();
+    }
+
+    private void HandleInputDeviceChanged(InputEventPtr eventPtr, InputDevice device)
+    {
+        if (!_isPaused || _controlsPanel == null || !_controlsPanel.activeSelf) return;
+
+        bool isGamepad = device is Gamepad;
+        bool isKeyboardOrMouse = device is Keyboard || device is Mouse;
+
+        if (!isGamepad && !isKeyboardOrMouse) return;
+
+        if (_keyboardControlsView != null) _keyboardControlsView.SetActive(!isGamepad);
+        if (_gamepadControlsView != null) _gamepadControlsView.SetActive(isGamepad);
+
+        if (_currentDeviceText != null)
+        {
+            _currentDeviceText.text = isGamepad ? _GAMEPAD_DEVICE_TEXT : _KEYBOARD_DEVICE_TEXT;
         }
     }
 
     public void TogglePause()
     {
-        SetPauseState(!isPaused);
+        SetPauseState(!_isPaused);
     }
 
     public void ResumeGame()
@@ -96,12 +137,11 @@ public class PauseMenuManager : MonoBehaviour
 
     private void SetPauseState(bool state)
     {
-        isPaused = state;
+        _isPaused = state;
 
-        if (isPaused)
+        if (_isPaused)
         {
-            // Encender el contenedor raíz y mostrar el panel principal de botones
-            if (pauseMenuRoot != null) pauseMenuRoot.SetActive(true);
+            if (_pauseMenuRoot != null) _pauseMenuRoot.SetActive(true);
             ShowMainPausePanel();
 
             Cursor.lockState = CursorLockMode.None;
@@ -115,51 +155,42 @@ public class PauseMenuManager : MonoBehaviour
             Cursor.visible = false;
         }
 
-        UpdateLocalPlayerInputState(!isPaused);
+        UpdateLocalPlayerInputState(!_isPaused);
     }
 
     private void ForceHideAll()
     {
-        if (pauseMenuRoot != null) pauseMenuRoot.SetActive(false);
-        if (mainPausePanel != null) mainPausePanel.SetActive(false);
-        if (controlsPanel != null) controlsPanel.SetActive(false);
-        if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (_pauseMenuRoot != null) _pauseMenuRoot.SetActive(false);
+        if (_mainPausePanel != null) _mainPausePanel.SetActive(false);
+        if (_controlsPanel != null) _controlsPanel.SetActive(false);
+        if (_settingsPanel != null) _settingsPanel.SetActive(false);
     }
 
     private void ShowMainPausePanel()
     {
-        if (mainPausePanel != null) mainPausePanel.SetActive(true);
-        if (settingsPanel != null) settingsPanel.SetActive(false);
-        if (controlsPanel != null) controlsPanel.SetActive(false);
+        if (_mainPausePanel != null) _mainPausePanel.SetActive(true);
+        if (_settingsPanel != null) _settingsPanel.SetActive(false);
+        if (_controlsPanel != null) _controlsPanel.SetActive(false);
     }
 
     private void OpenControls()
     {
-        if (mainPausePanel != null) mainPausePanel.SetActive(false);
-        if (controlsPanel != null) controlsPanel.SetActive(true);
-        UpdateControlsDisplay();
+        if (_mainPausePanel != null) _mainPausePanel.SetActive(false);
+        if (_controlsPanel != null) _controlsPanel.SetActive(true);
+
+        bool isGamepad = Gamepad.current != null;
+        if (_keyboardControlsView != null) _keyboardControlsView.SetActive(!isGamepad);
+        if (_gamepadControlsView != null) _gamepadControlsView.SetActive(isGamepad);
+        if (_currentDeviceText != null)
+        {
+            _currentDeviceText.text = isGamepad ? _GAMEPAD_DEVICE_TEXT : _KEYBOARD_DEVICE_TEXT;
+        }
     }
 
     private void OpenSettings()
     {
-        if (mainPausePanel != null) mainPausePanel.SetActive(false);
-        if (settingsPanel != null) settingsPanel.SetActive(true);
-    }
-
-    private void UpdateControlsDisplay()
-    {
-        bool usingGamepad = Gamepad.current != null && Gamepad.current.wasUpdatedThisFrame;
-
-        if (Keyboard.current != null && Keyboard.current.wasUpdatedThisFrame) usingGamepad = false;
-        if (Mouse.current != null && (Mouse.current.delta.ReadValue().sqrMagnitude > 0.01f || Mouse.current.leftButton.wasPressedThisFrame)) usingGamepad = false;
-
-        if (keyboardControlsView != null) keyboardControlsView.SetActive(!usingGamepad);
-        if (gamepadControlsView != null) gamepadControlsView.SetActive(usingGamepad);
-
-        if (currentDeviceText != null)
-        {
-            currentDeviceText.text = usingGamepad ? "Dispositivo: Mando / Gamepad" : "Dispositivo: Teclado y Ratón";
-        }
+        if (_mainPausePanel != null) _mainPausePanel.SetActive(false);
+        if (_settingsPanel != null) _settingsPanel.SetActive(true);
     }
 
     private void UpdateLocalPlayerInputState(bool enableInput)
@@ -169,11 +200,11 @@ public class PauseMenuManager : MonoBehaviour
         NetworkObject localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
         if (localPlayer != null)
         {
-            PlayerInput pInput = localPlayer.GetComponent<PlayerInput>();
-            if (pInput != null)
+            PlayerInput playerInput = localPlayer.GetComponent<PlayerInput>();
+            if (playerInput != null)
             {
-                if (enableInput) pInput.ActivateInput();
-                else pInput.DeactivateInput();
+                if (enableInput) playerInput.ActivateInput();
+                else playerInput.DeactivateInput();
             }
         }
     }
@@ -188,6 +219,6 @@ public class PauseMenuManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene(_MAIN_MENU_SCENE_NAME);
     }
 }

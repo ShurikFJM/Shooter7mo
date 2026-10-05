@@ -1,73 +1,80 @@
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(AudioSource))]
 public class WeaponBase : NetworkBehaviour
 {
-    [Header("Configuración Base")]
-    public WeaponData data;
-    public Transform firePoint;
-    public NetworkPlayerController playerController;
+    private const float _TRIGGER_DEADZONE = 0.2f;
+    private const float _SPREAD_RECOVERY_SPEED = 12f;
+    private const float _DEFAULT_RECOIL_RESET_TIME = 0.3f;
+    private const float _DEFAULT_FIRE_RATE = 0.1f;
+    private const float _SPREAD_BURST_MULTIPLIER = 1.5f;
+    private const float _AIR_SPREAD_FACTOR = 0.5f;
+    private const float _MOVE_SPREAD_FACTOR = 0.35f;
+    private const float _DEFAULT_RANGE = 100f;
+    private const float _DEFAULT_DAMAGE = 25f;
+    private const float _DEFAULT_RELOAD_TIME = 1.5f;
+    private const float _MUZZLE_FLASH_DURATION = 0.05f;
+    private const float _IMPACT_LIFETIME = 4f;
+    private const float _TRACER_DURATION = 0.03f;
+    private const float _TRACER_DESTROY_DELAY = 0.02f;
+    private const float _TWO_PI = Mathf.PI * 2f;
 
-    [Header("Animaciones y Componentes")]
-    public Animator weaponAnimator;
+    [SerializeField] private WeaponData _data;
+    [SerializeField] private Transform _firePoint;
+    [SerializeField] private NetworkPlayerController _playerController;
+    [SerializeField] private Animator _weaponAnimator;
+    [SerializeField] private Material _tracerMaterial;
+    [SerializeField] private ParticleSystem _muzzleFlash;
+    [SerializeField] private Transform _weaponModelTransform;
+    [SerializeField] private Vector3 _kickbackOffset = new Vector3(0f, 0.02f, -0.08f);
+    [SerializeField] private Vector3 _kickbackRotation = new Vector3(-3f, 1f, 0f);
+    [SerializeField] private float _returnSpeed = 15f;
 
-    [Header("Efectos de Feedback")]
-    public Material tracerMaterial;
-    public ParticleSystem muzzleFlash;
+    private int _currentAmmo;
+    private bool _isReloading;
+    private float _nextTimeToFire;
+    private int _currentShotIndex;
+    private float _lastShotTime;
+    private float _firingSpreadPenalty;
+    private bool _wasRtPressedLastFrame;
 
-    [Header("Retroceso Visual Procedural")]
-    public Transform weaponModelTransform;
-    public Vector3 kickbackOffset = new Vector3(0f, 0.02f, -0.08f);
-    public Vector3 kickbackRotation = new Vector3(-3f, 1f, 0f);
-    public float returnSpeed = 15f;
+    private Vector3 _targetPosition;
+    private Quaternion _targetRotation;
+    private Coroutine _muzzleFlashCoroutine;
+    private AudioSource _audioSource;
 
-    // Estado Interno
-    private int currentAmmo;
-    private bool isReloading = false;
-    private float nextTimeToFire = 0f;
+    private readonly int _shootTriggerHash = Animator.StringToHash("Shoot");
+    private readonly int _reloadTriggerHash = Animator.StringToHash("Reload");
 
-    // Control de Retroceso y Dispersión
-    private int currentShotIndex = 0;
-    private float lastShotTime = 0f;
-    private float firingSpreadPenalty = 0f;
+    public WeaponData data => _data;
+    public WeaponData Data => _data;
+    public int CurrentAmmo => _currentAmmo;
+    public int MaxAmmo => _data != null ? _data.maxAmmo : 0;
+    public bool IsReloading => _isReloading;
 
-    // Control de Gatillo Xbox (Estado previo para disparo único)
-    private bool wasRtPressedLastFrame = false;
-
-    // Posicionamiento y Audio
-    private Vector3 targetPosition;
-    private Quaternion targetRotation;
-    private Coroutine muzzleFlashCoroutine;
-    private AudioSource audioSource;
-
-    private readonly int shootTriggerHash = Animator.StringToHash("Shoot");
-    private readonly int reloadTriggerHash = Animator.StringToHash("Reload");
-
-    public int CurrentAmmo => currentAmmo;
-    public int MaxAmmo => data != null ? data.maxAmmo : 0;
-    public bool IsReloading => isReloading;
-
-    void Start()
+    private void Start()
     {
-        audioSource = GetComponent<AudioSource>();
+        _audioSource = GetComponent<AudioSource>();
 
-        if (data != null) currentAmmo = data.maxAmmo;
-        if (playerController == null) playerController = GetComponentInParent<NetworkPlayerController>();
-        if (firePoint == null && playerController != null && playerController.PlayerCamera != null)
-            firePoint = playerController.PlayerCamera.transform;
-        if (weaponModelTransform == null) weaponModelTransform = transform;
-
-        if (muzzleFlash != null)
+        if (_data != null) _currentAmmo = _data.maxAmmo;
+        if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
+        if (_firePoint == null && _playerController != null && _playerController.PlayerCamera != null)
         {
-            muzzleFlash.gameObject.SetActive(false);
+            _firePoint = _playerController.PlayerCamera.transform;
+        }
+        if (_weaponModelTransform == null) _weaponModelTransform = transform;
+
+        if (_muzzleFlash != null)
+        {
+            _muzzleFlash.gameObject.SetActive(false);
         }
     }
 
-    void Update()
+    private void Update()
     {
-
         if (!IsOwner) return;
 
         if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
@@ -86,147 +93,139 @@ public class WeaponBase : NetworkBehaviour
             return;
         }
 
-        // Solo el jugador dueño de este personaje puede procesar disparos e inputs
+        _targetPosition = Vector3.Lerp(_targetPosition, Vector3.zero, Time.deltaTime * _returnSpeed);
+        _targetRotation = Quaternion.Slerp(_targetRotation, Quaternion.identity, Time.deltaTime * _returnSpeed);
 
-        targetPosition = Vector3.Lerp(targetPosition, Vector3.zero, Time.deltaTime * returnSpeed);
-        targetRotation = Quaternion.Slerp(targetRotation, Quaternion.identity, Time.deltaTime * returnSpeed);
+        _weaponModelTransform.localPosition = Vector3.Lerp(_weaponModelTransform.localPosition, _targetPosition, Time.deltaTime * _returnSpeed * 2f);
+        _weaponModelTransform.localRotation = Quaternion.Slerp(_weaponModelTransform.localRotation, _targetRotation, Time.deltaTime * _returnSpeed * 2f);
 
-        weaponModelTransform.localPosition = Vector3.Lerp(weaponModelTransform.localPosition, targetPosition, Time.deltaTime * returnSpeed * 2f);
-        weaponModelTransform.localRotation = Quaternion.Slerp(weaponModelTransform.localRotation, targetRotation, Time.deltaTime * returnSpeed * 2f);
-
-        if (firingSpreadPenalty > 0f)
+        if (_firingSpreadPenalty > 0f)
         {
-            firingSpreadPenalty = Mathf.Lerp(firingSpreadPenalty, 0f, Time.deltaTime * 12f);
+            _firingSpreadPenalty = Mathf.Lerp(_firingSpreadPenalty, 0f, Time.deltaTime * _SPREAD_RECOVERY_SPEED);
         }
 
-        if (Time.time - lastShotTime > (data != null ? data.recoilResetTime : 0.3f))
+        float resetTime = _data != null ? _data.recoilResetTime : _DEFAULT_RECOIL_RESET_TIME;
+        if (Time.time - _lastShotTime > resetTime)
         {
-            currentShotIndex = 0;
+            _currentShotIndex = 0;
         }
 
-        if (isReloading) return;
+        if (_isReloading) return;
 
-        // --- ENTRADA DE RECARGA (Tecla 'R' O Botón 'X' de Xbox) ---
-        bool reloadInput = Input.GetKeyDown(KeyCode.R) || Input.GetKeyDown(KeyCode.JoystickButton2);
-        if (reloadInput && currentAmmo < MaxAmmo)
+        bool reloadInput = false;
+        if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
+        {
+            reloadInput = true;
+        }
+        if (Gamepad.current != null && Gamepad.current.buttonWest.wasPressedThisFrame)
+        {
+            reloadInput = true;
+        }
+
+        if (reloadInput && _currentAmmo < MaxAmmo)
         {
             StartCoroutine(ReloadCoroutine());
             return;
         }
 
-        // --- ENTRADA DE DISPARO (Clic Izquierdo O Gatillo Derecho RT) ---
-        float rtAxis = GetRightTriggerAxis();
-        bool rtHeld = rtAxis > 0.2f;
-        bool rtDown = rtHeld && !wasRtPressedLastFrame;
-        wasRtPressedLastFrame = rtHeld;
+        float rtAxis = Gamepad.current != null ? Gamepad.current.rightTrigger.ReadValue() : 0f;
+        bool rtHeld = rtAxis > _TRIGGER_DEADZONE;
+        bool rtDown = rtHeld && !_wasRtPressedLastFrame;
+        _wasRtPressedLastFrame = rtHeld;
 
-        bool shootInput = false;
-        if (data != null && data.isAutomatic)
+        bool isMouseShootHeld = Mouse.current != null && Mouse.current.leftButton.isPressed;
+        bool isMouseShootDown = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+
+        bool shootInput;
+        if (_data != null && _data.isAutomatic)
         {
-            shootInput = Input.GetButton("Fire1") || rtHeld;
+            shootInput = isMouseShootHeld || rtHeld;
         }
         else
         {
-            shootInput = Input.GetButtonDown("Fire1") || rtDown;
+            shootInput = isMouseShootDown || rtDown;
         }
 
-        if (shootInput && Time.time >= nextTimeToFire)
+        float fireRate = _data != null ? _data.fireRate : _DEFAULT_FIRE_RATE;
+        if (shootInput && Time.time >= _nextTimeToFire)
         {
-            if (currentAmmo > 0)
+            if (_currentAmmo > 0)
             {
-                nextTimeToFire = Time.time + (data != null ? data.fireRate : 0.1f);
+                _nextTimeToFire = Time.time + fireRate;
                 Shoot();
             }
         }
     }
 
-    private float GetRightTriggerAxis()
-    {
-        float trigger = 0f;
-        try { trigger = Input.GetAxis("RightTrigger"); } catch { }
-        if (Mathf.Approximately(trigger, 0f))
-        {
-            try { trigger = Input.GetAxis("Triggers"); } catch { }
-        }
-        return Mathf.Clamp01(trigger);
-    }
-
     public float GetCurrentSpread()
     {
-        if (data == null) return 0f;
+        if (_data == null) return 0f;
 
-        float totalSpread = data.baseSpread + firingSpreadPenalty;
+        float totalSpread = _data.baseSpread + _firingSpreadPenalty;
 
-        if (playerController != null)
+        if (_playerController != null)
         {
-            if (!playerController.IsGrounded)
+            if (!_playerController.IsGrounded)
             {
-                totalSpread += data.airSpreadMultiplier;
+                totalSpread += _data.airSpreadMultiplier;
             }
-            else if (playerController.IsMoving)
+            else if (_playerController.IsMoving)
             {
-                totalSpread += data.movementSpreadMultiplier;
+                totalSpread += _data.movementSpreadMultiplier;
             }
         }
 
         return totalSpread;
     }
 
-    void Shoot()
+    private void Shoot()
     {
-        currentAmmo--;
-        lastShotTime = Time.time;
+        _currentAmmo--;
+        _lastShotTime = Time.time;
 
-        if (data != null)
+        if (_data != null)
         {
-            firingSpreadPenalty += data.spreadPerShot * 1.5f;
+            _firingSpreadPenalty += _data.spreadPerShot * _SPREAD_BURST_MULTIPLIER;
         }
 
         PlayRandomShootSound();
 
-        if (weaponAnimator != null)
+        if (_weaponAnimator != null)
         {
-            weaponAnimator.ResetTrigger(shootTriggerHash);
-            weaponAnimator.SetTrigger(shootTriggerHash);
+            _weaponAnimator.ResetTrigger(_shootTriggerHash);
+            _weaponAnimator.SetTrigger(_shootTriggerHash);
         }
 
-        Camera cam = (playerController != null) ? playerController.PlayerCamera : null;
+        Camera cam = _playerController != null ? _playerController.PlayerCamera : null;
         if (cam == null) return;
 
         Ray centerRay = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         Vector3 rayOrigin = centerRay.origin;
 
         Vector2 recoilOffset = Vector2.zero;
-        if (data != null && data.recoilPattern != null && data.recoilPattern.Length > 0)
+        if (_data != null && _data.recoilPattern != null && _data.recoilPattern.Length > 0)
         {
-            int index = Mathf.Min(currentShotIndex, data.recoilPattern.Length - 1);
-            recoilOffset = data.recoilPattern[index];
+            int index = Mathf.Min(_currentShotIndex, _data.recoilPattern.Length - 1);
+            recoilOffset = _data.recoilPattern[index];
         }
 
         float currentSpread = GetCurrentSpread();
-        bool isMoving = playerController != null && playerController.IsMoving;
-        bool inAir = playerController != null && !playerController.IsGrounded;
+        bool isMoving = _playerController != null && _playerController.IsMoving;
+        bool inAir = _playerController != null && !_playerController.IsGrounded;
 
         float minSpreadOffset = 0f;
-        if (data != null)
+        if (_data != null)
         {
-            if (inAir) minSpreadOffset = data.airSpreadMultiplier * 0.5f;
-            else if (isMoving) minSpreadOffset = data.movementSpreadMultiplier * 0.35f;
+            if (inAir) minSpreadOffset = _data.airSpreadMultiplier * _AIR_SPREAD_FACTOR;
+            else if (isMoving) minSpreadOffset = _data.movementSpreadMultiplier * _MOVE_SPREAD_FACTOR;
         }
 
-        currentShotIndex++;
+        _currentShotIndex++;
 
-        Vector2 randomSpread;
-        if (minSpreadOffset > 0f)
-        {
-            float angle = Random.Range(0f, Mathf.PI * 2f);
-            float radius = Random.Range(minSpreadOffset, currentSpread);
-            randomSpread = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
-        }
-        else
-        {
-            randomSpread = Random.insideUnitCircle * currentSpread;
-        }
+        float randomAngle = Random.Range(0f, _TWO_PI);
+        float baseRandomRadius = (Random.value + Random.value) * 0.5f;
+        float randomRadius = Mathf.Lerp(minSpreadOffset, currentSpread, baseRandomRadius);
+        Vector2 randomSpread = new Vector2(Mathf.Cos(randomAngle), Mathf.Sin(randomAngle)) * randomRadius;
 
         float yawInDegrees = recoilOffset.x + randomSpread.x;
         float pitchInDegrees = recoilOffset.y + randomSpread.y;
@@ -235,7 +234,7 @@ public class WeaponBase : NetworkBehaviour
         Vector3 finalDirection = cam.transform.rotation * spreadRotation * Vector3.forward;
 
         Vector3 targetPoint;
-        float weaponRange = data != null ? data.range : 100f;
+        float weaponRange = _data != null ? _data.range : _DEFAULT_RANGE;
 
         if (Physics.Raycast(rayOrigin, finalDirection, out RaycastHit hit, weaponRange))
         {
@@ -244,8 +243,7 @@ public class WeaponBase : NetworkBehaviour
             Hitbox hitTarget = hit.collider.GetComponent<Hitbox>();
             if (hitTarget != null)
             {
-                float baseDamage = data != null ? data.damage : 25f;
-                
+                float baseDamage = _data != null ? _data.damage : _DEFAULT_DAMAGE;
                 hitTarget.ReceiveHit(baseDamage, NetworkManager.Singleton.LocalClientId);
             }
             else
@@ -258,101 +256,104 @@ public class WeaponBase : NetworkBehaviour
             targetPoint = rayOrigin + finalDirection * weaponRange;
         }
 
-        targetPosition += kickbackOffset;
-        targetRotation *= Quaternion.Euler(kickbackRotation);
+        _targetPosition += _kickbackOffset;
+        _targetRotation *= Quaternion.Euler(_kickbackRotation);
 
         TriggerMuzzleFlash();
 
-        Vector3 tracerStart = firePoint != null ? firePoint.position : rayOrigin;
+        Vector3 tracerStart = _firePoint != null ? _firePoint.position : rayOrigin;
         StartCoroutine(RenderTracer(tracerStart, targetPoint));
     }
 
-    void PlayRandomShootSound()
+    private void PlayRandomShootSound()
     {
-        if (data != null && data.shootSounds != null && data.shootSounds.Length > 0 && audioSource != null)
+        if (_data != null && _data.shootSounds != null && _data.shootSounds.Length > 0 && _audioSource != null)
         {
-            int randomIndex = Random.Range(0, data.shootSounds.Length);
-            AudioClip clip = data.shootSounds[randomIndex];
-            if (clip != null) audioSource.PlayOneShot(clip);
+            int randomIndex = Random.Range(0, _data.shootSounds.Length);
+            AudioClip clip = _data.shootSounds[randomIndex];
+            if (clip != null) _audioSource.PlayOneShot(clip);
         }
     }
 
-    IEnumerator ReloadCoroutine()
+    private IEnumerator ReloadCoroutine()
     {
-        isReloading = true;
+        _isReloading = true;
 
-        if (data != null && data.reloadSound != null && audioSource != null)
-            audioSource.PlayOneShot(data.reloadSound);
+        if (_data != null && _data.reloadSound != null && _audioSource != null)
+        {
+            _audioSource.PlayOneShot(_data.reloadSound);
+        }
 
-        if (weaponAnimator != null)
-            weaponAnimator.SetTrigger(reloadTriggerHash);
+        if (_weaponAnimator != null)
+        {
+            _weaponAnimator.SetTrigger(_reloadTriggerHash);
+        }
 
-        float waitTime = data != null ? data.reloadTime : 1.5f;
+        float waitTime = _data != null ? _data.reloadTime : _DEFAULT_RELOAD_TIME;
         yield return new WaitForSeconds(waitTime);
 
-        currentAmmo = MaxAmmo;
-        isReloading = false;
-        currentShotIndex = 0;
-        firingSpreadPenalty = 0f;
+        _currentAmmo = MaxAmmo;
+        _isReloading = false;
+        _currentShotIndex = 0;
+        _firingSpreadPenalty = 0f;
     }
 
-    void TriggerMuzzleFlash()
+    private void TriggerMuzzleFlash()
     {
-        if (muzzleFlash == null) return;
-        if (muzzleFlashCoroutine != null) StopCoroutine(muzzleFlashCoroutine);
-        muzzleFlashCoroutine = StartCoroutine(MuzzleFlashRoutine());
+        if (_muzzleFlash == null) return;
+        if (_muzzleFlashCoroutine != null) StopCoroutine(_muzzleFlashCoroutine);
+        _muzzleFlashCoroutine = StartCoroutine(MuzzleFlashRoutine());
     }
 
-    IEnumerator MuzzleFlashRoutine()
+    private IEnumerator MuzzleFlashRoutine()
     {
-        muzzleFlash.gameObject.SetActive(true);
-        muzzleFlash.Clear();
-        muzzleFlash.Play();
-        yield return new WaitForSeconds(0.5f);
-        muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-        muzzleFlash.gameObject.SetActive(false);
+        _muzzleFlash.gameObject.SetActive(true);
+        _muzzleFlash.Clear();
+        _muzzleFlash.Play();
+        yield return new WaitForSeconds(_MUZZLE_FLASH_DURATION);
+        _muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        _muzzleFlash.gameObject.SetActive(false);
     }
 
-    void CreateImpactVisual(RaycastHit hit)
+    private void CreateImpactVisual(RaycastHit hit)
     {
-        if (data != null && data.impactPrefabs != null && data.impactPrefabs.Length > 0)
+        if (_data != null && _data.impactPrefabs != null && _data.impactPrefabs.Length > 0)
         {
-            int randomIndex = Random.Range(0, data.impactPrefabs.Length);
-            GameObject selectedPrefab = data.impactPrefabs[randomIndex];
+            int randomIndex = Random.Range(0, _data.impactPrefabs.Length);
+            GameObject selectedPrefab = _data.impactPrefabs[randomIndex];
             if (selectedPrefab != null)
             {
                 Quaternion impactRotation = Quaternion.LookRotation(hit.normal) * Quaternion.Euler(0, 180f, 0);
                 GameObject impact = Instantiate(selectedPrefab, hit.point + hit.normal * 0.01f, impactRotation);
-                Destroy(impact, 4f);
+                Destroy(impact, _IMPACT_LIFETIME);
             }
         }
     }
 
-    IEnumerator RenderTracer(Vector3 start, Vector3 end)
+    private IEnumerator RenderTracer(Vector3 start, Vector3 end)
     {
         GameObject tracerObj = new GameObject("BulletTracer");
         LineRenderer line = tracerObj.AddComponent<LineRenderer>();
         line.startWidth = 0.02f;
         line.endWidth = 0.005f;
-        line.material = tracerMaterial != null ? tracerMaterial : new Material(Shader.Find("Sprites/Default"));
+        line.material = _tracerMaterial != null ? _tracerMaterial : new Material(Shader.Find("Sprites/Default"));
         line.startColor = Color.yellow;
         line.endColor = new Color(1f, 0.4f, 0f, 0f);
 
         line.SetPosition(0, start);
         line.SetPosition(1, start);
 
-        float duration = 0.03f;
         float elapsedTime = 0f;
 
-        while (elapsedTime < duration)
+        while (elapsedTime < _TRACER_DURATION)
         {
             elapsedTime += Time.deltaTime;
-            Vector3 currentPos = Vector3.Lerp(start, end, elapsedTime / duration);
+            Vector3 currentPos = Vector3.Lerp(start, end, elapsedTime / _TRACER_DURATION);
             line.SetPosition(1, currentPos);
             yield return null;
         }
 
         line.SetPosition(1, end);
-        Destroy(tracerObj, 0.02f);
+        Destroy(tracerObj, _TRACER_DESTROY_DELAY);
     }
 }

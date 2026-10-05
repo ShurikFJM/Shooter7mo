@@ -3,109 +3,97 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// UI básica de feedback para la interacción con la bomba. No es un NetworkBehaviour:
-/// se coloca en un Canvas normal de la escena y busca automáticamente el
-/// BombInteractor del jugador local para mostrar el prompt y el progreso de plantado.
-/// Usa TextMeshPro para el texto (Image sigue siendo UI clásica, ya que TMP no
-/// maneja fill bars).
-/// </summary>
 public class BombPromptUI : MonoBehaviour
 {
-    [Header("Prompt de acción")]
-    [SerializeField] private GameObject promptRoot;
-    [SerializeField] private TMP_Text promptText;
+    [SerializeField] private GameObject _promptRoot;
+    [SerializeField] private TMP_Text _promptText;
+    [SerializeField] private GameObject _progressRoot;
+    [SerializeField] private Image _progressFill;
+    [SerializeField] private TMP_Text _progressLabel;
 
-    [Header("Barra de progreso (plantado)")]
-    [Tooltip("Image con Type = Filled (Horizontal o Radial 360)")]
-    [SerializeField] private GameObject progressRoot;
-    [SerializeField] private Image progressFill;
-    [SerializeField] private TMP_Text progressLabel;
+    [SerializeField] private string _pickupPrompt = "Press [E] to pick up bomb";
+    [SerializeField] private string _dropPrompt = "Press [E] to drop bomb";
+    [SerializeField] private string _plantPrompt = "Hold [E] to plant bomb";
+    [SerializeField] private string _plantingLabel = "Planting...";
 
-    [Header("Textos")]
-    [SerializeField] private string pickupPrompt = "Presiona [E] para recoger la bomba";
-    [SerializeField] private string dropPrompt = "Presiona [E] para soltar la bomba";
-    [SerializeField] private string plantPrompt = "Mantén [E] para plantar la bomba";
-    [SerializeField] private string plantingLabel = "Plantando...";
-
-    private BombInteractor localInteractor;
+    private BombInteractor _localInteractor;
 
     private void Update()
     {
-        if (localInteractor == null)
+        if (_localInteractor == null)
         {
-            TryFindLocalInteractor();
-            if (localInteractor == null)
+            FindLocalPlayerInteractor();
+            if (_localInteractor == null)
             {
-                HideAll();
+                HideAllUIElements();
                 return;
             }
         }
 
-        RefreshUI();
+        RefreshUserInterface();
     }
 
-    private void TryFindLocalInteractor()
+    private void FindLocalPlayerInteractor()
     {
         if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null) return;
 
         NetworkObject localPlayerObject = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
         if (localPlayerObject == null) return;
 
-        localInteractor = localPlayerObject.GetComponent<BombInteractor>();
+        _localInteractor = localPlayerObject.GetComponent<BombInteractor>();
     }
 
-    private void RefreshUI()
+    private void RefreshUserInterface()
     {
-        if (localInteractor.IsPlanting)
+        if (_localInteractor.IsPlanting)
         {
-            HidePrompt();
-            ShowProgress();
+            HideActionPrompt();
+            ShowProgressDisplay();
             return;
         }
 
-        HideProgress();
+        HideProgressDisplay();
 
-        if (localInteractor.IsCarryingBomb)
+        if (_localInteractor.IsCarryingBomb)
         {
-            ShowPrompt(localInteractor.IsInSite ? plantPrompt : dropPrompt);
+            ShowActionPrompt(_localInteractor.IsInSite ? _plantPrompt : _dropPrompt);
         }
-        else if (localInteractor.HasNearbyBomb)
+        else if (_localInteractor.HasNearbyBomb)
         {
-            ShowPrompt(pickupPrompt);
+            ShowActionPrompt(_pickupPrompt);
         }
         else
         {
-            HidePrompt();
+            HideActionPrompt();
         }
     }
 
-    private void ShowPrompt(string message)
+    private void ShowActionPrompt(string messageContent)
     {
-        if (promptRoot != null) promptRoot.SetActive(true);
-        if (promptText != null) promptText.text = message;
+        if (_promptRoot != null) _promptRoot.SetActive(true);
+        if (_promptText != null) _promptText.text = messageContent;
     }
 
-    private void HidePrompt()
+    private void HideActionPrompt()
     {
-        if (promptRoot != null) promptRoot.SetActive(false);
+        if (_promptRoot != null) _promptRoot.SetActive(false);
     }
 
-    private void ShowProgress()
+    private void ShowProgressDisplay()
     {
-        if (progressRoot != null) progressRoot.SetActive(true);
-        if (progressFill != null) progressFill.fillAmount = localInteractor.PlantProgress01;
-        if (progressLabel != null) progressLabel.text = plantingLabel;
+        if (_progressRoot != null) _progressRoot.SetActive(true);
+        if (_progressFill != null) _progressFill.fillAmount = _localInteractor.PlantProgressNormalized;
+        if (_progressLabel != null) _progressLabel.text = _plantingLabel;
     }
 
-    private void HideProgress()
+    private void HideProgressDisplay()
     {
-        if (progressRoot != null) progressRoot.SetActive(false);
+        if (_progressRoot != null) _progressRoot.SetActive(false);
     }
 
-    private void HideAll()
+    private void HideAllUIElements()
     {
-        HidePrompt();
-        HideProgress();
+        HideActionPrompt();
+        HideProgressDisplay();
     }
 }

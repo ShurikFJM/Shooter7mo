@@ -4,35 +4,41 @@ using UnityEngine.InputSystem;
 
 public class BombInteractor : NetworkBehaviour
 {
-    [Header("Referencias")]
-    [SerializeField] private Transform interactOrigin;
-    [SerializeField] private float interactRange = 3f;
-    [SerializeField] private LayerMask bombLayer;
-    [SerializeField] private LayerMask siteLayer;
+    private const float _RAYCAST_ORIGIN_OFFSET = 0.5f;
+    private const float _GROUND_CHECK_DISTANCE = 2f;
+    private const float _SITE_DETECTION_RADIUS = 0.5f;
+    private const int _MAX_BUFFER_HITS = 8;
 
-    [Header("Plantado")]
-    [SerializeField] private float plantHoldTime = 4f;
+    [SerializeField] private Transform _interactOrigin;
+    [SerializeField] private float _interactRange = 3f;
+    [SerializeField] private LayerMask _bombLayer;
+    [SerializeField] private LayerMask _siteLayer;
+    [SerializeField] private float _plantHoldTime = 4f;
 
-    private Bomb carriedBomb;
-    private Bomb nearbyBomb;
-    private BombSite currentSite;
-    private float plantProgress;
-    private bool isPlanting;
+    private readonly Collider[] _bombHitBuffer = new Collider[_MAX_BUFFER_HITS];
+    private readonly Collider[] _siteHitBuffer = new Collider[_MAX_BUFFER_HITS];
 
-    // Validación estricta: solo se considera que llevas la bomba si el NetworkVariable del servidor confirma que eres el portador (IA)
-    public bool IsCarryingBomb => carriedBomb != null && carriedBomb.State.Value == BombState.Carried && carriedBomb.CarrierClientId.Value == NetworkManager.Singleton.LocalClientId;
+    private Bomb _carriedBomb;
+    private Bomb _nearbyBomb;
+    private BombSite _currentSite;
+    private float _plantProgress;
+    private bool _isPlanting;
 
-    public bool IsPlanting => isPlanting;
-    public float PlantProgress01 => plantHoldTime > 0f ? plantProgress / plantHoldTime : 0f;
-    public bool HasNearbyBomb => nearbyBomb != null;
-    public bool IsInSite => currentSite != null;
+    public bool IsCarryingBomb => _carriedBomb != null &&
+                                  _carriedBomb.State.Value == BombState.Carried &&
+                                  _carriedBomb.CarrierClientId.Value == NetworkManager.Singleton.LocalClientId;
+
+    public bool IsPlanting => _isPlanting;
+    public float PlantProgressNormalized => _plantHoldTime > 0f ? _plantProgress / _plantHoldTime : 0f;
+    public bool HasNearbyBomb => _nearbyBomb != null;
+    public bool IsInSite => _currentSite != null;
 
     private void Awake()
     {
-        if (interactOrigin == null)
+        if (_interactOrigin == null)
         {
-            Camera cam = GetComponentInChildren<Camera>();
-            interactOrigin = cam != null ? cam.transform : transform;
+            Camera playerCamera = GetComponentInChildren<Camera>();
+            _interactOrigin = playerCamera != null ? playerCamera.transform : transform;
         }
     }
 
@@ -40,81 +46,92 @@ public class BombInteractor : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        // Limpiar referencia de bomba si ya no la poseemos en red
-        VerifyCarriedBombState();
+        ValidateCarriedBombAuthority();
 
-        // Bloquear si la pausa o el chat están abiertos
         if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
         {
-            if (isPlanting) StopPlant();
+            if (_isPlanting) StopPlantingProcess();
             return;
         }
 
         if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
         {
-            if (isPlanting) StopPlant();
+            if (_isPlanting) StopPlantingProcess();
             return;
         }
 
-        DetectNearbyBomb();
-        DetectCurrentSite();
-        HandlePlantHold();
+        DetectNearbyDroppedBomb();
+        DetectCurrentBombSite();
+        ExecutePlantingTimer();
     }
 
-    private void VerifyCarriedBombState()
+    private void ValidateCarriedBombAuthority()
     {
-        if (carriedBomb != null)
+        if (_carriedBomb == null)
         {
-            // Si la bomba fue dropeada, plantada o tomada por otro cliente, anulamos la posesión de inmediato
-            if (carriedBomb.State.Value != BombState.Carried ||
-                carriedBomb.CarrierClientId.Value != NetworkManager.Singleton.LocalClientId)
+            Bomb[] allBombs = FindObjectsByType<Bomb>();
+            for (int i = 0; i < allBombs.Length; i++)
             {
-                carriedBomb = null;
-                if (isPlanting)
+                if (allBombs[i].State.Value == BombState.Carried &&
+                    allBombs[i].CarrierClientId.Value == NetworkManager.Singleton.LocalClientId)
                 {
-                    StopPlant();
+                    _carriedBomb = allBombs[i];
+                    break;
+                }
+            }
+        }
+        else
+        {
+            if (_carriedBomb.State.Value != BombState.Carried ||
+                _carriedBomb.CarrierClientId.Value != NetworkManager.Singleton.LocalClientId)
+            {
+                _carriedBomb = null;
+                if (_isPlanting)
+                {
+                    StopPlantingProcess();
                 }
             }
         }
     }
 
-    private void DetectNearbyBomb()
+    private void DetectNearbyDroppedBomb()
     {
         if (IsCarryingBomb)
         {
-            nearbyBomb = null;
+            _nearbyBomb = null;
             return;
         }
 
-        Collider[] hits = Physics.OverlapSphere(interactOrigin.position, interactRange, bombLayer);
-        nearbyBomb = null;
-        float closestDist = float.MaxValue;
+        int hitCount = Physics.OverlapSphereNonAlloc(_interactOrigin.position, _interactRange, _bombHitBuffer, _bombLayer);
+        _nearbyBomb = null;
+        float closestDistance = float.MaxValue;
 
-        foreach (Collider hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
-            Bomb bomb = hit.GetComponentInParent<Bomb>();
-            if (bomb == null || bomb.State.Value != BombState.Dropped) continue;
+            Collider colliderItem = _bombHitBuffer[i];
+            Bomb detectedBomb = colliderItem.GetComponentInParent<Bomb>();
+            if (detectedBomb == null || detectedBomb.State.Value != BombState.Dropped) continue;
 
-            float dist = Vector3.Distance(interactOrigin.position, bomb.transform.position);
-            if (dist < closestDist)
+            float currentDistance = Vector3.Distance(_interactOrigin.position, detectedBomb.transform.position);
+            if (currentDistance < closestDistance)
             {
-                closestDist = dist;
-                nearbyBomb = bomb;
+                closestDistance = currentDistance;
+                _nearbyBomb = detectedBomb;
             }
         }
     }
 
-    private void DetectCurrentSite()
+    private void DetectCurrentBombSite()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, 0.5f, siteLayer);
-        currentSite = null;
+        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, _SITE_DETECTION_RADIUS, _siteHitBuffer, _siteLayer);
+        _currentSite = null;
 
-        foreach (Collider hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
-            BombSite site = hit.GetComponent<BombSite>();
-            if (site != null)
+            BombSite detectedSite = _siteHitBuffer[i].GetComponent<BombSite>();
+            if (detectedSite != null)
             {
-                currentSite = site;
+                _currentSite = detectedSite;
                 break;
             }
         }
@@ -126,98 +143,96 @@ public class BombInteractor : NetworkBehaviour
 
         if (value.isPressed)
         {
-            HandleInteractPressed();
+            ProcessInteractionInput();
         }
         else
         {
-            StopPlant();
+            StopPlantingProcess();
         }
     }
 
-    private void HandleInteractPressed()
+    private void ProcessInteractionInput()
     {
-        // 1. Si estás dentro del site y realmente posees la bomba -> Iniciar plantado
-        if (IsCarryingBomb && currentSite != null)
+        if (IsCarryingBomb && _currentSite != null)
         {
-            BeginPlant();
+            StartPlantingProcess();
         }
-        // 2. Si posees la bomba pero estás fuera del site -> Dropear
         else if (IsCarryingBomb)
         {
-            RequestDrop();
+            RequestDropExecution();
         }
-        // 3. Si no tienes la bomba pero hay una cerca tirada -> Recoger
-        else if (nearbyBomb != null)
+        else if (_nearbyBomb != null)
         {
-            RequestPickup(nearbyBomb);
+            RequestPickupExecution(_nearbyBomb);
         }
     }
 
-    private void HandlePlantHold()
+    private void ExecutePlantingTimer()
     {
-        if (!isPlanting) return;
+        if (!_isPlanting) return;
 
-        // Cancelar si sales del site o si dejas de tener la bomba autorizada
-        if (currentSite == null || !IsCarryingBomb)
+        if (_currentSite == null || !IsCarryingBomb)
         {
-            StopPlant();
+            StopPlantingProcess();
             return;
         }
 
-        plantProgress += Time.deltaTime;
-        if (plantProgress >= plantHoldTime)
+        _plantProgress += Time.deltaTime;
+        if (_plantProgress >= _plantHoldTime)
         {
-            FinishPlant();
-            StopPlant();
+            CompletePlantingProcess();
+            StopPlantingProcess();
         }
     }
 
-    private void BeginPlant()
+    private void StartPlantingProcess()
     {
-        isPlanting = true;
-        plantProgress = 0f;
+        _isPlanting = true;
+        _plantProgress = 0f;
     }
 
-    private void StopPlant()
+    private void StopPlantingProcess()
     {
-        isPlanting = false;
-        plantProgress = 0f;
+        _isPlanting = false;
+        _plantProgress = 0f;
     }
 
-    private void FinishPlant()
+    private void CompletePlantingProcess()
     {
-        if (carriedBomb == null || currentSite == null || !IsCarryingBomb) return;
+        if (_carriedBomb == null || _currentSite == null || !IsCarryingBomb) return;
 
-        Vector3 plantPosition = transform.position;
-        if (Physics.Raycast(transform.position + Vector3.up * 0.5f, Vector3.down, out RaycastHit groundHit, 2f))
+        Vector3 groundPlantPosition = transform.position;
+        Vector3 raycastOrigin = transform.position + Vector3.up * _RAYCAST_ORIGIN_OFFSET;
+
+        if (Physics.Raycast(raycastOrigin, Vector3.down, out RaycastHit groundHit, _GROUND_CHECK_DISTANCE))
         {
-            plantPosition = groundHit.point;
+            groundPlantPosition = groundHit.point;
         }
 
-        Quaternion plantRotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
-        var siteRef = new NetworkBehaviourReference(currentSite);
+        Quaternion playerFacingRotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+        NetworkBehaviourReference siteReference = new NetworkBehaviourReference(_currentSite);
 
-        carriedBomb.RequestPlantServerRpc(
+        _carriedBomb.RequestPlantServerRpc(
             NetworkManager.Singleton.LocalClientId,
-            siteRef,
-            plantPosition,
-            plantRotation
+            siteReference,
+            groundPlantPosition,
+            playerFacingRotation
         );
 
-        carriedBomb = null;
+        _carriedBomb = null;
     }
 
-    private void RequestPickup(Bomb bomb)
+    private void RequestPickupExecution(Bomb targetBomb)
     {
-        bomb.RequestPickupServerRpc(NetworkManager.Singleton.LocalClientId);
-        carriedBomb = bomb;
+        targetBomb.RequestPickupServerRpc(NetworkManager.Singleton.LocalClientId);
+        _carriedBomb = targetBomb;
     }
 
-    private void RequestDrop()
+    private void RequestDropExecution()
     {
-        if (carriedBomb == null) return;
-        carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId);
-        carriedBomb = null;
-        StopPlant();
+        if (_carriedBomb == null) return;
+        _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId, transform.position);
+        _carriedBomb = null;
+        StopPlantingProcess();
     }
 }
