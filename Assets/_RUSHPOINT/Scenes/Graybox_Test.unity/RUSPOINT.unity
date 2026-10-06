@@ -9180,7 +9180,7 @@ MonoBehaviour:
   _roleHealthText: {fileID: 388514519}
   _roleArmorText: {fileID: 554121024}
   _roleSpeedText: {fileID: 1321516812}
-  _lockInButton: {fileID: 0}
+  _lockInButton: {fileID: 301844517}
   _selectTerroristButton: {fileID: 318674591}
   _selectCounterTerroristButton: {fileID: 1179510417}
   _terroristButtonBackground: {fileID: 318674589}

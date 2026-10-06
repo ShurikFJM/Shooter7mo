@@ -67,64 +67,28 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
-        count: 12
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn1[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn2[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn3[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn4[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn5[0]"}'
-        count: 4
-        gameObjects:
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn1[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn2[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn3[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn4[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn5[0]"}'
-        count: 4
-        gameObjects:
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
         count: 3
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn1[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_RoleSelecter[0]"}'
         count: 2
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
-        count: 2
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn1[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       recentlyClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_RoleSelecter[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
@@ -133,61 +97,11 @@ MonoBehaviour:
         count: 1
         gameObjects:
         - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Directional Light[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn1[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn2[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn3[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn4[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn5[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn1[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn1[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn2[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn3[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn4[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn5[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 01:36 PM (October 6, 2026)
+    lastSaveTimePrint: 02:11 PM (October 6, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -198,38 +112,38 @@ MonoBehaviour:
     suggestedHeight: 0
     userAssetViewSize: -1
     previewHeight: 0
-    scrollPosition: {x: 0, y: 0}
+    scrollPosition: {x: 0, y: 36.666687}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 74
+    lastValidTabWidth: 131
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 1
+    lastKnownHeight: 0
     tabs:
-    - path: '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/Canvas[0]/Minimap[0]/PlayerIcon[0]"}'
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
       paths: []
-      tabWidth: 71
-      name: PlayerIcon
-      icon: {fileID: -3593279590788295529, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: Minimap
+      tabWidth: 128
+      name: RoleLobbyManager
+      icon: {fileID: 148978298399363526, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: RoleLobbyManager
       filterString: 
       newTab: 0
-      scrollPosition: 0
+      scrollPosition: 36.666687
       isSelected: 1
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: PlayerIcon
+        m_Text: RoleLobbyManager
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "PlayerIcon\u200B"
+        m_TextWithWhitespace: "RoleLobbyManager\u200B"
       multiEditMode: 0
       locked: 0
-      hasPreview: 1
-      previewHeight: 13
+      hasPreview: 0
+      previewHeight: 150
       debug: 0
       filtering: 0
-      prefab: 1
+      prefab: 0
       multiFoldout: 1
       target: {fileID: 0}
       targets: []
@@ -270,8 +184,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: recttransform
-        niceComponentName: rect transform
+        componentName: transform
+        niceComponentName: transform
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -280,8 +194,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: canvasrenderer
-        niceComponentName: canvas renderer
+        componentName: networkobject
+        niceComponentName: network object
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -290,22 +204,26 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: image
-        niceComponentName: image
+        componentName: rolelobbymanager
+        niceComponentName: role lobby manager
       historyPaths:
       - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/Canvas[0]/Minimap[0]/PlayerIcon[0]"}'
-        prefab: 1
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
+        prefab: 0
       - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/Canvas[0]/Minimap[0]"}'
-        prefab: 1
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_RoleSelecter[0]"}'
+        prefab: 0
       - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]"}'
-        prefab: 1
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
+    - assetGUIDs:
+      - 4fd10b3a4de3ded44bca58a1aaa50a90
+    - assetGUIDs:
+      - e45b5d36733f40446905f66c7152b7d1
     - assetGUIDs:
       - 23b3b56b8ea620b4c8e3ef01590d59f3
     - assetGUIDs:
@@ -331,17 +249,6 @@ MonoBehaviour:
       - 7a5714e6cf4eb5344a9d53426a244f35
       - dd6c2a02f622d5d41878f02256b8a19f
       - a31f14a5c06303e4cbaf303caf25bb43
-    - assetGUIDs:
-      - 7f344191bfd226543ad11976c26ebd9f
-      - 7a5714e6cf4eb5344a9d53426a244f35
-      - dd6c2a02f622d5d41878f02256b8a19f
-      - a31f14a5c06303e4cbaf303caf25bb43
-      - 239ab35d001ae154ca4c98db6051e113
-      - 87010c6e8b8a5da47a79bb64b6ce171d
-      - 9e0a864e0ac006e458e8c9910da2d448
-      - a4fbfa55acfa7b141b4090cedf280421
-    - assetGUIDs:
-      - dc1ac7c7748377c41a9f0ae32fa541c7
     targetObject: {fileID: 0}
     targetObjects: []
     lastSelectedAsset: 
@@ -893,6 +800,6 @@ MonoBehaviour:
     lastSelectedAsset: "Assets/Julio\xB4s Things/Scenes/Julio\xB4s Scene.unity"
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000000000000100000001000000010000000100000001000000010000000100000001000000000000000100000000000000010000000100000001000000000000000100000001000000010000000000000001000000010000000100000001000000000000000000000001000000010000000100000001000000010000000100000000000000000000000000000000000000010000000100000000000000000000000100000001000000000000000000000001000000
+  tipsShown: 01000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   playModeStartScene: {}
   enteringPlayMode: 0

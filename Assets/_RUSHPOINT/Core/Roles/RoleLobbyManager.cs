@@ -9,6 +9,9 @@ public class RoleLobbyManager : NetworkBehaviour
     [SerializeField] private Transform[] _terroristSpawnPoints;
     [SerializeField] private Transform[] _counterTerroristSpawnPoints;
 
+    private int _tSpawnIndex;
+    private int _ctSpawnIndex;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -20,67 +23,81 @@ public class RoleLobbyManager : NetworkBehaviour
         Instance = this;
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    public void LockInRoleAndTeamServerRpc(PlayerRoleType selectedRole, TeamSide selectedTeam, RpcParams rpcParams = default)
+    [Rpc(SendTo.Server)]
+    public void LockInRoleAndTeamServerRpc(PlayerRoleType role, Team team, RpcParams rpcParams = default)
     {
-        ulong clientId = rpcParams.Receive.SenderClientId;
+        ulong senderId = rpcParams.Receive.SenderClientId;
 
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient connectedClient))
+        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(senderId, out NetworkClient client))
         {
-            if (connectedClient.PlayerObject != null)
+            return;
+        }
+
+        Transform targetSpawn = GetNextSpawnPoint(team);
+        Vector3 spawnPosition = targetSpawn != null ? targetSpawn.position : Vector3.zero;
+        Quaternion spawnRotation = targetSpawn != null ? targetSpawn.rotation : Quaternion.identity;
+
+        NetworkObject playerNetworkObject = client.PlayerObject;
+
+        if (playerNetworkObject == null && _playerPrefab != null)
+        {
+            GameObject spawnedPlayer = Instantiate(_playerPrefab, spawnPosition, spawnRotation);
+            playerNetworkObject = spawnedPlayer.GetComponent<NetworkObject>();
+            playerNetworkObject.SpawnAsPlayerObject(senderId, true);
+        }
+
+        if (playerNetworkObject != null)
+        {
+            CharacterController characterController = playerNetworkObject.GetComponent<CharacterController>();
+            if (characterController != null) characterController.enabled = false;
+            playerNetworkObject.transform.SetPositionAndRotation(spawnPosition, spawnRotation);
+            if (characterController != null) characterController.enabled = true;
+
+            NetworkPlayerController controller = playerNetworkObject.GetComponent<NetworkPlayerController>();
+            if (controller != null)
             {
-                return;
+                controller.SetInitialRole(role);
+            }
+
+            PlayerTeam playerTeam = playerNetworkObject.GetComponent<PlayerTeam>();
+            if (playerTeam != null)
+            {
+                playerTeam.CurrentTeam.Value = team;
             }
         }
 
-        Transform[] targetSpawnList = selectedTeam == TeamSide.Terrorist
-            ? _terroristSpawnPoints
-            : _counterTerroristSpawnPoints;
+        CloseRoleScreenForClientRpc(senderId);
 
-        Vector3 spawnPosition = Vector3.zero;
-        Quaternion spawnRotation = Quaternion.identity;
-
-        if (targetSpawnList != null && targetSpawnList.Length > 0)
+        if (RoundManager.Instance != null)
         {
-            int spawnIndex = (int)(clientId % (ulong)targetSpawnList.Length);
-            spawnPosition = targetSpawnList[spawnIndex].position;
-            spawnRotation = targetSpawnList[spawnIndex].rotation;
+            RoundManager.Instance.NotifyPlayerLockedInServerRpc(senderId);
         }
+    }
 
-        GameObject playerInstance = Instantiate(_playerPrefab, spawnPosition, spawnRotation);
-        NetworkObject networkObject = playerInstance.GetComponent<NetworkObject>();
+    private Transform GetNextSpawnPoint(Team team)
+    {
+        Transform[] spawns = (team == Team.Red) ? _terroristSpawnPoints : _counterTerroristSpawnPoints;
+        if (spawns == null || spawns.Length == 0) return null;
 
-        networkObject.SpawnAsPlayerObject(clientId, true);
-
-        NetworkPlayerController playerController = playerInstance.GetComponent<NetworkPlayerController>();
-        if (playerController != null)
-        {
-            playerController.SetInitialRole(selectedRole);
-        }
-
-        PlayerTeam playerTeam = playerInstance.GetComponent<PlayerTeam>();
-        if (playerTeam != null)
-        {
-            playerTeam.CurrentTeam.Value = selectedTeam == TeamSide.Terrorist ? Team.Red : Team.Blue;
-        }
-
-        NotifyPlayerSpawnedClientRpc(clientId, selectedTeam);
+        int index = (team == Team.Red) ? _tSpawnIndex++ : _ctSpawnIndex++;
+        return spawns[index % spawns.Length];
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void NotifyPlayerSpawnedClientRpc(ulong clientId, TeamSide team)
+    private void CloseRoleScreenForClientRpc(ulong targetClientId)
     {
-        if (NetworkManager.Singleton.LocalClientId != clientId) return;
-
-        if (TacticalChatManager.Instance != null)
-        {
-            TacticalChatManager.Instance.localTeam = team;
-        }
+        if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
 
         RoleSelectScreenUI roleUI = FindAnyObjectByType<RoleSelectScreenUI>();
         if (roleUI != null)
         {
             roleUI.CloseRoleScreen();
+        }
+
+        GameObject lobbyCamera = GameObject.FindWithTag("LobbyCamera");
+        if (lobbyCamera != null)
+        {
+            lobbyCamera.SetActive(false);
         }
     }
 }

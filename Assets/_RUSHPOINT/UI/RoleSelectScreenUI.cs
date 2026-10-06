@@ -37,7 +37,7 @@ public class RoleSelectScreenUI : MonoBehaviour
 
     [SerializeField] private Button _confirmButton;
 
-    private TeamSide _selectedTeam = TeamSide.CounterTerrorist;
+    private Team _selectedTeam = Team.Blue;
     private PlayerRoleType _selectedRole = PlayerRoleType.Assault;
 
     private void Awake()
@@ -48,6 +48,19 @@ public class RoleSelectScreenUI : MonoBehaviour
     private void Start()
     {
         OpenRoleScreen();
+
+        if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.CurrentPhase.OnValueChanged += HandlePhaseChanged;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.CurrentPhase.OnValueChanged -= HandlePhaseChanged;
+        }
     }
 
     private void OnEnable()
@@ -55,16 +68,32 @@ public class RoleSelectScreenUI : MonoBehaviour
         OpenRoleScreen();
     }
 
+    private void Update()
+    {
+        if (_confirmButton != null && NetworkManager.Singleton != null)
+        {
+            _confirmButton.interactable = NetworkManager.Singleton.IsConnectedClient;
+        }
+    }
+
+    private void HandlePhaseChanged(RoundPhase previousPhase, RoundPhase currentPhase)
+    {
+        if (currentPhase == RoundPhase.Warmup || currentPhase == RoundPhase.InProgress)
+        {
+            CloseRoleScreen();
+        }
+    }
+
     private void BindButtonCallbacks()
     {
         if (_selectTerroristButton != null)
         {
-            _selectTerroristButton.onClick.AddListener(() => SelectTeam(TeamSide.Terrorist));
+            _selectTerroristButton.onClick.AddListener(() => SelectTeam(Team.Red));
         }
 
         if (_selectCounterTerroristButton != null)
         {
-            _selectCounterTerroristButton.onClick.AddListener(() => SelectTeam(TeamSide.CounterTerrorist));
+            _selectCounterTerroristButton.onClick.AddListener(() => SelectTeam(Team.Blue));
         }
 
         if (_selectAssaultButton != null)
@@ -101,9 +130,14 @@ public class RoleSelectScreenUI : MonoBehaviour
         {
             _confirmButton.onClick.AddListener(ConfirmSelection);
         }
+
+        if (_lockInButton != null)
+        {
+            _lockInButton.onClick.AddListener(ConfirmSelection);
+        }
     }
 
-    public void SelectTeam(TeamSide team)
+    public void SelectTeam(Team team)
     {
         _selectedTeam = team;
         UpdateTeamFeedbackUI();
@@ -111,7 +145,7 @@ public class RoleSelectScreenUI : MonoBehaviour
 
     private void UpdateTeamFeedbackUI()
     {
-        bool isTerrorist = _selectedTeam == TeamSide.Terrorist;
+        bool isTerrorist = _selectedTeam == Team.Red;
 
         if (_terroristButtonBackground != null)
         {
@@ -145,27 +179,20 @@ public class RoleSelectScreenUI : MonoBehaviour
         }
     }
 
-    public void OnClickLockInRole()
-    {
-        if (_lockInButton != null)
-        {
-            _lockInButton.interactable = false;
-        }
-
-        if (RoundManager.Instance != null && NetworkManager.Singleton != null)
-        {
-            RoundManager.Instance.NotifyPlayerLockedInServerRpc(NetworkManager.Singleton.LocalClientId);
-        }
-    }
-
     public void ConfirmSelection()
     {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening)
+        {
+            return;
+        }
+
+        if (_confirmButton != null) _confirmButton.interactable = false;
+        if (_lockInButton != null) _lockInButton.interactable = false;
+
         if (RoleLobbyManager.Instance != null)
         {
             RoleLobbyManager.Instance.LockInRoleAndTeamServerRpc(_selectedRole, _selectedTeam);
         }
-
-        CloseRoleScreen();
     }
 
     public void OpenRoleScreen()

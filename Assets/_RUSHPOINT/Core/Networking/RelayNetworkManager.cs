@@ -36,6 +36,21 @@ public class RelayNetworkManager : MonoBehaviour
     private async void Start()
     {
         await InitializeServicesAsync();
+
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback += HandleNetworkClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback += HandleNetworkClientDisconnected;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback -= HandleNetworkClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= HandleNetworkClientDisconnected;
+        }
     }
 
     private async Task InitializeServicesAsync()
@@ -103,14 +118,38 @@ public class RelayNetworkManager : MonoBehaviour
             RelayServerData relayServerData = AllocationUtils.ToRelayServerData(joinAllocation, "dtls");
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 
-            NetworkManager.Singleton.StartClient();
-            OnClientConnected?.Invoke();
+            bool started = NetworkManager.Singleton.StartClient();
+            if (!started)
+            {
+                OnConnectionFailed?.Invoke("Failed to start network client transport.");
+                return false;
+            }
+
             return true;
         }
         catch (Exception exception)
         {
             OnConnectionFailed?.Invoke(exception.Message);
             return false;
+        }
+    }
+
+    private void HandleNetworkClientConnected(ulong clientId)
+    {
+        if (NetworkManager.Singleton.LocalClientId == clientId)
+        {
+            if (!NetworkManager.Singleton.IsHost)
+            {
+                OnClientConnected?.Invoke();
+            }
+        }
+    }
+
+    private void HandleNetworkClientDisconnected(ulong clientId)
+    {
+        if (NetworkManager.Singleton.LocalClientId == clientId)
+        {
+            OnConnectionFailed?.Invoke("Disconnected from server.");
         }
     }
 }
