@@ -1951,6 +1951,7 @@ GameObject:
   - component: {fileID: 5201738250659887543}
   - component: {fileID: 627877082241972776}
   - component: {fileID: 219230432708958544}
+  - component: {fileID: 6238523444294698506}
   m_Layer: 8
   m_Name: PrimaryWeapon
   m_TagString: Untagged
@@ -2088,13 +2089,35 @@ MonoBehaviour:
   _data: {fileID: 11400000, guid: 649de373d04f9324385bdf92813c10d6, type: 2}
   _firePoint: {fileID: 8661982984524966268}
   _playerController: {fileID: 5862416640053250531}
-  _weaponAnimator: {fileID: 0}
+  _weaponAnimator: {fileID: 5061836713098870819}
   _tracerMaterial: {fileID: 2100000, guid: 51ed506a1326a3744a1d207a5f084f05, type: 2}
   _muzzleFlash: {fileID: 4808439935770853338}
   _weaponModelTransform: {fileID: 1689944348858052039}
   _kickbackOffset: {x: 0, y: 0.02, z: -0.08}
   _kickbackRotation: {x: -3, y: 1, z: 0}
   _returnSpeed: 15
+--- !u!95 &6238523444294698506
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2216514038155935856}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: a0f7beadf1740184cbb9c48db3526548, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &2323067443065152981
 GameObject:
   m_ObjectHideFlags: 0
@@ -8271,10 +8294,70 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5061836713098870819}
+    - targetCorrespondingSourceObject: {fileID: -1064451724702449605, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6393236034276625729}
   m_SourcePrefab: {fileID: 100100000, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
 --- !u!4 &1689944348858052039 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
   m_PrefabInstance: {fileID: 1223107811548957228}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2033432143856449405 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
+  m_PrefabInstance: {fileID: 1223107811548957228}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &5061836713098870819
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2033432143856449405}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: a0f7beadf1740184cbb9c48db3526548, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!1 &7044497163470932503 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -1064451724702449605, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
+  m_PrefabInstance: {fileID: 1223107811548957228}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &6393236034276625729
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7044497163470932503}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: a0f7beadf1740184cbb9c48db3526548, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

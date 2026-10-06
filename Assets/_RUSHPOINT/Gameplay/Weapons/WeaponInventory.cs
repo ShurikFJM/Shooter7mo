@@ -24,46 +24,95 @@ public class WeaponInventory : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsOwner) return;
-
-        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
+        if (!IsOwner)
         {
             return;
         }
 
-        if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
+        if (PauseMenuManager.Instance != null &&
+            PauseMenuManager.Instance.IsPaused)
+        {
+            return;
+        }
+
+        if (TacticalChatManager.Instance != null &&
+            TacticalChatManager.Instance.IsChatOpen)
         {
             return;
         }
 
         if (Keyboard.current != null)
         {
-            if (Keyboard.current.digit1Key.wasPressedThisFrame) EquipSlot(1);
-            if (Keyboard.current.digit2Key.wasPressedThisFrame) EquipSlot(2);
-            if (Keyboard.current.digit3Key.wasPressedThisFrame) EquipSlot(3);
+            if (Keyboard.current.digit1Key.wasPressedThisFrame)
+            {
+                EquipSlot(1);
+            }
+
+            if (Keyboard.current.digit2Key.wasPressedThisFrame)
+            {
+                EquipSlot(2);
+            }
+
+            if (Keyboard.current.digit3Key.wasPressedThisFrame)
+            {
+                EquipSlot(3);
+            }
         }
 
         if (Gamepad.current != null)
         {
-            if (Gamepad.current.dpad.up.wasPressedThisFrame) EquipSlot(1);
-            if (Gamepad.current.dpad.right.wasPressedThisFrame) EquipSlot(2);
-            if (Gamepad.current.dpad.down.wasPressedThisFrame) EquipSlot(3);
-            if (Gamepad.current.buttonNorth.wasPressedThisFrame) CycleSlot(1);
+            if (Gamepad.current.dpad.up.wasPressedThisFrame)
+            {
+                EquipSlot(1);
+            }
+
+            if (Gamepad.current.dpad.right.wasPressedThisFrame)
+            {
+                EquipSlot(2);
+            }
+
+            if (Gamepad.current.dpad.down.wasPressedThisFrame)
+            {
+                EquipSlot(3);
+            }
+
+            if (Gamepad.current.buttonNorth.wasPressedThisFrame)
+            {
+                CycleSlot(1);
+            }
         }
 
         if (Mouse.current != null)
         {
-            float scroll = Mouse.current.scroll.ReadValue().y;
-            if (scroll > _SCROLL_DEADZONE) CycleSlot(-1);
-            else if (scroll < -_SCROLL_DEADZONE) CycleSlot(1);
+            float scroll =
+                Mouse.current.scroll.ReadValue().y;
+
+            if (scroll > _SCROLL_DEADZONE)
+            {
+                CycleSlot(-1);
+            }
+            else if (scroll < -_SCROLL_DEADZONE)
+            {
+                CycleSlot(1);
+            }
         }
     }
 
     private void CycleSlot(int direction)
     {
-        int newSlot = _activeSlotIndex + direction;
-        if (newSlot > 3) newSlot = 1;
-        if (newSlot < 1) newSlot = 3;
+        int newSlot =
+            _activeSlotIndex +
+            direction;
+
+        if (newSlot > 3)
+        {
+            newSlot = 1;
+        }
+
+        if (newSlot < 1)
+        {
+            newSlot = 3;
+        }
 
         if (GetWeaponInSlot(newSlot) != null)
         {
@@ -73,15 +122,45 @@ public class WeaponInventory : NetworkBehaviour
 
     public void EquipSlot(int slotIndex)
     {
-        WeaponBase targetWeapon = GetWeaponInSlot(slotIndex);
+        WeaponBase targetWeapon =
+            GetWeaponInSlot(slotIndex);
 
-        if (targetWeapon == null) return;
-        if (_primaryWeapon != null) _primaryWeapon.gameObject.SetActive(false);
-        if (_secondaryWeapon != null) _secondaryWeapon.gameObject.SetActive(false);
-        if (_meleeWeapon != null) _meleeWeapon.gameObject.SetActive(false);
+        if (targetWeapon == null)
+        {
+            return;
+        }
+
+        if (_activeWeapon != null &&
+            _activeWeapon != targetWeapon)
+        {
+            _activeWeapon.CancelReload();
+            _activeWeapon.gameObject.SetActive(false);
+        }
+
+        if (_primaryWeapon != null &&
+            _primaryWeapon != targetWeapon)
+        {
+            _primaryWeapon.CancelReload();
+            _primaryWeapon.gameObject.SetActive(false);
+        }
+
+        if (_secondaryWeapon != null &&
+            _secondaryWeapon != targetWeapon)
+        {
+            _secondaryWeapon.CancelReload();
+            _secondaryWeapon.gameObject.SetActive(false);
+        }
+
+        if (_meleeWeapon != null &&
+            _meleeWeapon != targetWeapon)
+        {
+            _meleeWeapon.CancelReload();
+            _meleeWeapon.gameObject.SetActive(false);
+        }
 
         _activeSlotIndex = slotIndex;
         _activeWeapon = targetWeapon;
+
         _activeWeapon.gameObject.SetActive(true);
     }
 
@@ -89,10 +168,17 @@ public class WeaponInventory : NetworkBehaviour
     {
         switch (index)
         {
-            case 1: return _primaryWeapon;
-            case 2: return _secondaryWeapon;
-            case 3: return _meleeWeapon;
-            default: return null;
+            case 1:
+                return _primaryWeapon;
+
+            case 2:
+                return _secondaryWeapon;
+
+            case 3:
+                return _meleeWeapon;
+
+            default:
+                return null;
         }
     }
 }
