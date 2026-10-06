@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public enum HitboxType
@@ -10,13 +11,15 @@ public enum HitboxType
 
 public class Hitbox : MonoBehaviour
 {
-    [Header("Configuración")]
-    public HitboxType type = HitboxType.Chest;
-    public NetworkHealth targetHealth;
+    [SerializeField] private HitboxType _type = HitboxType.Chest;
+    [SerializeField] private NetworkHealth _targetHealth;
+
+    public HitboxType Type => _type;
+    public NetworkHealth TargetHealth => _targetHealth;
 
     public float GetMultiplier()
     {
-        switch (type)
+        switch (_type)
         {
             case HitboxType.Head: return 4.0f;
             case HitboxType.Chest: return 1.0f;
@@ -28,10 +31,15 @@ public class Hitbox : MonoBehaviour
 
     public void ReceiveHit(float baseDamage, ulong attackerId)
     {
-        if (targetHealth != null)
+        if (_targetHealth == null) return;
+
+        NetworkObject networkObject = GetComponentInParent<NetworkObject>();
+        if (networkObject != null && networkObject.OwnerClientId == attackerId)
         {
-            float finalDamage = baseDamage * GetMultiplier();
-            targetHealth.TakeDamage(finalDamage, type, attackerId);
+            return;
         }
+
+        float finalDamage = baseDamage * GetMultiplier();
+        _targetHealth.TakeDamage(finalDamage, _type, attackerId);
     }
 }

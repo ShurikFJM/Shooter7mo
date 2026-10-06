@@ -3,19 +3,18 @@ using UnityEngine;
 
 public class PlayerInteraction : NetworkBehaviour
 {
-    [Header("Configuración")]
-    [SerializeField] private float interactRange = 3f;
-    [SerializeField] private LayerMask interactableLayer = ~0;
+    [SerializeField] private float _interactRange = 3f;
+    [SerializeField] private LayerMask _interactableLayer = ~0;
+    [SerializeField] private Camera _playerCamera;
 
-    [Header("Referencias")]
-    [SerializeField] private Camera playerCamera;
-
-    private IInteractable currentInteractable;
+    private IInteractable _currentInteractable;
 
     private void Awake()
     {
-        if (playerCamera == null)
-            playerCamera = GetComponentInChildren<Camera>();
+        if (_playerCamera == null)
+        {
+            _playerCamera = GetComponentInChildren<Camera>();
+        }
     }
 
     private void Update()
@@ -24,7 +23,7 @@ public class PlayerInteraction : NetworkBehaviour
 
         CheckForInteractable();
 
-        if (Input.GetKeyDown(KeyCode.E) && currentInteractable != null)
+        if (Input.GetKeyDown(KeyCode.E) && _currentInteractable != null)
         {
             PerformInteractionServerRpc();
         }
@@ -32,26 +31,30 @@ public class PlayerInteraction : NetworkBehaviour
 
     private void CheckForInteractable()
     {
-        Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+        if (_playerCamera == null) return;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactableLayer))
+        Ray ray = new Ray(_playerCamera.transform.position, _playerCamera.transform.forward);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, _interactRange, _interactableLayer))
         {
-            currentInteractable = hit.collider.GetComponentInParent<IInteractable>();
+            _currentInteractable = hit.collider.GetComponentInParent<IInteractable>();
         }
         else
         {
-            currentInteractable = null;
+            _currentInteractable = null;
         }
     }
 
-    [ServerRpc]
-    private void PerformInteractionServerRpc(ServerRpcParams rpcParams = default)
+    [Rpc(SendTo.Server)]
+    private void PerformInteractionServerRpc(RpcParams rpcParams = default)
     {
         ulong callerId = rpcParams.Receive.SenderClientId;
 
-        Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+        if (_playerCamera == null) return;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, interactRange + 0.5f, interactableLayer))
+        Ray ray = new Ray(_playerCamera.transform.position, _playerCamera.transform.forward);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, _interactRange + 0.5f, _interactableLayer))
         {
             IInteractable interactable = hit.collider.GetComponentInParent<IInteractable>();
             if (interactable != null)
@@ -63,6 +66,6 @@ public class PlayerInteraction : NetworkBehaviour
 
     public string GetCurrentPrompt()
     {
-        return currentInteractable != null ? currentInteractable.GetInteractionPrompt() : string.Empty;
+        return _currentInteractable != null ? _currentInteractable.GetInteractionPrompt() : string.Empty;
     }
 }

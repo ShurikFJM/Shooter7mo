@@ -14,7 +14,7 @@ public class BombInteractor : NetworkBehaviour
     [SerializeField] private LayerMask _bombLayer;
     [SerializeField] private LayerMask _siteLayer;
     [SerializeField] private float _plantHoldTime = 4f;
-    [SerializeField] private float _defuseHoldTime = 5f; // Debe coincidir con _defuseDuration en Bomb.cs
+    [SerializeField] private float _defuseHoldTime = 5f;
     [SerializeField] private PlayerTeam _playerTeam;
 
     private readonly Collider[] _bombHitBuffer = new Collider[_MAX_BUFFER_HITS];
@@ -63,22 +63,19 @@ public class BombInteractor : NetworkBehaviour
 
         if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
         {
-            if (_isPlanting) StopPlantingProcess();
-            if (_isDefusing) StopDefusingProcess();
+            CancelActions();
             return;
         }
 
         if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
         {
-            if (_isPlanting) StopPlantingProcess();
-            if (_isDefusing) StopDefusingProcess();
+            CancelActions();
             return;
         }
 
         if (RoundManager.Instance != null && RoundManager.Instance.CurrentPhase.Value != RoundPhase.InProgress)
         {
-            if (_isPlanting) StopPlantingProcess();
-            if (_isDefusing) StopDefusingProcess();
+            CancelActions();
             return;
         }
 
@@ -93,7 +90,7 @@ public class BombInteractor : NetworkBehaviour
     {
         if (_carriedBomb == null)
         {
-            Bomb[] allBombs = FindObjectsByType<Bomb>(FindObjectsSortMode.None);
+            Bomb[] allBombs = FindObjectsByType<Bomb>(FindObjectsInactive.Exclude);
             for (int i = 0; i < allBombs.Length; i++)
             {
                 if (allBombs[i].State.Value == BombState.Carried &&
@@ -132,8 +129,8 @@ public class BombInteractor : NetworkBehaviour
 
         for (int i = 0; i < hitCount; i++)
         {
-            Collider colliderItem = _bombHitBuffer[i];
-            Bomb detectedBomb = colliderItem.GetComponentInParent<Bomb>();
+            Collider col = _bombHitBuffer[i];
+            Bomb detectedBomb = col.GetComponentInParent<Bomb>();
             if (detectedBomb == null || detectedBomb.State.Value != BombState.Dropped) continue;
             if (_playerTeam.CurrentTeam.Value != detectedBomb.BombCarrierTeam) continue;
 
@@ -160,8 +157,8 @@ public class BombInteractor : NetworkBehaviour
 
         for (int i = 0; i < hitCount; i++)
         {
-            Collider colliderItem = _bombHitBuffer[i];
-            Bomb detectedBomb = colliderItem.GetComponentInParent<Bomb>();
+            Collider col = _bombHitBuffer[i];
+            Bomb detectedBomb = col.GetComponentInParent<Bomb>();
             if (detectedBomb == null || detectedBomb.State.Value != BombState.Planted) continue;
             if (_playerTeam.CurrentTeam.Value != detectedBomb.DefuseTeam) continue;
 
@@ -200,8 +197,7 @@ public class BombInteractor : NetworkBehaviour
         }
         else
         {
-            StopPlantingProcess();
-            StopDefusingProcess();
+            CancelActions();
         }
     }
 
@@ -283,6 +279,12 @@ public class BombInteractor : NetworkBehaviour
     {
         _isDefusing = false;
         _defuseProgress = 0f;
+    }
+
+    private void CancelActions()
+    {
+        StopPlantingProcess();
+        StopDefusingProcess();
     }
 
     private void CompletePlantingProcess()

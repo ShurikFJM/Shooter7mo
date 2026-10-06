@@ -67,13 +67,23 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
-        count: 15
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]"}'
+        count: 16
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
+        count: 10
         gameObjects:
         - {fileID: 0}
       - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
-        count: 8
+        count: 9
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        count: 7
         gameObjects:
         - {fileID: 0}
       - paths:
@@ -90,45 +100,33 @@ MonoBehaviour:
         - {fileID: 0}
         - {fileID: 0}
       - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
+        count: 5
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]/DominationPromptRoot[0]"}'
+        count: 4
+        gameObjects:
+        - {fileID: 0}
+      - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn1[0]"}'
         count: 3
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas[0]"}'
-        count: 2
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]/BombTimerRoot[0]"}'
+        count: 3
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn1[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn2[0]"}'
-        count: 2
-        gameObjects:
-        - {fileID: 0}
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site A[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Directional Light[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/TSpawns[0]/TSpawn3[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"NetworkManager[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       recentlyClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"NetworkManager[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
@@ -136,37 +134,16 @@ MonoBehaviour:
         count: 1
         gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4Spawn[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn1[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn2[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn3[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn4[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn5[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Host[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Join[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Code_Text[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Text[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Join_Code[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
@@ -175,7 +152,33 @@ MonoBehaviour:
         - {fileID: 0}
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]/CTSpawns[0]/CTSpawn5[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Host[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Code_Text[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Text[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Join_Code[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Join[0]/Text
+          (TMP)[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Join[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
@@ -183,7 +186,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 02:07 PM (October 5, 2026)
+    lastSaveTimePrint: 12:28 PM (October 6, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -194,38 +197,38 @@ MonoBehaviour:
     suggestedHeight: 0
     userAssetViewSize: -1
     previewHeight: 0
-    scrollPosition: {x: 0, y: 162}
+    scrollPosition: {x: 0, y: 810}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 67
+    lastValidTabWidth: 120
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 1
+    lastKnownHeight: 0
     tabs:
-    - path: '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/Canvas[0]"}'
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"NetworkManager[0]"}'
       paths: []
-      tabWidth: 64
-      name: Canvas
-      icon: {fileID: 6918890264710435130, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: Canvas
+      tabWidth: 117
+      name: NetworkManager
+      icon: {fileID: 148978298399363526, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: NetworkManager
       filterString: 
       newTab: 0
-      scrollPosition: 162
+      scrollPosition: 810
       isSelected: 1
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: Canvas
+        m_Text: NetworkManager
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "Canvas\u200B"
+        m_TextWithWhitespace: "NetworkManager\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
-      previewHeight: 150
+      previewHeight: 13
       debug: 0
       filtering: 0
-      prefab: 1
+      prefab: 0
       multiFoldout: 1
       target: {fileID: 0}
       targets: []
@@ -266,8 +269,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: recttransform
-        niceComponentName: rect transform
+        componentName: transform
+        niceComponentName: transform
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -276,8 +279,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: tacticalhud
-        niceComponentName: tactical hud
+        componentName: networkmanager
+        niceComponentName: network manager
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -286,8 +289,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: canvas
-        niceComponentName: canvas
+        componentName: unitytransport
+        niceComponentName: unity transport
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -296,8 +299,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: canvasscaler
-        niceComponentName: canvas scaler
+        componentName: networkbootstrapui
+        niceComponentName: network bootstrap ui
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -306,55 +309,94 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: graphicraycaster
-        niceComponentName: graphic raycaster
+        componentName: relaynetworkmanager
+        niceComponentName: relay network manager
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: lobbyui
+        niceComponentName: lobby ui
       historyPaths:
       - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/Canvas[0]"}'
-        prefab: 1
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"NetworkManager[0]"}'
+        prefab: 0
       - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]"}'
-        prefab: 1
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]"}'
+        prefab: 0
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
-        prefab: 1
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Host[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Join[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Code_Text[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Text[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Join_Code[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Host[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Code_Text[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Text[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Join_Code[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Join[0]/Text
+          (TMP)[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Join[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]/Host[0]/Text
+          (TMP)[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]/Panel_Lobby[0]"}'
+        prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
+      - 8af2cfb4c864d474fa78ae022b4b3b9c
+    - assetGUIDs:
+      - 933d3bee96d1658448e7cf0f857c415e
+    - assetGUIDs:
+      - e45b5d36733f40446905f66c7152b7d1
+    - assetGUIDs:
+      - ceb845fd9d23ef64293789ad23fdacbc
+    - assetGUIDs:
+      - 0155401892f92844cb6f08b4897b3810
+    - assetGUIDs:
       - 23b3b56b8ea620b4c8e3ef01590d59f3
     - assetGUIDs:
       - 3c2cd5403745811498d5f420cbadf9b7
     - assetGUIDs:
-      - dc1ac7c7748377c41a9f0ae32fa541c7
-    - assetGUIDs:
-      - f381e7cd838fc12408522d9bebf20ba9
-    - assetGUIDs:
-      - 6d9aec29deb88c04ba7d6cb37cadc8dc
+      - 29032e0b419e88e40b706cf37cd5fde0
     - assetGUIDs:
       - e2b51c37c65b71a44a703dffe71ee3f6
     - assetGUIDs:
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
-    - assetGUIDs:
-      - 2da46b308d8957248a88ac3d8e1ecf95
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
-      - e2b51c37c65b71a44a703dffe71ee3f6
-      - f2d6972855548644e84f1e6ebb37c576
-    - assetGUIDs:
-      - 2da46b308d8957248a88ac3d8e1ecf95
-    - assetGUIDs:
-      - f2d6972855548644e84f1e6ebb37c576
-    - assetGUIDs:
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
       - 40a70974aafb634428d16c0fb09b1a30
-      - 8e58c5f376c03654fb710736a221e8e3
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 29032e0b419e88e40b706cf37cd5fde0
+      - 2a6a2f08215ebec49bd0f113334e9877
+      - f973c40a9e4fa7f4db29ee6b7d0adaf5
+      - 2da46b308d8957248a88ac3d8e1ecf95
+    - assetGUIDs:
       - 2da46b308d8957248a88ac3d8e1ecf95
     targetObject: {fileID: 0}
     targetObjects: []
     lastSelectedAsset: 
     lastClickedTab: -1
-    previousTab: 1
+    previousTab: 0
   - tracker:
       mostClicked:
       - paths:
@@ -901,6 +943,6 @@ MonoBehaviour:
     lastSelectedAsset: "Assets/Julio\xB4s Things/Scenes/Julio\xB4s Scene.unity"
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000010000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  tipsShown: 01000000000000000100000000000000000000000100000001000000010000000000000001000000000000000000000000000000000000000000000001000000000000000000000001000000010000000000000001000000010000000100000001000000000000000000000001000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000
   playModeStartScene: {}
   enteringPlayMode: 0

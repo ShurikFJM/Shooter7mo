@@ -2,12 +2,7 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// Cronómetro de ronda: cuenta regresiva del warmup y del tiempo límite para
-/// plantar. Se oculta automáticamente en cuanto la bomba queda plantada (ahí
-/// toma el relevo visual BombTimerUI) y durante fin de ronda / fin de partida.
-/// Colocar en el mismo Canvas de pantalla que BombPromptUI y BombTimerUI.
-/// </summary>
+
 public class RoundTimerUI : MonoBehaviour
 {
     [SerializeField] private GameObject _timerRoot;
@@ -28,7 +23,7 @@ public class RoundTimerUI : MonoBehaviour
 
         if (_bomb == null)
         {
-            _bomb = FindFirstObjectByType<Bomb>();
+            _bomb = FindAnyObjectByType<Bomb>();
         }
 
         RoundPhase phase = RoundManager.Instance.CurrentPhase.Value;

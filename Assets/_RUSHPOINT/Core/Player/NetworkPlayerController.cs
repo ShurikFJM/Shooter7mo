@@ -222,11 +222,11 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void UpdateInputStates()
     {
-        bool isFreezeTime = RoundManager.Instance != null && RoundManager.Instance.CurrentPhase.Value == RoundPhase.FreezeTime;
+        bool isWarmup = RoundManager.Instance != null && (RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup || RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers);
         BombInteractor bombInteractor = GetComponent<BombInteractor>();
         bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
 
-        if (isFreezeTime || isInteractingBomb)
+        if (isWarmup || isInteractingBomb)
         {
             _isSprinting = false;
             _isWalkingSlow = false;
@@ -279,7 +279,7 @@ public class NetworkPlayerController : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
+    [Rpc(SendTo.Server)]
     private void SetCrouchStateServerRpc(bool crouching)
     {
         IsCrouchedNet.Value = crouching;
@@ -290,11 +290,11 @@ public class NetworkPlayerController : NetworkBehaviour
 
     public void OnJump(InputValue value)
     {
-        bool isFreezeTime = RoundManager.Instance != null && RoundManager.Instance.CurrentPhase.Value == RoundPhase.FreezeTime;
+        bool isWarmup = RoundManager.Instance != null && (RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup || RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers);
         BombInteractor bombInteractor = GetComponent<BombInteractor>();
         bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
 
-        if (isFreezeTime || isInteractingBomb) return;
+        if (isWarmup || isInteractingBomb) return;
 
         if (value.isPressed && IsGrounded && !_isCrouching)
         {
@@ -376,11 +376,11 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (_characterController == null) return;
 
-        bool isFreezeTime = RoundManager.Instance != null && RoundManager.Instance.CurrentPhase.Value == RoundPhase.FreezeTime;
+        bool isWarmup = RoundManager.Instance != null && (RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup || RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers);
         BombInteractor bombInteractor = GetComponent<BombInteractor>();
         bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
 
-        Vector2 effectiveInput = (isFreezeTime || isInteractingBomb) ? Vector2.zero : _moveInput;
+        Vector2 effectiveInput = (isWarmup || isInteractingBomb) ? Vector2.zero : _moveInput;
 
         if (IsGrounded && _verticalVelocity.y < 0)
         {
@@ -411,7 +411,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
         if (_jumpRequested && IsGrounded)
         {
-            if (!isFreezeTime && !isInteractingBomb)
+            if (!isWarmup && !isInteractingBomb)
             {
                 _verticalVelocity.y = Mathf.Sqrt(baseJumpForce * -2f * _GRAVITY);
             }

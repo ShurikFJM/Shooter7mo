@@ -24,6 +24,8 @@ public class TacticalHUD : MonoBehaviour
     [SerializeField] private Color _activeSlotColor = new Color(1f, 1f, 1f, 0.9f);
     [SerializeField] private Color _inactiveSlotColor = new Color(0.2f, 0.2f, 0.2f, 0.4f);
 
+    private Bomb _activeBomb;
+
     public NetworkHealth PlayerHealth
     {
         get => _playerHealth;
@@ -123,21 +125,27 @@ public class TacticalHUD : MonoBehaviour
     {
         if (RoundManager.Instance == null) return;
 
+        if (_activeBomb == null)
+        {
+            _activeBomb = FindAnyObjectByType<Bomb>();
+        }
+
         if (_tScoreText != null)
         {
-            _tScoreText.text = RoundManager.Instance.TerroristScore.Value.ToString();
+            _tScoreText.text = RoundManager.Instance.RedScore.Value.ToString();
         }
 
         if (_ctScoreText != null)
         {
-            _ctScoreText.text = RoundManager.Instance.CounterTerroristScore.Value.ToString();
+            _ctScoreText.text = RoundManager.Instance.BlueScore.Value.ToString();
         }
 
-        float timeRemaining = Mathf.Max(0f, RoundManager.Instance.PhaseTimer.Value);
-        int minutes = Mathf.FloorToInt(timeRemaining / 60f);
-        int seconds = Mathf.FloorToInt(timeRemaining % 60f);
+        int totalSeconds = Mathf.Max(0, RoundManager.Instance.CurrentRoundTime.Value);
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
 
         RoundPhase currentPhase = RoundManager.Instance.CurrentPhase.Value;
+        bool isBombPlanted = (_activeBomb != null && _activeBomb.State.Value == BombState.Planted) || RoundManager.Instance.IsBombPlanted.Value;
 
         if (_timerText != null)
         {
@@ -153,15 +161,13 @@ public class TacticalHUD : MonoBehaviour
 
         if (_timerBackgroundBox != null)
         {
-            if (currentPhase == RoundPhase.FreezeTime)
+            if (currentPhase == RoundPhase.Warmup)
             {
                 _timerBackgroundBox.color = _freezeTimeBgColor;
             }
-            else if (currentPhase == RoundPhase.Active)
+            else if (currentPhase == RoundPhase.InProgress)
             {
-                _timerBackgroundBox.color = (timeRemaining <= 40f && timeRemaining > 0f && minutes == 0)
-                    ? _bombPlantedBgColor
-                    : _normalTimerBgColor;
+                _timerBackgroundBox.color = isBombPlanted ? _bombPlantedBgColor : _normalTimerBgColor;
             }
             else
             {

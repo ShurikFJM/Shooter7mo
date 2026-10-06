@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -11,11 +12,12 @@ public enum BombState : byte
 }
 
 [RequireComponent(typeof(NetworkObject))]
-public class Bomb : NetworkBehaviour
+public class Bomb : NetworkBehaviour, IInteractable
 {
     private const float _MAX_PERMISSIBLE_DESYNC_DISTANCE = 4f;
 
     [SerializeField] private float _pickupRadius = 2.5f;
+    [SerializeField] private float _defuseRadius = 2.5f;
     [SerializeField] private float _plantDuration = 4f;
     [SerializeField] private float _defuseDuration = 5f;
     [SerializeField] private float _detonationTime = 40f;
@@ -23,7 +25,6 @@ public class Bomb : NetworkBehaviour
     [SerializeField] private Collider _bombCollider;
     [SerializeField] private GameObject _plantedVFX;
     [SerializeField] private Renderer[] _bombRenderers;
-    [SerializeField] private float _defuseRadius = 2.5f;
     [SerializeField] private Team _bombCarrierTeam = Team.Red;
     [SerializeField] private Team _defuseTeam = Team.Blue;
 
@@ -39,12 +40,14 @@ public class Bomb : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
-
     public NetworkVariable<double> PlantedServerTime = new NetworkVariable<double>(
         -1,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+
+    public event Action OnTerroristsWin;
+    public event Action OnCounterTerroristsWin;
 
     private BombSite _plantedSite;
     private float _detonationTimer;
@@ -54,12 +57,6 @@ public class Bomb : NetworkBehaviour
     public float DefuseDurationTime => _defuseDuration;
     public Team BombCarrierTeam => _bombCarrierTeam;
     public Team DefuseTeam => _defuseTeam;
-
-
-    public event System.Action OnTerroristsWin;
-
-
-    public event System.Action OnCounterTerroristsWin;
 
     private void Awake()
     {
@@ -159,6 +156,36 @@ public class Bomb : NetworkBehaviour
         }
     }
 
+    public string GetInteractionPrompt()
+    {
+        switch (State.Value)
+        {
+            case BombState.Dropped:
+                return "[E] Pick up Bomb";
+            case BombState.Planted:
+                return "Hold [E] to Defuse";
+            default:
+                return string.Empty;
+        }
+    }
+
+    public void Interact(ulong interactorClientId)
+    {
+        if (!IsServer) return;
+
+        if (State.Value == BombState.Dropped)
+        {
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(interactorClientId, out NetworkClient client)) return;
+            if (client.PlayerObject == null) return;
+
+            PlayerTeam playerTeam = client.PlayerObject.GetComponent<PlayerTeam>();
+            if (playerTeam != null && playerTeam.CurrentTeam.Value != _bombCarrierTeam) return;
+
+            CarrierClientId.Value = interactorClientId;
+            State.Value = BombState.Carried;
+        }
+    }
+
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestPickupServerRpc(ulong requesterClientId)
     {
@@ -169,7 +196,7 @@ public class Bomb : NetworkBehaviour
         if (playerObject == null) return;
 
         PlayerTeam requesterTeam = playerObject.GetComponent<PlayerTeam>();
-        if (requesterTeam == null || requesterTeam.CurrentTeam.Value != _bombCarrierTeam) return; 
+        if (requesterTeam != null && requesterTeam.CurrentTeam.Value != _bombCarrierTeam) return;
 
         float distanceToPlayer = Vector3.Distance(playerObject.transform.position, transform.position);
         if (distanceToPlayer > _pickupRadius + 1f) return;
@@ -202,7 +229,7 @@ public class Bomb : NetworkBehaviour
         if (playerObject == null) return;
 
         PlayerTeam requesterTeam = playerObject.GetComponent<PlayerTeam>();
-        if (requesterTeam == null || requesterTeam.CurrentTeam.Value != _bombCarrierTeam) return;
+        if (requesterTeam != null && requesterTeam.CurrentTeam.Value != _bombCarrierTeam) return;
 
         if (!targetSite.IsPositionInside(playerObject.transform.position)) return;
 
@@ -233,23 +260,14 @@ public class Bomb : NetworkBehaviour
         if (playerObject == null) return;
 
         PlayerTeam requesterTeam = playerObject.GetComponent<PlayerTeam>();
-        if (requesterTeam == null || requesterTeam.CurrentTeam.Value != _defuseTeam) return; 
+        if (requesterTeam != null && requesterTeam.CurrentTeam.Value != _defuseTeam) return;
 
         float distanceToPlayer = Vector3.Distance(playerObject.transform.position, transform.position);
         if (distanceToPlayer > _defuseRadius + 1f) return;
 
         State.Value = BombState.Defused;
         OnCounterTerroristsWin?.Invoke();
-
     }
-
-    private void ExecuteServerDetonation()
-    {
-        State.Value = BombState.Exploded;
-        OnTerroristsWin?.Invoke();
-
-    }
-
 
     public void ServerResetBomb(Vector3 position)
     {
@@ -258,6 +276,13 @@ public class Bomb : NetworkBehaviour
         transform.position = position;
         CarrierClientId.Value = ulong.MaxValue;
         PlantedServerTime.Value = -1;
+        _detonationTimer = 0f;
         State.Value = BombState.Dropped;
+    }
+
+    private void ExecuteServerDetonation()
+    {
+        State.Value = BombState.Exploded;
+        OnTerroristsWin?.Invoke();
     }
 }

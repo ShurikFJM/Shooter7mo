@@ -2,29 +2,26 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// Cronómetro visible para TODOS los jugadores (no solo quien carga/desactiva
-/// la bomba) mientras esta está plantada. Usa el reloj sincronizado de red
-/// (NetworkManager.ServerTime) en vez de un contador local, así todos los
-/// clientes ven el mismo tiempo restante sin importar lag o cuándo se conectaron.
-/// Colocar en el mismo Canvas de pantalla que BombPromptUI.
-/// </summary>
 public class BombTimerUI : MonoBehaviour
 {
     [SerializeField] private GameObject _timerRoot;
     [SerializeField] private TMP_Text _timerText;
     [SerializeField] private float _warningThreshold = 10f;
-    [SerializeField] private Color _normalColor = Color.white;
-    [SerializeField] private Color _warningColor = new Color(0.9f, 0.2f, 0.2f);
+    [SerializeField] private Color _normalColor = new Color(0.9f, 0.2f, 0.2f);
+    [SerializeField] private Color _warningColor = new Color(1f, 0f, 0f);
 
     private Bomb _bomb;
+
+    private void Start()
+    {
+        ResolveBombReference();
+    }
 
     private void Update()
     {
         if (_bomb == null)
         {
-            // Normalmente solo hay una bomba activa por partida; cachearla una vez basta.
-            _bomb = FindFirstObjectByType<Bomb>();
+            ResolveBombReference();
             if (_bomb == null)
             {
                 HideTimer();
@@ -32,7 +29,7 @@ public class BombTimerUI : MonoBehaviour
             }
         }
 
-        if (_bomb.State.Value != BombState.Planted || NetworkManager.Singleton == null)
+        if (NetworkManager.Singleton == null || _bomb.State.Value != BombState.Planted)
         {
             HideTimer();
             return;
@@ -44,19 +41,53 @@ public class BombTimerUI : MonoBehaviour
         ShowTimer(remaining);
     }
 
+    private void ResolveBombReference()
+    {
+        _bomb = FindAnyObjectByType<Bomb>();
+        if (_bomb != null)
+        {
+            _bomb.State.OnValueChanged += HandleBombStateChanged;
+            if (_bomb.State.Value == BombState.Planted)
+            {
+                if (_timerRoot != null) _timerRoot.SetActive(true);
+            }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (_bomb != null)
+        {
+            _bomb.State.OnValueChanged -= HandleBombStateChanged;
+        }
+    }
+
+    private void HandleBombStateChanged(BombState previousState, BombState currentState)
+    {
+        if (currentState == BombState.Planted)
+        {
+            if (_timerRoot != null) _timerRoot.SetActive(true);
+        }
+        else
+        {
+            HideTimer();
+        }
+    }
+
     private void ShowTimer(float remainingSeconds)
     {
-        if (_timerRoot != null) _timerRoot.SetActive(true);
+        if (_timerRoot != null && !_timerRoot.activeSelf) _timerRoot.SetActive(true);
         if (_timerText == null) return;
 
-        int minutes = Mathf.FloorToInt(remainingSeconds / 60f);
         int seconds = Mathf.FloorToInt(remainingSeconds % 60f);
-        _timerText.text = $"{minutes:00}:{seconds:00}";
+        int tenths = Mathf.FloorToInt((remainingSeconds * 10f) % 10f);
+
+        _timerText.text = string.Format("{0:00}.{1}", seconds, tenths);
         _timerText.color = remainingSeconds <= _warningThreshold ? _warningColor : _normalColor;
     }
 
     private void HideTimer()
     {
-        if (_timerRoot != null) _timerRoot.SetActive(false);
+        if (_timerRoot != null && _timerRoot.activeSelf) _timerRoot.SetActive(false);
     }
 }

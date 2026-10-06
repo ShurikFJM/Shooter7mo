@@ -124,16 +124,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3d44ccebbdaf174d8a6d0002620959f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DynamicCrosshair
-  _topTick: {fileID: 0}
-  _bottomTick: {fileID: 0}
-  _leftTick: {fileID: 0}
-  _rightTick: {fileID: 0}
+  _topTick: {fileID: 8370685634040247027}
+  _bottomTick: {fileID: 6844070738888733295}
+  _leftTick: {fileID: 3641647888899425275}
+  _rightTick: {fileID: 6874747577243749361}
   _baseGap: 12
   _gapScaleMultiplier: 25
   _maxGap: 160
   _expandSpeed: 35
   _contractSpeed: 20
-  _inventory: {fileID: 0}
+  _inventory: {fileID: 5051004979686477618}
 --- !u!1 &255792628264180241
 GameObject:
   m_ObjectHideFlags: 0
@@ -2772,7 +2772,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.09986162, g: 1, b: 0, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2847,7 +2847,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.09986162, g: 1, b: 0, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -3684,18 +3684,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c2cd5403745811498d5f420cbadf9b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TacticalHUD
-  playerHealth: {fileID: 0}
-  inventory: {fileID: 0}
-  healthText: {fileID: 3169638887884962783}
-  armorText: {fileID: 5161091511062398632}
-  currentAmmoText: {fileID: 4787300274614740470}
-  maxAmmoText: {fileID: 4856547650462836527}
-  ammoIconImage: {fileID: 2590076630258420394}
-  slot1Highlight: {fileID: 3923995145187842619}
-  slot2Highlight: {fileID: 8640365762611803461}
-  slot3Highlight: {fileID: 1821185949749334456}
-  activeColor: {r: 0.28908464, g: 1, b: 0.08018869, a: 0.9}
-  inactiveColor: {r: 1, g: 1, b: 1, a: 0.56078434}
+  _playerHealth: {fileID: 2836447743696831566}
+  _inventory: {fileID: 5051004979686477618}
+  _healthText: {fileID: 3169638887884962783}
+  _armorText: {fileID: 5161091511062398632}
+  _currentAmmoText: {fileID: 4787300274614740470}
+  _maxAmmoText: {fileID: 4856547650462836527}
+  _ammoIconImage: {fileID: 2590076630258420394}
+  _slot1Highlight: {fileID: 3923995145187842619}
+  _slot2Highlight: {fileID: 8640365762611803461}
+  _slot3Highlight: {fileID: 1821185949749334456}
+  _timerText: {fileID: 2662928771742982071}
+  _tScoreText: {fileID: 2064798518728138475}
+  _ctScoreText: {fileID: 220591470032201540}
+  _timerBackgroundBox: {fileID: 0}
+  _normalTimerBgColor: {r: 0.12, g: 0.12, b: 0.12, a: 0.9}
+  _bombPlantedBgColor: {r: 0.85, g: 0.15, b: 0.15, a: 0.95}
+  _freezeTimeBgColor: {r: 0.15, g: 0.5, b: 0.85, a: 0.9}
+  _activeSlotColor: {r: 1, g: 1, b: 1, a: 0.9}
+  _inactiveSlotColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.4}
 --- !u!114 &2228541345284361665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4762,7 +4769,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.09986162, g: 1, b: 0, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -5923,7 +5930,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.09986162, g: 1, b: 0, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:

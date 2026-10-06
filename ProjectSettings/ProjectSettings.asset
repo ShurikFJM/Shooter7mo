@@ -940,11 +940,11 @@ PlayerSettings:
   activeInputHandler: 1
   windowsGamepadBackendHint: 0
   enableDirectStorage: 0
-  cloudProjectId: 68518838-4565-4260-aa20-cdc583f0c74c
+  cloudProjectId: aadd1506-3d7a-4772-85ee-3b89348257e8
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
   projectName: Shooter7mo
-  organizationId: disdem
+  organizationId: shurikf
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
