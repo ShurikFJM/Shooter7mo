@@ -128,7 +128,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 05:43 PM (October 6, 2026)
+    lastSaveTimePrint: 05:58 PM (October 6, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -142,17 +142,17 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 90
+    lastValidTabWidth: 93
     alreadyCalculatedHeight: 0
     lastKnownHeight: 1
     tabs:
     - path: '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/SecondaryWeapon[0]/Arms
         (1)[0]"}'
       paths: []
-      tabWidth: 87
+      tabWidth: 90
       name: Arms (1)
       icon: {fileID: 148978298399363526, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: FirePoint (1)
+      shortName: GameObject
       filterString: 
       newTab: 0
       scrollPosition: 0
@@ -168,7 +168,7 @@ MonoBehaviour:
       multiEditMode: 0
       locked: 0
       hasPreview: 0
-      previewHeight: 150
+      previewHeight: 13
       debug: 0
       filtering: 0
       prefab: 1
@@ -220,35 +220,31 @@ MonoBehaviour:
           (1)[0]"}'
         prefab: 1
       - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/SecondaryWeapon[0]/FirePoint
-          (1)[0]"}'
-        prefab: 1
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]/Arms[0]/ak[0]"}'
-        prefab: 1
-      - paths:
         - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/SecondaryWeapon[0]/Orriginal_USP_45[0]"}'
-        prefab: 1
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/SecondaryWeapon[0]"}'
-        prefab: 1
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]/Arms[0]"}'
-        prefab: 1
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]"}'
         prefab: 1
       - paths:
         - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]/FirePoint[0]"}'
         prefab: 1
       - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]"}'
+        prefab: 1
+      - paths:
         - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]"}'
         prefab: 1
       - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/ThirdPersonModel[0]"}'
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]"}'
         prefab: 1
       - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/HItboxes[0]"}'
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/HItboxes[0]/BodyHitbox[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/HItboxes[0]/HeadHItbox[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/ThirdPersonModel[0]/HEAD3D[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/ThirdPersonModel[0]/BODY3D[0]"}'
         prefab: 1
       owner: {fileID: 0}
     closedTabs: []
@@ -828,6 +824,6 @@ MonoBehaviour:
     lastSelectedAsset: "Assets/Julio\xB4s Things/Scenes/Julio\xB4s Scene.unity"
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000000000000000000001000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  tipsShown: 01000000000000000000000001000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   playModeStartScene: {}
   enteringPlayMode: 0
