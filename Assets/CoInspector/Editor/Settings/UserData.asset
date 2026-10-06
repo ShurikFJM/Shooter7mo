@@ -67,61 +67,37 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]"}'
-        count: 3
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
+        count: 2
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]/RoundTimerRoot[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]/DominationPromptRoot[0]"}'
-        count: 1
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        count: 2
         gameObjects:
         - {fileID: 0}
       recentlyClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]/DominationPromptRoot[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]/RoundTimerRoot[0]"}'
+      - paths: []
         count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Ui_Lobby[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 04:28 PM (October 6, 2026)
+    lastSaveTimePrint: 05:12 PM (October 6, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -135,28 +111,28 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 63
+    lastValidTabWidth: 107
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 1
+    lastKnownHeight: 0
     tabs:
-    - path: 
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
       paths: []
-      tabWidth: 60
-      name: New Tab
-      icon: {fileID: 0}
-      shortName: New Tab
+      tabWidth: 104
+      name: RoundManager
+      icon: {fileID: 148978298399363526, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: RoundManager
       filterString: 
-      newTab: 1
+      newTab: 0
       scrollPosition: 0
-      isSelected: 0
+      isSelected: 1
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: New Tab
+        m_Text: RoundManager
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "New Tab\u200B"
+        m_TextWithWhitespace: "RoundManager\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
@@ -195,8 +171,41 @@ MonoBehaviour:
       savePlayModeTransform: 0
       index: 0
       historyPosition: 0
-      componentMaps: []
-      historyPaths: []
+      componentMaps:
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: transform
+        niceComponentName: transform
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: networkobject
+        niceComponentName: network object
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: roundmanager
+        niceComponentName: round manager
+      historyPaths:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
@@ -778,6 +787,6 @@ MonoBehaviour:
     lastSelectedAsset: "Assets/Julio\xB4s Things/Scenes/Julio\xB4s Scene.unity"
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000000000000000000000000000010000000000000000000000000000000100000000000000000000000000000000000000010000000100000000000000000000000100000000000000010000000000000001000000000000000000000000000000000000000100000001000000000000000000000001000000000000000000000000000000010000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000
+  tipsShown: 01000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   playModeStartScene: {}
   enteringPlayMode: 0
