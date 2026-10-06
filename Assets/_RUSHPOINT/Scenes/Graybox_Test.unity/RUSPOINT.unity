@@ -9079,7 +9079,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 649802100}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 72cc50f9d023051439de97ad8fc09f5a, type: 3}
+  m_Script: {fileID: 11500000, guid: dc1ac7c7748377c41a9f0ae32fa541c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoundManager
   ShowTopMostFoldoutHeaderGroup: 1
@@ -9097,7 +9097,7 @@ MonoBehaviour:
   - {fileID: 996913739}
   - {fileID: 612572657}
   _defaultBombSpawn: {fileID: 1829177608}
-  _warmupDuration: 5
+  _warmupDuration: 7
   _roundTimeLimit: 115
   _roundEndDisplayDuration: 5
   _roundsToWinMatch: 13
