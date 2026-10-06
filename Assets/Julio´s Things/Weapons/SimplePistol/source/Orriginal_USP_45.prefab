@@ -112,9 +112,6 @@ PrefabInstance:
       addedObject: {fileID: 3566946473563299876}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4491927085325459986}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 5622735202235127978}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       insertIndex: -1
@@ -157,29 +154,6 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &4491927085325459986
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1978381668156629706}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb845fd9d23ef64293789ad23fdacbc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
-  ShowTopMostFoldoutHeaderGroup: 1
-  data: {fileID: 11400000, guid: 1562786dfff06f94790af949b3c096ae, type: 2}
-  firePoint: {fileID: 231782551315511889}
-  playerController: {fileID: 0}
-  weaponAnimator: {fileID: 0}
-  tracerMaterial: {fileID: 2100000, guid: 51ed506a1326a3744a1d207a5f084f05, type: 2}
-  muzzleFlash: {fileID: 4522466205633617514, guid: 7d4c64101d93083449fbfb8a4117840d, type: 3}
-  weaponModelTransform: {fileID: 1170741331068106864}
-  kickbackOffset: {x: 0, y: 0.02, z: -0.08}
-  kickbackRotation: {x: -3, y: 1, z: 0}
-  returnSpeed: 15
 --- !u!95 &5622735202235127978
 Animator:
   serializedVersion: 7

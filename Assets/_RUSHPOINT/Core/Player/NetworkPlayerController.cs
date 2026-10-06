@@ -95,6 +95,11 @@ public class NetworkPlayerController : NetworkBehaviour
 
         if (IsOwner)
         {
+            if (_characterController != null)
+            {
+                _characterController.enabled = true;
+            }
+
             PlayerInput playerInput = GetComponent<PlayerInput>();
             if (playerInput != null)
             {
@@ -115,6 +120,11 @@ public class NetworkPlayerController : NetworkBehaviour
             if (_firstPersonRoot != null)
             {
                 _firstPersonRoot.SetActive(true);
+            }
+
+            if (_thirdPersonRoot != null)
+            {
+                _thirdPersonRoot.SetActive(false);
             }
 
             Cursor.lockState = CursorLockMode.Locked;
@@ -145,6 +155,11 @@ public class NetworkPlayerController : NetworkBehaviour
         }
         else
         {
+            if (_characterController != null)
+            {
+                _characterController.enabled = false;
+            }
+
             PlayerInput playerInput = GetComponent<PlayerInput>();
             if (playerInput != null)
             {
@@ -164,6 +179,11 @@ public class NetworkPlayerController : NetworkBehaviour
             if (_firstPersonRoot != null)
             {
                 _firstPersonRoot.SetActive(false);
+            }
+
+            if (_thirdPersonRoot != null)
+            {
+                _thirdPersonRoot.SetActive(true);
             }
         }
     }
