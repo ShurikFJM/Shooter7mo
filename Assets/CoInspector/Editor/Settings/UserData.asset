@@ -187,7 +187,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 01:32 PM (October 6, 2026)
+    lastSaveTimePrint: 01:36 PM (October 6, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -201,35 +201,35 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 64
+    lastValidTabWidth: 74
     alreadyCalculatedHeight: 0
     lastKnownHeight: 1
     tabs:
-    - path: '{"sceneGUID":"7f344191bfd226543ad11976c26ebd9f","path":"BulletHolePrefab[0]"}'
+    - path: '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/Canvas[0]/Minimap[0]/PlayerIcon[0]"}'
       paths: []
-      tabWidth: 61
-      name: BulletHolePrefab
-      icon: {fileID: 2244882685325231567, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: New Tab
+      tabWidth: 71
+      name: PlayerIcon
+      icon: {fileID: -3593279590788295529, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: Minimap
       filterString: 
       newTab: 0
       scrollPosition: 0
-      isSelected: 0
+      isSelected: 1
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: BulletHolePrefab
+        m_Text: PlayerIcon
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "BulletHolePrefab\u200B"
+        m_TextWithWhitespace: "PlayerIcon\u200B"
       multiEditMode: 0
       locked: 0
-      hasPreview: 0
-      previewHeight: 150
+      hasPreview: 1
+      previewHeight: 13
       debug: 0
       filtering: 0
-      prefab: 0
+      prefab: 1
       multiFoldout: 1
       target: {fileID: 0}
       targets: []
@@ -261,15 +261,58 @@ MonoBehaviour:
       savePlayModeTransform: 0
       index: 0
       historyPosition: 0
-      componentMaps: []
+      componentMaps:
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: recttransform
+        niceComponentName: rect transform
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: canvasrenderer
+        niceComponentName: canvas renderer
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: image
+        niceComponentName: image
       historyPaths:
       - paths:
-        - '{"sceneGUID":"7f344191bfd226543ad11976c26ebd9f","path":"BulletHolePrefab[0]"}'
-        prefab: 0
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/Canvas[0]/Minimap[0]/PlayerIcon[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/Canvas[0]/Minimap[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]"}'
+        prefab: 1
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
+    - assetGUIDs:
+      - 23b3b56b8ea620b4c8e3ef01590d59f3
+    - assetGUIDs:
+      - b98629b2fff5d7e45ab0b669aa8309bd
+    - assetGUIDs:
+      - b98629b2fff5d7e45ab0b669aa8309bd
+      - 0a076cc91ed3c8d4ab40c9ce88f98f6e
     - assetGUIDs:
       - 239ab35d001ae154ca4c98db6051e113
     - assetGUIDs:
@@ -298,16 +341,10 @@ MonoBehaviour:
       - 9e0a864e0ac006e458e8c9910da2d448
       - a4fbfa55acfa7b141b4090cedf280421
     - assetGUIDs:
-      - 23b3b56b8ea620b4c8e3ef01590d59f3
-    - assetGUIDs:
       - dc1ac7c7748377c41a9f0ae32fa541c7
-    - assetGUIDs:
-      - a5912a70fe8552f439330898eb9f4d7b
-    - assetGUIDs:
-      - d64bb7e7b0864d14a925f0710d4bdf4c
-    targetObject: {fileID: 2100000, guid: 239ab35d001ae154ca4c98db6051e113, type: 2}
+    targetObject: {fileID: 0}
     targetObjects: []
-    lastSelectedAsset: "Assets/Julio\xB4s Things/Mats/BulletHoles/M_BulletHitPrefab.mat"
+    lastSelectedAsset: 
     lastClickedTab: -1
     previousTab: 0
   - tracker:

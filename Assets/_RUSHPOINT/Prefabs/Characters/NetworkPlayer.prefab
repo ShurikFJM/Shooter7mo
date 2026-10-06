@@ -6966,7 +6966,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b98629b2fff5d7e45ab0b669aa8309bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MinimapPlayerIcon
-  _player: {fileID: 4191669248889999246}
+  _player: {fileID: 0}
   _minimapRect: {fileID: 7896395365531397065}
   _minWorldX: -61
   _maxWorldX: 102.64

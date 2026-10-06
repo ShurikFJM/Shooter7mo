@@ -1,24 +1,16 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class MinimapPlayerIcon : MonoBehaviour
 {
-    [Header("Player")]
     [SerializeField] private Transform _player;
-
-    [Header("Minimap")]
     [SerializeField] private RectTransform _minimapRect;
-
-    [Header("World Bounds")]
-    [SerializeField] private float _minWorldX;
-    [SerializeField] private float _maxWorldX;
-    [SerializeField] private float _minWorldZ;
-    [SerializeField] private float _maxWorldZ;
-
-    [Header("Axis")]
+    [SerializeField] private float _minWorldX = -50f;
+    [SerializeField] private float _maxWorldX = 50f;
+    [SerializeField] private float _minWorldZ = -50f;
+    [SerializeField] private float _maxWorldZ = 50f;
     [SerializeField] private bool _invertX = false;
     [SerializeField] private bool _invertZ = true;
-
-    [Header("Rotation")]
     [SerializeField] private float _rotationOffset = 0f;
 
     private RectTransform _iconRect;
@@ -30,28 +22,33 @@ public class MinimapPlayerIcon : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (_player == null || _minimapRect == null)
+        if (_player == null)
         {
-            return;
+            ResolveLocalPlayer();
+            if (_player == null) return;
         }
+
+        if (_minimapRect == null) return;
 
         UpdatePlayerPosition();
         UpdatePlayerRotation();
     }
 
+    private void ResolveLocalPlayer()
+    {
+        if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null) return;
+
+        NetworkObject localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+        if (localPlayer != null)
+        {
+            _player = localPlayer.transform;
+        }
+    }
+
     private void UpdatePlayerPosition()
     {
-        float normalizedX = Mathf.InverseLerp(
-            _minWorldX,
-            _maxWorldX,
-            _player.position.x
-        );
-
-        float normalizedZ = Mathf.InverseLerp(
-            _minWorldZ,
-            _maxWorldZ,
-            _player.position.z
-        );
+        float normalizedX = Mathf.InverseLerp(_minWorldX, _maxWorldX, _player.position.x);
+        float normalizedZ = Mathf.InverseLerp(_minWorldZ, _maxWorldZ, _player.position.z);
 
         if (_invertX)
         {
@@ -63,27 +60,15 @@ public class MinimapPlayerIcon : MonoBehaviour
             normalizedZ = 1f - normalizedZ;
         }
 
-        float mapX =
-            (normalizedX - 0.5f) *
-            _minimapRect.rect.width;
+        float mapX = (normalizedX - 0.5f) * _minimapRect.rect.width;
+        float mapY = (normalizedZ - 0.5f) * _minimapRect.rect.height;
 
-        float mapY =
-            (normalizedZ - 0.5f) *
-            _minimapRect.rect.height;
-
-        _iconRect.anchoredPosition = new Vector2(
-            mapX,
-            mapY
-        );
+        _iconRect.anchoredPosition = new Vector2(mapX, mapY);
     }
 
     private void UpdatePlayerRotation()
     {
-        float rotation =
-            -_player.eulerAngles.y +
-            _rotationOffset;
-
-        _iconRect.localRotation =
-            Quaternion.Euler(0f, 0f, rotation);
+        float rotation = -_player.eulerAngles.y + _rotationOffset;
+        _iconRect.localRotation = Quaternion.Euler(0f, 0f, rotation);
     }
 }
