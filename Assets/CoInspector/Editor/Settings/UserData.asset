@@ -68,28 +68,59 @@ MonoBehaviour:
       mostClicked:
       - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
-        count: 2
+        count: 3
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
+        count: 3
         gameObjects:
         - {fileID: 0}
       - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
         count: 2
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
+        count: 1
         gameObjects:
         - {fileID: 0}
       recentlyClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       - paths: []
         count: 1
         gameObjects: []
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoleLobbyManager[0]"}'
+      - paths: []
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
       - paths: []
         count: 1
         gameObjects: []
@@ -97,7 +128,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 05:12 PM (October 6, 2026)
+    lastSaveTimePrint: 05:43 PM (October 6, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -111,16 +142,17 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 107
+    lastValidTabWidth: 90
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 0
+    lastKnownHeight: 1
     tabs:
-    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+    - path: '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/SecondaryWeapon[0]/Arms
+        (1)[0]"}'
       paths: []
-      tabWidth: 104
-      name: RoundManager
+      tabWidth: 87
+      name: Arms (1)
       icon: {fileID: 148978298399363526, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: RoundManager
+      shortName: FirePoint (1)
       filterString: 
       newTab: 0
       scrollPosition: 0
@@ -129,17 +161,17 @@ MonoBehaviour:
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: RoundManager
+        m_Text: Arms (1)
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "RoundManager\u200B"
+        m_TextWithWhitespace: "Arms (1)\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
       previewHeight: 150
       debug: 0
       filtering: 0
-      prefab: 0
+      prefab: 1
       multiFoldout: 1
       target: {fileID: 0}
       targets: []
@@ -176,42 +208,62 @@ MonoBehaviour:
         component: {fileID: 0}
         missingComponentID:
           m_rawData: 0
-        foldout: 1
+        foldout: 0
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
         componentName: transform
         niceComponentName: transform
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: networkobject
-        niceComponentName: network object
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: roundmanager
-        niceComponentName: round manager
       historyPaths:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
-        prefab: 0
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/SecondaryWeapon[0]/Arms
+          (1)[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/SecondaryWeapon[0]/FirePoint
+          (1)[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]/Arms[0]/ak[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/SecondaryWeapon[0]/Orriginal_USP_45[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/SecondaryWeapon[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]/Arms[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]/PrimaryWeapon[0]/FirePoint[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/CameraRoot[0]/PlayerCamera[0]/WeaponHolder[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/ThirdPersonModel[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]/HItboxes[0]"}'
+        prefab: 1
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
       - 23b3b56b8ea620b4c8e3ef01590d59f3
+    - assetGUIDs:
+      - 7f344191bfd226543ad11976c26ebd9f
+    - assetGUIDs:
+      - 239ab35d001ae154ca4c98db6051e113
+    - assetGUIDs:
+      - 9e0a864e0ac006e458e8c9910da2d448
+    - assetGUIDs:
+      - a4fbfa55acfa7b141b4090cedf280421
     - assetGUIDs:
       - 052faaac586de48259a63d0c4782560b
     - assetGUIDs:
@@ -224,18 +276,7 @@ MonoBehaviour:
       - b98629b2fff5d7e45ab0b669aa8309bd
       - 0a076cc91ed3c8d4ab40c9ce88f98f6e
     - assetGUIDs:
-      - 239ab35d001ae154ca4c98db6051e113
-    - assetGUIDs:
       - 6ee9921b903397142affaf76ffc4b3f6
-    - assetGUIDs:
-      - 7f344191bfd226543ad11976c26ebd9f
-    - assetGUIDs:
-      - 239ab35d001ae154ca4c98db6051e113
-      - 87010c6e8b8a5da47a79bb64b6ce171d
-      - 9e0a864e0ac006e458e8c9910da2d448
-      - a4fbfa55acfa7b141b4090cedf280421
-    - assetGUIDs:
-      - a4fbfa55acfa7b141b4090cedf280421
     targetObject: {fileID: 0}
     targetObjects: []
     lastSelectedAsset: 
@@ -787,6 +828,6 @@ MonoBehaviour:
     lastSelectedAsset: "Assets/Julio\xB4s Things/Scenes/Julio\xB4s Scene.unity"
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  tipsShown: 01000000000000000000000001000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   playModeStartScene: {}
   enteringPlayMode: 0
