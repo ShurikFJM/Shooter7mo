@@ -267,6 +267,80 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2477659}
   m_CullTransparentMesh: 1
+--- !u!1 &3473282
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3473285}
+  - component: {fileID: 3473284}
+  - component: {fileID: 3473283}
+  m_Layer: 0
+  m_Name: TutorialManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &3473283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3473282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 490277967
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  m_InScenePlacedDisabledByDefault: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  m_InScenePlaced: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &3473284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3473282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44970e6d35abb614aa548c9082cd0a72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
+  ShowTopMostFoldoutHeaderGroup: 1
+  _instructionText: {fileID: 0}
+--- !u!4 &3473285
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3473282}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 357.93442, y: -0, z: 4910.312}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &8375598
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8258,7 +8332,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1590194187
+  GlobalObjectIdHash: 1829699464
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -10035,7 +10109,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7957429688754832771, guid: c968eb74b182714418bb039def80ee75, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1693040567
+      value: 1127488030
       objectReference: {fileID: 0}
     - target: {fileID: 9221344759493067602, guid: c968eb74b182714418bb039def80ee75, type: 3}
       propertyPath: _rigidbody
@@ -23817,7 +23891,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 651164208
+  GlobalObjectIdHash: 29476951
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -26030,7 +26104,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2840456295
+  GlobalObjectIdHash: 3171711837
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -34036,7 +34110,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1173869068764241485, guid: 2e03d3602a3fc9444ae46e1fcb0dd91b, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2569671208
+      value: 122511448
       objectReference: {fileID: 0}
     - target: {fileID: 1173869068764241485, guid: 2e03d3602a3fc9444ae46e1fcb0dd91b, type: 3}
       propertyPath: InScenePlacedSourceGlobalObjectIdHash
@@ -34105,7 +34179,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2206011792899262107, guid: 61cb1ea860cc2464b870a33b07823cea, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2307673350
+      value: 559312094
       objectReference: {fileID: 0}
     - target: {fileID: 2206011792899262107, guid: 61cb1ea860cc2464b870a33b07823cea, type: 3}
       propertyPath: InScenePlacedSourceGlobalObjectIdHash
@@ -34326,7 +34400,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7020808202087067865, guid: e48e39387567e13429655b26e4c19ce1, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 4234240868
+      value: 2278766428
       objectReference: {fileID: 0}
     - target: {fileID: 7020808202087067865, guid: e48e39387567e13429655b26e4c19ce1, type: 3}
       propertyPath: InScenePlacedSourceGlobalObjectIdHash
@@ -34605,7 +34679,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8195059566935797001, guid: dd9d8c9037dded3428ce6a6afd9190b8, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3414975727
+      value: 2034984073
       objectReference: {fileID: 0}
     - target: {fileID: 8195059566935797001, guid: dd9d8c9037dded3428ce6a6afd9190b8, type: 3}
       propertyPath: InScenePlacedSourceGlobalObjectIdHash
@@ -34623,6 +34697,7 @@ SceneRoots:
   - {fileID: 1681728070}
   - {fileID: 1778593523}
   - {fileID: 1448964372}
+  - {fileID: 3473285}
   - {fileID: 433395975759690807}
   - {fileID: 3260758978530161715}
   - {fileID: 9216461630620385403}
