@@ -67,78 +67,62 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]"}'
+        - 
         count: 18
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]/Panel_PingRadialMenu[0]"}'
+        - 
         count: 8
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/GM-Climb
-          (3)[0]"}'
+        - 
         count: 7
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]/Panel_PingRadialMenu[0]/Center[0]"}'
+        - 
         count: 4
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]"}'
+        - 
         count: 3
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        - 
         count: 2
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]/Panel_PingRadialMenu[0]/GroupOption[0]"}'
+        - 
         count: 2
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]/Panel_PingRadialMenu[0]/DangerOption[0]"}'
+        - 
         count: 2
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/GM-Cube
-          (6)[0]"}'
+        - 
         count: 2
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"WorldPing[0]/IconQuad[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       recentlyClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"WorldPing[0]/IconQuad[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"WorldPing[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths: []
         count: 1
         gameObjects: []
@@ -146,172 +130,70 @@ MonoBehaviour:
         count: 1
         gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (3)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (28)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (4)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (1)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (2)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (5)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (7)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (8)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (41)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (42)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (10)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (6)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (12)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (14)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (9)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (11)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (19)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (20)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (21)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (22)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (43)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (17)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (18)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (13)[0]"}'
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Plane[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (3)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (28)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (4)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (1)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (2)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (5)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (7)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (8)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (41)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (42)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (10)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (6)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (12)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (14)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (9)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (11)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (19)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (20)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (21)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (22)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (43)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (17)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (18)[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (13)[0]"}'
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Cube
-          (13)[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Plane[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
@@ -325,7 +207,7 @@ MonoBehaviour:
     maximizedAssetView: 1
     showImportSettings: 0
     suggestedHeight: 0
-    userAssetViewSize: 0
+    userAssetViewSize: -1
     previewHeight: 0
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
@@ -479,6 +361,8 @@ MonoBehaviour:
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
+      - 7a241e49bcdcf8a419ef451860429469
+    - assetGUIDs:
       - 2781b2cd3dec3dd428fee187d2a0dfce
     - assetGUIDs:
       - ce86d52ef4360c34aa10a09e0ab64147
@@ -498,13 +382,416 @@ MonoBehaviour:
       - b6de905ded786404ba5091e2eaa60509
     - assetGUIDs:
       - c000273e43838594b97148ea2cdbee9a
-    - assetGUIDs:
-      - 521d988c6614e0148ab34f60150a325b
-    targetObject: {fileID: 2100000, guid: 2781b2cd3dec3dd428fee187d2a0dfce, type: 2}
+    targetObject: {fileID: 102900000, guid: 7a241e49bcdcf8a419ef451860429469, type: 3}
     targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Materials/Pings/Mat_PingNormal.mat
+    lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Lobby/MainMenu.unity
     lastClickedTab: -1
     previousTab: 1
-  tipsShown: 01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  - tracker:
+      mostClicked:
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"MenuManager[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      recentlyClicked:
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"MenuManager[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      mostClickedContents: []
+      recentlyClickedContents: []
+    sceneGUID: 7a241e49bcdcf8a419ef451860429469
+    sceneName: MainMenuScene
+    lastSaveTimePrint: 05:08 PM (October 7, 2026)
+    gracePeriod: 3
+    activeIndex: 0
+    checkingToLoad: 0
+    assetsCollapsed: 0
+    lockedAsset: 0
+    maximizedAssetView: 0
+    showImportSettings: 0
+    suggestedHeight: 0
+    userAssetViewSize: -1
+    previewHeight: 0
+    scrollPosition: {x: 0, y: 0}
+    toolbarScrollPosition: {x: 0, y: 0}
+    rawUserHeight: 0
+    lastValidTabWidth: 103
+    alreadyCalculatedHeight: 0
+    lastKnownHeight: 0
+    tabs:
+    - path: '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"MenuManager[0]"}'
+      paths: []
+      tabWidth: 100
+      name: MenuManager
+      icon: {fileID: 148978298399363526, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: MenuManager
+      filterString: 
+      newTab: 0
+      scrollPosition: 0
+      isSelected: 0
+      allCollapsed: 0
+      runtimeFoldouts: 
+      runtimeMultiComponents: []
+      tabTextContent:
+        m_Text: MenuManager
+        m_Image: {fileID: 0}
+        m_Tooltip: 
+        m_TextWithWhitespace: "MenuManager\u200B"
+      multiEditMode: 0
+      locked: 0
+      hasPreview: 0
+      previewHeight: 150
+      debug: 0
+      filtering: 0
+      prefab: 0
+      multiFoldout: 1
+      target: {fileID: 0}
+      targets: []
+      linkedPrefabs: []
+      trackMultiTarget: {fileID: 0}
+      serializedTransform:
+        owner: {fileID: 0}
+        localPosition: {x: 0, y: 0, z: 0}
+        localRotation: {x: 0, y: 0, z: 0, w: 0}
+        localScale: {x: 0, y: 0, z: 0}
+        originalPosition: {x: 0, y: 0, z: 0}
+        originalRotation: {x: 0, y: 0, z: 0, w: 0}
+        originalLocalScale: {x: 0, y: 0, z: 0}
+        anchorMin: {x: 0, y: 0}
+        anchorMax: {x: 0, y: 0}
+        anchoredPosition: {x: 0, y: 0}
+        sizeDelta: {x: 0, y: 0}
+        pivot: {x: 0, y: 0}
+        originalAnchorMin: {x: 0, y: 0}
+        originalAnchorMax: {x: 0, y: 0}
+        originalAnchoredPosition: {x: 0, y: 0}
+        originalSizeDelta: {x: 0, y: 0}
+        originalPivot: {x: 0, y: 0}
+        isRectTransform: 0
+        appliedTransform: 0
+        undidTransform: 0
+        autoSave: 0
+      serializedTransforms: []
+      savePlayModeTransform: 0
+      index: 0
+      historyPosition: 0
+      componentMaps:
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: transform
+        niceComponentName: transform
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: mainmenucontroller
+        niceComponentName: main menu controller
+      historyPaths:
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"MenuManager[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"LocalizationManager[0]"}'
+        prefab: 0
+      owner: {fileID: 0}
+    closedTabs: []
+    playModeTransforms: []
+    historyAssets:
+    - assetGUIDs:
+      - b0a34309b1c3bb14cad680a573424b36
+    - assetGUIDs:
+      - 7a241e49bcdcf8a419ef451860429469
+    - assetGUIDs:
+      - 44970e6d35abb614aa548c9082cd0a72
+    - assetGUIDs:
+      - 23b3b56b8ea620b4c8e3ef01590d59f3
+    - assetGUIDs:
+      - 2da46b308d8957248a88ac3d8e1ecf95
+      - 40a70974aafb634428d16c0fb09b1a30
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 29032e0b419e88e40b706cf37cd5fde0
+    - assetGUIDs:
+      - 29032e0b419e88e40b706cf37cd5fde0
+    - assetGUIDs:
+      - 2da46b308d8957248a88ac3d8e1ecf95
+    - assetGUIDs:
+      - 27d34e20eb7d60345ad8224a6be120d9
+    - assetGUIDs:
+      - 24cf391e3622de743a54e6e771f28333
+    - assetGUIDs:
+      - 66b21236603c7124cbe7c5eda54de385
+    - assetGUIDs:
+      - 06f94f8c7678bc54893126f33497c7a1
+    targetObject: {fileID: 102900000, guid: b0a34309b1c3bb14cad680a573424b36, type: 3}
+    targetObjects: []
+    lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Tutorial/TutorialScene.unity
+    lastClickedTab: -1
+    previousTab: 1
+  - tracker:
+      mostClicked:
+      - paths:
+        - 
+        count: 4
+        gameObjects: []
+      - paths:
+        - 
+        count: 3
+        gameObjects: []
+      - paths:
+        - 
+        count: 3
+        gameObjects: []
+      - paths:
+        - 
+        count: 2
+        gameObjects: []
+      - paths:
+        - 
+        count: 2
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      recentlyClicked:
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      mostClickedContents: []
+      recentlyClickedContents: []
+    sceneGUID: b0a34309b1c3bb14cad680a573424b36
+    sceneName: TutorialScene
+    lastSaveTimePrint: 05:20 PM (October 7, 2026)
+    gracePeriod: 3
+    activeIndex: 0
+    checkingToLoad: 0
+    assetsCollapsed: 0
+    lockedAsset: 0
+    maximizedAssetView: 0
+    showImportSettings: 0
+    suggestedHeight: 0
+    userAssetViewSize: -1
+    previewHeight: 0
+    scrollPosition: {x: 0, y: 0}
+    toolbarScrollPosition: {x: 0, y: 0}
+    rawUserHeight: 0
+    lastValidTabWidth: 112
+    alreadyCalculatedHeight: 0
+    lastKnownHeight: 0
+    tabs:
+    - path: '{"sceneGUID":"b0a34309b1c3bb14cad680a573424b36","path":"TutorialManager[0]"}'
+      paths: []
+      tabWidth: 109
+      name: TutorialManager
+      icon: {fileID: 148978298399363526, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: TutorialManager
+      filterString: 
+      newTab: 0
+      scrollPosition: 0
+      isSelected: 0
+      allCollapsed: 0
+      runtimeFoldouts: 
+      runtimeMultiComponents: []
+      tabTextContent:
+        m_Text: TutorialManager
+        m_Image: {fileID: 0}
+        m_Tooltip: 
+        m_TextWithWhitespace: "TutorialManager\u200B"
+      multiEditMode: 0
+      locked: 0
+      hasPreview: 0
+      previewHeight: 150
+      debug: 0
+      filtering: 0
+      prefab: 0
+      multiFoldout: 1
+      target: {fileID: 0}
+      targets: []
+      linkedPrefabs: []
+      trackMultiTarget: {fileID: 0}
+      serializedTransform:
+        owner: {fileID: 0}
+        localPosition: {x: 0, y: 0, z: 0}
+        localRotation: {x: 0, y: 0, z: 0, w: 0}
+        localScale: {x: 0, y: 0, z: 0}
+        originalPosition: {x: 0, y: 0, z: 0}
+        originalRotation: {x: 0, y: 0, z: 0, w: 0}
+        originalLocalScale: {x: 0, y: 0, z: 0}
+        anchorMin: {x: 0, y: 0}
+        anchorMax: {x: 0, y: 0}
+        anchoredPosition: {x: 0, y: 0}
+        sizeDelta: {x: 0, y: 0}
+        pivot: {x: 0, y: 0}
+        originalAnchorMin: {x: 0, y: 0}
+        originalAnchorMax: {x: 0, y: 0}
+        originalAnchoredPosition: {x: 0, y: 0}
+        originalSizeDelta: {x: 0, y: 0}
+        originalPivot: {x: 0, y: 0}
+        isRectTransform: 0
+        appliedTransform: 0
+        undidTransform: 0
+        autoSave: 0
+      serializedTransforms: []
+      savePlayModeTransform: 0
+      index: 0
+      historyPosition: 0
+      componentMaps:
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: transform
+        niceComponentName: transform
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: networkobject
+        niceComponentName: network object
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: tutorialmanager
+        niceComponentName: tutorial manager
+      historyPaths:
+      - paths:
+        - '{"sceneGUID":"b0a34309b1c3bb14cad680a573424b36","path":"TutorialManager[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"b0a34309b1c3bb14cad680a573424b36","path":"Canvas_UI[0]/Canvas[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"b0a34309b1c3bb14cad680a573424b36","path":"Canvas_RoleSelecter[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"b0a34309b1c3bb14cad680a573424b36","path":"NetworkManager[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"b0a34309b1c3bb14cad680a573424b36","path":"RoleLobbyManager[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"b0a34309b1c3bb14cad680a573424b36","path":"Canvas_Bomb[0]"}'
+        prefab: 0
+      owner: {fileID: 0}
+    closedTabs: []
+    playModeTransforms: []
+    historyAssets:
+    - assetGUIDs:
+      - 7a241e49bcdcf8a419ef451860429469
+    - assetGUIDs:
+      - 3c1496308b8f780449f6ef99ba39dccf
+    - assetGUIDs:
+      - b0a34309b1c3bb14cad680a573424b36
+    - assetGUIDs:
+      - 44970e6d35abb614aa548c9082cd0a72
+    - assetGUIDs:
+      - 23b3b56b8ea620b4c8e3ef01590d59f3
+    - assetGUIDs:
+      - 2da46b308d8957248a88ac3d8e1ecf95
+      - 40a70974aafb634428d16c0fb09b1a30
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 29032e0b419e88e40b706cf37cd5fde0
+    - assetGUIDs:
+      - 29032e0b419e88e40b706cf37cd5fde0
+    - assetGUIDs:
+      - 2da46b308d8957248a88ac3d8e1ecf95
+    - assetGUIDs:
+      - 27d34e20eb7d60345ad8224a6be120d9
+    - assetGUIDs:
+      - 24cf391e3622de743a54e6e771f28333
+    - assetGUIDs:
+      - 66b21236603c7124cbe7c5eda54de385
+    targetObject: {fileID: 102900000, guid: 7a241e49bcdcf8a419ef451860429469, type: 3}
+    targetObjects: []
+    lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Lobby/MainMenuScene.unity
+    lastClickedTab: -1
+    previousTab: 1
+  tipsShown: 01000000000000000000000001000000000000000000000000000000010000000100000000000000010000000100000000000000010000000000000000000000010000000100000000000000000000000100000001000000010000000000000000000000000000000100000001000000010000000000000000000000010000000000000001000000000000000100000001000000000000000000000000000000010000000100000001000000000000000100000001000000
   playModeStartScene: {}
   enteringPlayMode: 0
