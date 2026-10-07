@@ -17,7 +17,7 @@ MonoBehaviour:
   generalScrollSensitivity: 1
   userInstalls:
   - 1.7.5
-  tabPreviewExpanded: 1
+  tabPreviewExpanded: 0
   softWheelScrolling: 1
   middleScrollMode: 1
   newTabIfLocked: 0
@@ -65,13 +65,77 @@ MonoBehaviour:
   generalScrollSpeed: 18
   sessions:
   - tracker:
-      mostClicked: []
-      recentlyClicked: []
+      mostClicked:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]"}'
+        count: 16
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]"}'
+        count: 9
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]/DynamicCrosshair[0]"}'
+        count: 8
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]"}'
+        count: 4
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]/HUD_BottomRight[0]/MaxAmoText[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]/HUD_BottomRight[0]/CurrentAmoText[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      recentlyClicked:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 11:13 PM (October 6, 2026)
+    lastSaveTimePrint: 09:42 AM (October 7, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -85,28 +149,28 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 104
+    lastValidTabWidth: 165
     alreadyCalculatedHeight: 0
     lastKnownHeight: 0
     tabs:
-    - path: '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]"}'
+    - path: '{"sceneGUID":"27d34e20eb7d60345ad8224a6be120d9","path":"SryingeGun_PrimaryPrefab[0]"}'
       paths: []
-      tabWidth: 101
-      name: NetworkPlayer
-      icon: {fileID: 1265989506976873869, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: NetworkPlayer
+      tabWidth: 162
+      name: SryingeGun_PrimaryPrefab
+      icon: {fileID: -5093997336329155648, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: SryingeGun_PrimaryPrefab
       filterString: 
       newTab: 0
       scrollPosition: 0
-      isSelected: 0
+      isSelected: 1
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: NetworkPlayer
+        m_Text: SryingeGun_PrimaryPrefab
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "NetworkPlayer\u200B"
+        m_TextWithWhitespace: "SryingeGun_PrimaryPrefab\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
@@ -164,8 +228,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: charactercontroller
-        niceComponentName: character controller
+        componentName: meshfilter
+        niceComponentName: mesh filter
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -174,8 +238,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: networkobject
-        niceComponentName: network object
+        componentName: meshrenderer
+        niceComponentName: mesh renderer
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -184,8 +248,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: networktransform
-        niceComponentName: network transform
+        componentName: audiosource
+        niceComponentName: audio source
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -194,103 +258,43 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: playerinput
-        niceComponentName: player input
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: networkhealth
-        niceComponentName: network health
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: networkplayercontroller
-        niceComponentName: network player controller
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: playerteamvisualizer
-        niceComponentName: player team visualizer
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: bombinteractor
-        niceComponentName: bomb interactor
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: playerteam
-        niceComponentName: player team
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: playerzonedetector
-        niceComponentName: player zone detector
+        componentName: healingpistol
+        niceComponentName: healing pistol
       historyPaths:
       - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]"}'
+        - '{"sceneGUID":"27d34e20eb7d60345ad8224a6be120d9","path":"SryingeGun_PrimaryPrefab[0]"}'
         prefab: 1
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - 6d9aec29deb88c04ba7d6cb37cadc8dc
+      - 27d34e20eb7d60345ad8224a6be120d9
+    - assetGUIDs:
+      - 24cf391e3622de743a54e6e771f28333
     - assetGUIDs:
       - 23b3b56b8ea620b4c8e3ef01590d59f3
     - assetGUIDs:
-      - dc1ac7c7748377c41a9f0ae32fa541c7
+      - d862c7961e433f341bf7e31c0c920788
     - assetGUIDs:
-      - 2da46b308d8957248a88ac3d8e1ecf95
+      - 93536632a2429584c845e889f0426318
     - assetGUIDs:
-      - 1626479aafbb0b546aef83acd8ecabb3
+      - 0cae0d41acb5de04e98054defaa6f15d
     - assetGUIDs:
-      - 61cb1ea860cc2464b870a33b07823cea
+      - 0fa3122525660de4a8b9c9d26d4f36c5
     - assetGUIDs:
-      - d64bb7e7b0864d14a925f0710d4bdf4c
+      - 66b21236603c7124cbe7c5eda54de385
     - assetGUIDs:
-      - 7f344191bfd226543ad11976c26ebd9f
+      - dfce630ca84aa7048a92667cf8b40d40
     - assetGUIDs:
-      - 239ab35d001ae154ca4c98db6051e113
+      - 649de373d04f9324385bdf92813c10d6
     - assetGUIDs:
-      - 9e0a864e0ac006e458e8c9910da2d448
-    - assetGUIDs:
-      - a4fbfa55acfa7b141b4090cedf280421
-    targetObject: {fileID: 11500000, guid: 6d9aec29deb88c04ba7d6cb37cadc8dc, type: 3}
+      - f6958171f9ecb204ab6d9e906a724c37
+    targetObject: {fileID: 0}
     targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Core/Player/NetworkHealth.cs
+    lastSelectedAsset: 
     lastClickedTab: -1
-    previousTab: 0
-  tipsShown: 01000000010000000000000000000000010000000000000001000000010000000100000001000000010000000100000001000000000000000000000001000000000000000000000001000000010000000100000000000000000000000000000000000000000000000100000001000000000000000100000001000000010000000000000000000000010000000100000000000000010000000100000001000000010000000100000001000000010000000100000000000000
+    previousTab: 1
+  tipsShown: 01000000000000000100000000000000010000000100000001000000000000000000000001000000010000000100000001000000000000000100000000000000000000000100000001000000000000000100000000000000010000000000000001000000010000000000000001000000000000000000000000000000000000000100000000000000010000000100000001000000000000000100000001000000010000000100000001000000010000000000000000000000
   playModeStartScene: {}
   enteringPlayMode: 0

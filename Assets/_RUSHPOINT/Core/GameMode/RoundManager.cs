@@ -85,7 +85,6 @@ public class RoundManager : NetworkBehaviour
     public float WarmupDuration => _warmupDuration;
     public float RoundEndDisplayDuration => _roundEndDisplayDuration;
     public int RoundsToWinMatch => _roundsToWinMatch;
-
     public NetworkVariable<int> TerroristScore => RedScore;
     public NetworkVariable<int> CounterTerroristScore => BlueScore;
 
@@ -151,9 +150,18 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void NotifyPlayerLockedInServerRpc(ulong clientId)
     {
+        NotifyPlayerLockedInServer(clientId);
+    }
+
+    public void NotifyPlayerLockedInServer(ulong clientId)
+    {
+        if (!IsServer) return;
         if (CurrentPhase.Value != RoundPhase.WaitingForPlayers) return;
 
-        _lockedInClients.Add(clientId);
+        if (!_lockedInClients.Contains(clientId))
+        {
+            _lockedInClients.Add(clientId);
+        }
 
         int totalClients = NetworkManager.Singleton.ConnectedClients.Count;
         if (_lockedInClients.Count >= totalClients && totalClients > 0)
@@ -246,7 +254,15 @@ public class RoundManager : NetworkBehaviour
                     double elapsedDetonation = NetworkManager.Singleton.ServerTime.Time - _bomb.PlantedServerTime.Value;
                     int bombRemaining = Mathf.CeilToInt(Mathf.Max(_bomb.DetonationTimeDuration - (float)elapsedDetonation, 0f));
                     CurrentRoundTime.Value = bombRemaining;
+
+                    if (elapsedDetonation >= _bomb.DetonationTimeDuration)
+                    {
+                        EndRoundServer(Team.Red);
+                        break;
+                    }
                 }
+
+                CheckEliminationsAfterPlant();
             }
             else
             {
@@ -285,14 +301,69 @@ public class RoundManager : NetworkBehaviour
 
     private void CheckEliminationsBeforePlant()
     {
-        int aliveTerrorists = CountAlivePlayers(Team.Red);
-        int aliveCounterTerrorists = CountAlivePlayers(Team.Blue);
+        int totalRed = 0;
+        int totalBlue = 0;
+        int aliveRed = 0;
+        int aliveBlue = 0;
 
-        if (aliveTerrorists <= 0 && aliveCounterTerrorists > 0)
+        foreach (var clientPair in NetworkManager.Singleton.ConnectedClients)
         {
-            EndRoundServer(Team.Blue);
+            NetworkClient client = clientPair.Value;
+            if (client.PlayerObject == null) continue;
+
+            PlayerTeam teamComp = client.PlayerObject.GetComponent<PlayerTeam>();
+            NetworkHealth healthComp = client.PlayerObject.GetComponent<NetworkHealth>();
+
+            if (teamComp == null || healthComp == null) continue;
+
+            if (teamComp.CurrentTeam.Value == Team.Red)
+            {
+                totalRed++;
+                if (healthComp.IsAlive.Value && healthComp.CurrentHealth.Value > 0f) aliveRed++;
+            }
+            else if (teamComp.CurrentTeam.Value == Team.Blue)
+            {
+                totalBlue++;
+                if (healthComp.IsAlive.Value && healthComp.CurrentHealth.Value > 0f) aliveBlue++;
+            }
         }
-        else if (aliveCounterTerrorists <= 0 && aliveTerrorists > 0)
+
+        if (totalRed > 0 && totalBlue > 0)
+        {
+            if (aliveRed <= 0 && aliveBlue > 0)
+            {
+                EndRoundServer(Team.Blue);
+            }
+            else if (aliveBlue <= 0 && aliveRed > 0)
+            {
+                EndRoundServer(Team.Red);
+            }
+        }
+    }
+
+    private void CheckEliminationsAfterPlant()
+    {
+        int totalBlue = 0;
+        int aliveBlue = 0;
+
+        foreach (var clientPair in NetworkManager.Singleton.ConnectedClients)
+        {
+            NetworkClient client = clientPair.Value;
+            if (client.PlayerObject == null) continue;
+
+            PlayerTeam teamComp = client.PlayerObject.GetComponent<PlayerTeam>();
+            NetworkHealth healthComp = client.PlayerObject.GetComponent<NetworkHealth>();
+
+            if (teamComp == null || healthComp == null) continue;
+
+            if (teamComp.CurrentTeam.Value == Team.Blue)
+            {
+                totalBlue++;
+                if (healthComp.IsAlive.Value && healthComp.CurrentHealth.Value > 0f) aliveBlue++;
+            }
+        }
+
+        if (totalBlue > 0 && aliveBlue <= 0)
         {
             EndRoundServer(Team.Red);
         }
@@ -312,12 +383,15 @@ public class RoundManager : NetworkBehaviour
 
     private void ResetEntitiesForNewRound()
     {
-        PlayerTeam[] allPlayers = FindObjectsByType<PlayerTeam>(FindObjectsInactive.Exclude);
         int tIndex = 0;
         int ctIndex = 0;
 
-        foreach (PlayerTeam player in allPlayers)
+        foreach (var clientPair in NetworkManager.Singleton.ConnectedClients)
         {
+            NetworkClient client = clientPair.Value;
+            if (client.PlayerObject == null) continue;
+
+            PlayerTeam player = client.PlayerObject.GetComponent<PlayerTeam>();
             if (player == null) continue;
 
             Team team = player.CurrentTeam.Value;
@@ -341,7 +415,9 @@ public class RoundManager : NetworkBehaviour
         {
             Vector3 bombPosition = (_defaultBombSpawn != null)
                 ? _defaultBombSpawn.position
-                : (_terroristSpawnPoints != null && _terroristSpawnPoints.Length > 0 ? _terroristSpawnPoints[0].position + Vector3.up * 0.3f : Vector3.up * 0.3f);
+                : (_terroristSpawnPoints != null && _terroristSpawnPoints.Length > 0
+                    ? _terroristSpawnPoints[0].position + Vector3.up * 0.3f
+                    : Vector3.up * 0.3f);
 
             _bomb.ServerResetBomb(bombPosition);
         }
@@ -360,25 +436,6 @@ public class RoundManager : NetworkBehaviour
         if (characterController != null) characterController.enabled = false;
         playerObj.transform.SetPositionAndRotation(targetPosition, targetRotation);
         if (characterController != null) characterController.enabled = true;
-    }
-
-    private int CountAlivePlayers(Team team)
-    {
-        PlayerTeam[] allPlayers = FindObjectsByType<PlayerTeam>(FindObjectsInactive.Exclude);
-        int count = 0;
-
-        foreach (PlayerTeam player in allPlayers)
-        {
-            if (player == null || player.CurrentTeam.Value != team) continue;
-
-            NetworkHealth health = player.GetComponent<NetworkHealth>();
-            if (health != null && health.CurrentHealth.Value > 0f)
-            {
-                count++;
-            }
-        }
-
-        return count;
     }
 
     private double GetPhaseElapsed()

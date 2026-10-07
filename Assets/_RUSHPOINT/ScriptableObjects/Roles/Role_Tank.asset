@@ -14,9 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoleDataSO
   roleType: 0
   roleName: Tanque
-  roleDescription: 
+  roleDescription: Eres el tanque
   maxHealth: 120
   maxArmor: 80
   walkSpeed: 4.2
   sprintSpeed: 6.2
   jumpForce: 4.6
+  primaryWeaponPrefab: {fileID: 7904622146041607645, guid: 66b21236603c7124cbe7c5eda54de385, type: 3}
+  secondaryWeaponPrefab: {fileID: 1978381668156629706, guid: b2b691b9bf54e074ea544fb911929835, type: 3}
+  tpPrimaryWeaponPrefab: {fileID: 0}
+  tpSecondaryWeaponPrefab: {fileID: 0}

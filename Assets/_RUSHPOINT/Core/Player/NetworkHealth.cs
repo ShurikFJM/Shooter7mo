@@ -61,6 +61,31 @@ public class NetworkHealth : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void HealServerRpc(float healAmount)
+    {
+        HealDamageServer(healAmount);
+    }
+
+    public void Heal(float healAmount)
+    {
+        if (IsServer)
+        {
+            HealDamageServer(healAmount);
+        }
+        else
+        {
+            HealServerRpc(healAmount);
+        }
+    }
+
+    public void HealDamageServer(float healAmount)
+    {
+        if (!IsServer || !IsAlive.Value || healAmount <= 0f) return;
+
+        CurrentHealth.Value = Mathf.Min(CurrentHealth.Value + healAmount, _maxHealth);
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void TakeDamageServerRpc(float amount, HitboxType hitboxType, ulong attackerId)
     {
         ApplyDamageServer(amount, hitboxType, attackerId);

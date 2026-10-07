@@ -1,17 +1,21 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "RoleDatabase", menuName = "Rushpoint/Role Database")]
 public class RoleDatabaseSO : ScriptableObject
 {
-    [SerializeField] private List<RoleDataSO> roles = new List<RoleDataSO>();
+    [FormerlySerializedAs("roles")]
+    [SerializeField] private List<RoleDataSO> _roles = new List<RoleDataSO>();
 
     public RoleDataSO GetRole(PlayerRoleType roleType)
     {
-        for (int i = 0; i < roles.Count; i++)
+        for (int i = 0; i < _roles.Count; i++)
         {
-            if (roles[i] != null && roles[i].roleType == roleType)
-                return roles[i];
+            if (_roles[i] != null && _roles[i].roleType == roleType)
+            {
+                return _roles[i];
+            }
         }
         return null;
     }

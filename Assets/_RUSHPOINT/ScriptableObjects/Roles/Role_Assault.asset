@@ -20,3 +20,7 @@ MonoBehaviour:
   walkSpeed: 5
   sprintSpeed: 7.5
   jumpForce: 5
+  primaryWeaponPrefab: {fileID: 6677107256558942080, guid: d862c7961e433f341bf7e31c0c920788, type: 3}
+  secondaryWeaponPrefab: {fileID: 1978381668156629706, guid: b2b691b9bf54e074ea544fb911929835, type: 3}
+  tpPrimaryWeaponPrefab: {fileID: 0}
+  tpSecondaryWeaponPrefab: {fileID: 0}

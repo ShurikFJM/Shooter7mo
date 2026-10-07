@@ -8,7 +8,7 @@ public class NetworkPlayerController : NetworkBehaviour
     private const float _GRAVITY = -19.62f;
     private const float _DEFAULT_WALK_SPEED = 5f;
     private const float _DEFAULT_SPRINT_SPEED = 8f;
-    private const float _DEFAULT_JUMP_FORCE = 1.5f;
+    private const float _DEFAULT_JUMP_FORCE = 1.6f;
     private const float _CROUCH_HEIGHT = 1f;
     private const float _STANDING_HEIGHT = 2f;
     private const float _CROUCH_SPEED_RATIO = 0.5f;
@@ -43,7 +43,10 @@ public class NetworkPlayerController : NetworkBehaviour
     );
 
     private RoleDataSO _activeRole;
-    private Vector3 _verticalVelocity;
+    private NetworkHealth _networkHealth;
+    private PlayerTeam _playerTeam;
+    private WeaponInventory _weaponInventory;
+    private float _verticalVelocity;
     private Vector2 _moveInput;
     private Vector2 _lookInput;
     private bool _isSprinting;
@@ -52,6 +55,8 @@ public class NetworkPlayerController : NetworkBehaviour
     private bool _jumpRequested;
     private float _cameraPitch;
     private float _defaultCameraLocalY;
+    private bool _hasInitiatedSpectate = false;
+    private PlayerRoleType _lastAppliedRole = (PlayerRoleType)(-1);
 
     public Camera PlayerCamera => _playerCamera;
     public bool IsGrounded => _characterController != null && _characterController.isGrounded;
@@ -84,6 +89,10 @@ public class NetworkPlayerController : NetworkBehaviour
         {
             _audioListener = _playerCamera.GetComponent<AudioListener>();
         }
+
+        _networkHealth = GetComponent<NetworkHealth>();
+        _playerTeam = GetComponent<PlayerTeam>();
+        _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
     }
 
     public override void OnNetworkSpawn()
@@ -91,7 +100,20 @@ public class NetworkPlayerController : NetworkBehaviour
         base.OnNetworkSpawn();
 
         SelectedRole.OnValueChanged += HandleRoleChanged;
+
+        if (_weaponInventory == null)
+        {
+            _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
+        }
+
         ApplyRoleData(SelectedRole.Value);
+
+        if (_networkHealth != null)
+        {
+            _networkHealth.CurrentHealth.OnValueChanged += HandleHealthChanged;
+        }
+
+        Canvas localPlayerCanvas = GetComponentInChildren<Canvas>(true);
 
         if (IsOwner)
         {
@@ -127,8 +149,13 @@ public class NetworkPlayerController : NetworkBehaviour
                 _thirdPersonRoot.SetActive(false);
             }
 
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            if (localPlayerCanvas != null)
+            {
+                localPlayerCanvas.gameObject.SetActive(false);
+            }
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
 
             Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include);
             foreach (Canvas canvas in allCanvases)
@@ -144,7 +171,7 @@ public class NetworkPlayerController : NetworkBehaviour
             if (tacticalHud != null)
             {
                 tacticalHud.PlayerHealth = GetComponent<NetworkHealth>();
-                tacticalHud.Inventory = GetComponentInChildren<WeaponInventory>();
+                tacticalHud.Inventory = _weaponInventory;
             }
 
             Camera lobbyCamera = GameObject.FindWithTag(_LOBBY_CAMERA_TAG)?.GetComponent<Camera>();
@@ -155,6 +182,11 @@ public class NetworkPlayerController : NetworkBehaviour
         }
         else
         {
+            if (localPlayerCanvas != null)
+            {
+                localPlayerCanvas.gameObject.SetActive(false);
+            }
+
             if (_characterController != null)
             {
                 _characterController.enabled = false;
@@ -193,13 +225,35 @@ public class NetworkPlayerController : NetworkBehaviour
         if (IsServer)
         {
             SelectedRole.Value = roleType;
+            ApplyRoleData(roleType);
+            SyncRoleClientRpc(roleType);
         }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void SyncRoleClientRpc(PlayerRoleType roleType)
+    {
         ApplyRoleData(roleType);
     }
 
     public override void OnNetworkDespawn()
     {
         SelectedRole.OnValueChanged -= HandleRoleChanged;
+
+        if (_networkHealth != null)
+        {
+            _networkHealth.CurrentHealth.OnValueChanged -= HandleHealthChanged;
+        }
+    }
+
+    private void HandleHealthChanged(float previousHealth, float currentHealth)
+    {
+        if (!IsOwner) return;
+
+        if (currentHealth > 0f && _hasInitiatedSpectate)
+        {
+            ResetToAliveState();
+        }
     }
 
     private void HandleRoleChanged(PlayerRoleType previousRole, PlayerRoleType currentRole)
@@ -210,10 +264,14 @@ public class NetworkPlayerController : NetworkBehaviour
     private void ApplyRoleData(PlayerRoleType roleType)
     {
         if (_roleDatabase == null) return;
+        if (_lastAppliedRole == roleType && _activeRole != null) return;
 
         _activeRole = _roleDatabase.GetRole(roleType);
+        if (_activeRole == null) return;
 
-        if (IsServer && _activeRole != null)
+        _lastAppliedRole = roleType;
+
+        if (IsServer)
         {
             NetworkHealth networkHealth = GetComponent<NetworkHealth>();
             if (networkHealth != null)
@@ -221,17 +279,50 @@ public class NetworkPlayerController : NetworkBehaviour
                 networkHealth.SetMaxStatsServer(_activeRole.maxHealth, _activeRole.maxArmor);
             }
         }
+
+        if (IsOwner)
+        {
+            if (_weaponInventory == null)
+            {
+                _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
+            }
+
+            if (_weaponInventory != null)
+            {
+                _weaponInventory.SetupLoadoutForRole(
+                    _activeRole.primaryWeaponPrefab,
+                    _activeRole.secondaryWeaponPrefab,
+                    _activeRole.tpPrimaryWeaponPrefab,
+                    _activeRole.tpSecondaryWeaponPrefab
+                );
+            }
+        }
     }
 
     private void Update()
     {
-        if (_activeRole == null)
-        {
-            ApplyRoleData(SelectedRole.Value);
-        }
-
         if (IsOwner)
         {
+            HandleDeathCheck();
+
+            if (SpectatorManager.Instance != null && SpectatorManager.Instance.IsSpectating)
+            {
+                return;
+            }
+
+            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                bool isUiOpen = (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused) ||
+                                (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen) ||
+                                (RoundManager.Instance != null && RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers);
+
+                if (!isUiOpen && Cursor.lockState != CursorLockMode.Locked)
+                {
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
+                }
+            }
+
             UpdateInputStates();
             HandleCameraRotation();
             HandleMovementExecution();
@@ -240,16 +331,62 @@ public class NetworkPlayerController : NetworkBehaviour
         HandleCrouchHeightTransition();
     }
 
+    private void HandleDeathCheck()
+    {
+        if (_networkHealth == null) return;
+
+        bool isDead = !_networkHealth.IsAlive.Value || _networkHealth.CurrentHealth.Value <= 0f;
+
+        if (isDead && !_hasInitiatedSpectate)
+        {
+            _hasInitiatedSpectate = true;
+
+            if (_characterController != null) _characterController.enabled = false;
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+
+            if (SpectatorManager.Instance != null && _playerTeam != null && _playerCamera != null)
+            {
+                SpectatorManager.Instance.StartSpectating(_playerTeam.CurrentTeam.Value, _playerCamera, transform, _defaultCameraLocalY);
+            }
+        }
+    }
+
+    private void ResetToAliveState()
+    {
+        _hasInitiatedSpectate = false;
+
+        if (SpectatorManager.Instance != null)
+        {
+            SpectatorManager.Instance.StopSpectating();
+        }
+
+        if (_cameraRoot != null)
+        {
+            _cameraRoot.localPosition = new Vector3(0f, _defaultCameraLocalY, 0f);
+            _cameraRoot.localRotation = Quaternion.identity;
+        }
+
+        _cameraPitch = 0f;
+
+        if (_firstPersonRoot != null) _firstPersonRoot.SetActive(true);
+        if (_characterController != null) _characterController.enabled = true;
+    }
+
     private void UpdateInputStates()
     {
-        bool isWarmup = RoundManager.Instance != null && (RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup || RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers);
+        bool isLockedPhase = RoundManager.Instance != null &&
+            (RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers ||
+             RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup);
+
         BombInteractor bombInteractor = GetComponent<BombInteractor>();
         bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
 
-        if (isWarmup || isInteractingBomb)
+        if (isLockedPhase || isInteractingBomb)
         {
+            _moveInput = Vector2.zero;
             _isSprinting = false;
             _isWalkingSlow = false;
+            _jumpRequested = false;
             return;
         }
 
@@ -261,7 +398,7 @@ public class NetworkPlayerController : NetworkBehaviour
         {
             crouchPressed = Keyboard.current.leftCtrlKey.isPressed || Keyboard.current.cKey.isPressed;
             walkSlowPressed = Keyboard.current.leftShiftKey.isPressed;
-            sprintPressed = Keyboard.current.spaceKey.isPressed && Keyboard.current.wKey.isPressed;
+            sprintPressed = Keyboard.current.leftShiftKey.isPressed && !_isWalkingSlow;
         }
 
         if (Gamepad.current != null)
@@ -305,16 +442,33 @@ public class NetworkPlayerController : NetworkBehaviour
         IsCrouchedNet.Value = crouching;
     }
 
-    public void OnMove(InputValue value) => _moveInput = value.Get<Vector2>();
+    public void OnMove(InputValue value)
+    {
+        bool isLockedPhase = RoundManager.Instance != null &&
+            (RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers ||
+             RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup);
+
+        if (isLockedPhase)
+        {
+            _moveInput = Vector2.zero;
+            return;
+        }
+
+        _moveInput = value.Get<Vector2>();
+    }
+
     public void OnLook(InputValue value) => _lookInput = value.Get<Vector2>();
 
     public void OnJump(InputValue value)
     {
-        bool isWarmup = RoundManager.Instance != null && (RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup || RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers);
+        bool isLockedPhase = RoundManager.Instance != null &&
+            (RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers ||
+             RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup);
+
         BombInteractor bombInteractor = GetComponent<BombInteractor>();
         bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
 
-        if (isWarmup || isInteractingBomb) return;
+        if (isLockedPhase || isInteractingBomb) return;
 
         if (value.isPressed && IsGrounded && !_isCrouching)
         {
@@ -367,7 +521,7 @@ public class NetworkPlayerController : NetworkBehaviour
             _characterController.center = new Vector3(0f, _characterController.height * 0.5f, 0f);
         }
 
-        if (_cameraRoot != null && IsOwner)
+        if (_cameraRoot != null && IsOwner && !_hasInitiatedSpectate)
         {
             float targetCameraY = crouched ? _defaultCameraLocalY * 0.55f : _defaultCameraLocalY;
             Vector3 targetCameraPosition = _cameraRoot.localPosition;
@@ -396,49 +550,67 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (_characterController == null) return;
 
-        bool isWarmup = RoundManager.Instance != null && (RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup || RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers);
-        BombInteractor bombInteractor = GetComponent<BombInteractor>();
-        bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
+        bool isLockedPhase = RoundManager.Instance != null &&
+            (RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers ||
+             RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup);
 
-        Vector2 effectiveInput = (isWarmup || isInteractingBomb) ? Vector2.zero : _moveInput;
-
-        if (IsGrounded && _verticalVelocity.y < 0)
+        if (isLockedPhase)
         {
-            _verticalVelocity.y = -2f;
+            if (_characterController.isGrounded)
+            {
+                _verticalVelocity = -2f;
+            }
+            else
+            {
+                _verticalVelocity += _GRAVITY * Time.deltaTime;
+            }
+
+            _characterController.Move(Vector3.up * _verticalVelocity * Time.deltaTime);
+            return;
         }
 
-        float baseWalkSpeed = _activeRole != null && _activeRole.walkSpeed > 0f ? _activeRole.walkSpeed : _DEFAULT_WALK_SPEED;
-        float baseSprintSpeed = _activeRole != null && _activeRole.sprintSpeed > 0f ? _activeRole.sprintSpeed : _DEFAULT_SPRINT_SPEED;
-        float baseJumpForce = _activeRole != null && _activeRole.jumpForce > 0f ? _activeRole.jumpForce : _DEFAULT_JUMP_FORCE;
-
-        float movementSpeed = baseWalkSpeed;
+        float baseSpeed = _activeRole != null ? _activeRole.walkSpeed : _DEFAULT_WALK_SPEED;
+        float currentSpeed = baseSpeed;
 
         if (_isCrouching)
         {
-            movementSpeed = baseWalkSpeed * _CROUCH_SPEED_RATIO;
+            currentSpeed *= _CROUCH_SPEED_RATIO;
         }
         else if (_isWalkingSlow)
         {
-            movementSpeed = baseWalkSpeed * _WALK_SLOW_RATIO;
+            currentSpeed *= _WALK_SLOW_RATIO;
         }
         else if (_isSprinting)
         {
-            movementSpeed = baseSprintSpeed;
+            currentSpeed = _activeRole != null ? _activeRole.sprintSpeed : _DEFAULT_SPRINT_SPEED;
         }
 
-        Vector3 moveDirection = transform.right * effectiveInput.x + transform.forward * effectiveInput.y;
-        _characterController.Move(moveDirection * movementSpeed * Time.deltaTime);
-
-        if (_jumpRequested && IsGrounded)
+        Vector3 moveDirection = transform.right * _moveInput.x + transform.forward * _moveInput.y;
+        if (moveDirection.sqrMagnitude > 1f)
         {
-            if (!isWarmup && !isInteractingBomb)
-            {
-                _verticalVelocity.y = Mathf.Sqrt(baseJumpForce * -2f * _GRAVITY);
-            }
-            _jumpRequested = false;
+            moveDirection.Normalize();
         }
 
-        _verticalVelocity.y += _GRAVITY * Time.deltaTime;
-        _characterController.Move(_verticalVelocity * Time.deltaTime);
+        if (_characterController.isGrounded)
+        {
+            if (_verticalVelocity < 0f)
+            {
+                _verticalVelocity = -2f;
+            }
+
+            if (_jumpRequested)
+            {
+                float jumpForce = _activeRole != null ? _activeRole.jumpForce : _DEFAULT_JUMP_FORCE;
+                _verticalVelocity = Mathf.Sqrt(jumpForce * -2f * _GRAVITY);
+                _jumpRequested = false;
+            }
+        }
+        else
+        {
+            _verticalVelocity += _GRAVITY * Time.deltaTime;
+        }
+
+        Vector3 finalVelocity = (moveDirection * currentSpeed) + (Vector3.up * _verticalVelocity);
+        _characterController.Move(finalVelocity * Time.deltaTime);
     }
 }

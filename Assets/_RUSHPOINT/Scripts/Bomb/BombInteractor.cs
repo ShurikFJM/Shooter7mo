@@ -10,7 +10,7 @@ public class BombInteractor : NetworkBehaviour
     private const int _MAX_BUFFER_HITS = 8;
 
     [SerializeField] private Transform _interactOrigin;
-    [SerializeField] private float _interactRange = 3f;
+    [SerializeField] private float _interactRange = 3.5f;
     [SerializeField] private LayerMask _bombLayer;
     [SerializeField] private LayerMask _siteLayer;
     [SerializeField] private float _plantHoldTime = 4f;
@@ -20,6 +20,7 @@ public class BombInteractor : NetworkBehaviour
     private readonly Collider[] _bombHitBuffer = new Collider[_MAX_BUFFER_HITS];
     private readonly Collider[] _siteHitBuffer = new Collider[_MAX_BUFFER_HITS];
 
+    private Bomb _cachedBomb;
     private Bomb _carriedBomb;
     private Bomb _nearbyBomb;
     private Bomb _nearbyPlantedBomb;
@@ -59,6 +60,7 @@ public class BombInteractor : NetworkBehaviour
     {
         if (!IsOwner) return;
 
+        LocateSceneBomb();
         ValidateCarriedBombAuthority();
 
         if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
@@ -86,19 +88,23 @@ public class BombInteractor : NetworkBehaviour
         ExecuteDefusingTimer();
     }
 
+    private void LocateSceneBomb()
+    {
+        if (_cachedBomb == null)
+        {
+            _cachedBomb = FindAnyObjectByType<Bomb>();
+        }
+    }
+
     private void ValidateCarriedBombAuthority()
     {
         if (_carriedBomb == null)
         {
-            Bomb[] allBombs = FindObjectsByType<Bomb>(FindObjectsInactive.Exclude);
-            for (int i = 0; i < allBombs.Length; i++)
+            if (_cachedBomb != null &&
+                _cachedBomb.State.Value == BombState.Carried &&
+                _cachedBomb.CarrierClientId.Value == NetworkManager.Singleton.LocalClientId)
             {
-                if (allBombs[i].State.Value == BombState.Carried &&
-                    allBombs[i].CarrierClientId.Value == NetworkManager.Singleton.LocalClientId)
-                {
-                    _carriedBomb = allBombs[i];
-                    break;
-                }
+                _carriedBomb = _cachedBomb;
             }
         }
         else
@@ -123,52 +129,44 @@ public class BombInteractor : NetworkBehaviour
             return;
         }
 
-        int hitCount = Physics.OverlapSphereNonAlloc(_interactOrigin.position, _interactRange, _bombHitBuffer, _bombLayer);
-        _nearbyBomb = null;
-        float closestDistance = float.MaxValue;
-
-        for (int i = 0; i < hitCount; i++)
+        if (_cachedBomb != null && _cachedBomb.State.Value == BombState.Dropped)
         {
-            Collider col = _bombHitBuffer[i];
-            Bomb detectedBomb = col.GetComponentInParent<Bomb>();
-            if (detectedBomb == null || detectedBomb.State.Value != BombState.Dropped) continue;
-            if (_playerTeam.CurrentTeam.Value != detectedBomb.BombCarrierTeam) continue;
-
-            float currentDistance = Vector3.Distance(_interactOrigin.position, detectedBomb.transform.position);
-            if (currentDistance < closestDistance)
+            if (_playerTeam.CurrentTeam.Value == _cachedBomb.BombCarrierTeam)
             {
-                closestDistance = currentDistance;
-                _nearbyBomb = detectedBomb;
+                float distance = Vector3.Distance(_interactOrigin.position, _cachedBomb.transform.position);
+                if (distance <= _interactRange)
+                {
+                    _nearbyBomb = _cachedBomb;
+                    return;
+                }
             }
         }
+
+        _nearbyBomb = null;
     }
 
     private void DetectNearbyPlantedBomb()
     {
-        if (_playerTeam == null)
+        if (_playerTeam == null || _cachedBomb == null)
         {
             _nearbyPlantedBomb = null;
             return;
         }
 
-        int hitCount = Physics.OverlapSphereNonAlloc(_interactOrigin.position, _interactRange, _bombHitBuffer, _bombLayer);
-        _nearbyPlantedBomb = null;
-        float closestDistance = float.MaxValue;
-
-        for (int i = 0; i < hitCount; i++)
+        if (_cachedBomb.State.Value == BombState.Planted || _cachedBomb.State.Value == BombState.Defusing)
         {
-            Collider col = _bombHitBuffer[i];
-            Bomb detectedBomb = col.GetComponentInParent<Bomb>();
-            if (detectedBomb == null || detectedBomb.State.Value != BombState.Planted) continue;
-            if (_playerTeam.CurrentTeam.Value != detectedBomb.DefuseTeam) continue;
-
-            float currentDistance = Vector3.Distance(_interactOrigin.position, detectedBomb.transform.position);
-            if (currentDistance < closestDistance)
+            if (_playerTeam.CurrentTeam.Value == _cachedBomb.DefuseTeam)
             {
-                closestDistance = currentDistance;
-                _nearbyPlantedBomb = detectedBomb;
+                float distance = Vector3.Distance(_interactOrigin.position, _cachedBomb.transform.position);
+                if (distance <= _interactRange)
+                {
+                    _nearbyPlantedBomb = _cachedBomb;
+                    return;
+                }
             }
         }
+
+        _nearbyPlantedBomb = null;
     }
 
     private void DetectCurrentBombSite()
@@ -243,7 +241,7 @@ public class BombInteractor : NetworkBehaviour
     {
         if (!_isDefusing) return;
 
-        if (_nearbyPlantedBomb == null || _nearbyPlantedBomb.State.Value != BombState.Planted)
+        if (_nearbyPlantedBomb == null || (_nearbyPlantedBomb.State.Value != BombState.Planted && _nearbyPlantedBomb.State.Value != BombState.Defusing))
         {
             StopDefusingProcess();
             return;
@@ -327,7 +325,9 @@ public class BombInteractor : NetworkBehaviour
     private void RequestDropExecution()
     {
         if (_carriedBomb == null) return;
-        _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId, transform.position);
+
+        _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId, transform.position, transform.forward);
+
         _carriedBomb = null;
         StopPlantingProcess();
     }

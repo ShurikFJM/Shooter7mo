@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(AudioSource))]
-public class WeaponBase : NetworkBehaviour
+public class WeaponBase : MonoBehaviour
 {
     private const float _TRIGGER_DEADZONE = 0.2f;
     private const float _SPREAD_RECOVERY_SPEED = 12f;
@@ -42,8 +42,10 @@ public class WeaponBase : NetworkBehaviour
     private float _firingSpreadPenalty;
     private bool _wasRtPressedLastFrame;
 
-    private Vector3 _targetPosition;
-    private Quaternion _targetRotation;
+    private Vector3 _defaultLocalPosition;
+    private Quaternion _defaultLocalRotation;
+    private Vector3 _targetOffsetPosition;
+    private Quaternion _targetOffsetRotation = Quaternion.identity;
     private Coroutine _muzzleFlashCoroutine;
     private Coroutine _reloadCoroutine;
     private AudioSource _audioSource;
@@ -57,7 +59,7 @@ public class WeaponBase : NetworkBehaviour
     public int MaxAmmo => _data != null ? _data.maxAmmo : 0;
     public bool IsReloading => _isReloading;
 
-    private void Start()
+    private void Awake()
     {
         _audioSource = GetComponent<AudioSource>();
 
@@ -71,14 +73,43 @@ public class WeaponBase : NetworkBehaviour
             _playerController = GetComponentInParent<NetworkPlayerController>();
         }
 
+        if (_weaponModelTransform == null)
+        {
+            _weaponModelTransform = transform;
+        }
+
+        _defaultLocalPosition = _weaponModelTransform.localPosition;
+        _defaultLocalRotation = _weaponModelTransform.localRotation;
+    }
+
+    private void OnEnable()
+    {
+        if (_playerController == null)
+        {
+            _playerController = GetComponentInParent<NetworkPlayerController>();
+        }
+
         if (_firePoint == null && _playerController != null && _playerController.PlayerCamera != null)
         {
             _firePoint = _playerController.PlayerCamera.transform;
         }
 
-        if (_weaponModelTransform == null)
+        if (_data != null && _currentAmmo <= 0 && !_isReloading)
         {
-            _weaponModelTransform = transform;
+            _currentAmmo = _data.maxAmmo;
+        }
+    }
+
+    private void Start()
+    {
+        if (_data != null && _currentAmmo <= 0)
+        {
+            _currentAmmo = _data.maxAmmo;
+        }
+
+        if (_firePoint == null && _playerController != null && _playerController.PlayerCamera != null)
+        {
+            _firePoint = _playerController.PlayerCamera.transform;
         }
 
         if (_muzzleFlash != null)
@@ -94,13 +125,13 @@ public class WeaponBase : NetworkBehaviour
         _wasRtPressedLastFrame = false;
         _nextTimeToFire = 0f;
 
-        _targetPosition = Vector3.zero;
-        _targetRotation = Quaternion.identity;
+        _targetOffsetPosition = Vector3.zero;
+        _targetOffsetRotation = Quaternion.identity;
 
         if (_weaponModelTransform != null)
         {
-            _weaponModelTransform.localPosition = Vector3.zero;
-            _weaponModelTransform.localRotation = Quaternion.identity;
+            _weaponModelTransform.localPosition = _defaultLocalPosition;
+            _weaponModelTransform.localRotation = _defaultLocalRotation;
         }
 
         if (_muzzleFlashCoroutine != null)
@@ -118,7 +149,7 @@ public class WeaponBase : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsOwner) return;
+        if (_playerController != null && !_playerController.IsOwner) return;
 
         if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused) return;
 
@@ -129,11 +160,14 @@ public class WeaponBase : NetworkBehaviour
         BombInteractor bombInteractor = GetComponentInParent<BombInteractor>();
         if (bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing)) return;
 
-        _targetPosition = Vector3.Lerp(_targetPosition, Vector3.zero, Time.deltaTime * _returnSpeed);
-        _targetRotation = Quaternion.Slerp(_targetRotation, Quaternion.identity, Time.deltaTime * _returnSpeed);
+        _targetOffsetPosition = Vector3.Lerp(_targetOffsetPosition, Vector3.zero, Time.deltaTime * _returnSpeed);
+        _targetOffsetRotation = Quaternion.Slerp(_targetOffsetRotation, Quaternion.identity, Time.deltaTime * _returnSpeed);
 
-        _weaponModelTransform.localPosition = Vector3.Lerp(_weaponModelTransform.localPosition, _targetPosition, Time.deltaTime * _returnSpeed * 2f);
-        _weaponModelTransform.localRotation = Quaternion.Slerp(_weaponModelTransform.localRotation, _targetRotation, Time.deltaTime * _returnSpeed * 2f);
+        Vector3 desiredPosition = _defaultLocalPosition + _targetOffsetPosition;
+        Quaternion desiredRotation = _defaultLocalRotation * _targetOffsetRotation;
+
+        _weaponModelTransform.localPosition = Vector3.Lerp(_weaponModelTransform.localPosition, desiredPosition, Time.deltaTime * _returnSpeed * 2f);
+        _weaponModelTransform.localRotation = Quaternion.Slerp(_weaponModelTransform.localRotation, desiredRotation, Time.deltaTime * _returnSpeed * 2f);
 
         if (_firingSpreadPenalty > 0f)
         {
@@ -208,7 +242,7 @@ public class WeaponBase : NetworkBehaviour
         return totalSpread;
     }
 
-    private void Shoot()
+    protected virtual void Shoot()
     {
         _currentAmmo--;
         _lastShotTime = Time.time;
@@ -302,8 +336,8 @@ public class WeaponBase : NetworkBehaviour
             break;
         }
 
-        _targetPosition += _kickbackOffset;
-        _targetRotation *= Quaternion.Euler(_kickbackRotation);
+        _targetOffsetPosition += _kickbackOffset;
+        _targetOffsetRotation *= Quaternion.Euler(_kickbackRotation);
 
         TriggerMuzzleFlash();
 

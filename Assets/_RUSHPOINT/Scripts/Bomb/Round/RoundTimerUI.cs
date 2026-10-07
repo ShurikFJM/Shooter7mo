@@ -2,14 +2,13 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-
 public class RoundTimerUI : MonoBehaviour
 {
     [SerializeField] private GameObject _timerRoot;
     [SerializeField] private TMP_Text _timerText;
     [SerializeField] private TMP_Text _phaseLabelText;
-    [SerializeField] private string _warmupLabel = "La ronda empieza en";
-    [SerializeField] private string _inProgressLabel = "Tiempo restante";
+    [SerializeField] private string _warmupLabel = "Round starts in";
+    [SerializeField] private string _inProgressLabel = "Time remaining";
 
     private Bomb _bomb;
 

@@ -19,7 +19,7 @@ MonoBehaviour:
   fireRate: 0.1
   maxAmmo: 100
   reloadTime: 5
-  ammoIcon: {fileID: 0}
+  ammoIcon: {fileID: 2800000, guid: 8fae8d4c5ac250045a51344e3b3fe85a, type: 3}
   recoilResetTime: 0.3
   recoilPattern:
   - {x: 0, y: 0}

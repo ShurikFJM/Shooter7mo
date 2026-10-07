@@ -9,8 +9,8 @@ public class RoleLobbyManager : NetworkBehaviour
     [SerializeField] private Transform[] _terroristSpawnPoints;
     [SerializeField] private Transform[] _counterTerroristSpawnPoints;
 
-    private int _tSpawnIndex;
-    private int _ctSpawnIndex;
+    private int _terroristSpawnIndex;
+    private int _counterTerroristSpawnIndex;
 
     private void Awake()
     {
@@ -50,7 +50,9 @@ public class RoleLobbyManager : NetworkBehaviour
         {
             CharacterController characterController = playerNetworkObject.GetComponent<CharacterController>();
             if (characterController != null) characterController.enabled = false;
+
             playerNetworkObject.transform.SetPositionAndRotation(spawnPosition, spawnRotation);
+
             if (characterController != null) characterController.enabled = true;
 
             NetworkPlayerController controller = playerNetworkObject.GetComponent<NetworkPlayerController>();
@@ -79,7 +81,7 @@ public class RoleLobbyManager : NetworkBehaviour
         Transform[] spawns = (team == Team.Red) ? _terroristSpawnPoints : _counterTerroristSpawnPoints;
         if (spawns == null || spawns.Length == 0) return null;
 
-        int index = (team == Team.Red) ? _tSpawnIndex++ : _ctSpawnIndex++;
+        int index = (team == Team.Red) ? _terroristSpawnIndex++ : _counterTerroristSpawnIndex++;
         return spawns[index % spawns.Length];
     }
 

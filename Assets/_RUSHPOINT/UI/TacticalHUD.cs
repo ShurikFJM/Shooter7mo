@@ -1,178 +1,131 @@
+using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class TacticalHUD : MonoBehaviour
 {
-    [SerializeField] private NetworkHealth _playerHealth;
-    [SerializeField] private WeaponInventory _inventory;
-    [SerializeField] private TextMeshProUGUI _healthText;
-    [SerializeField] private TextMeshProUGUI _armorText;
-    [SerializeField] private TextMeshProUGUI _currentAmmoText;
-    [SerializeField] private TextMeshProUGUI _maxAmmoText;
-    [SerializeField] private RawImage _ammoIconImage;
-    [SerializeField] private RawImage _slot1Highlight;
-    [SerializeField] private RawImage _slot2Highlight;
-    [SerializeField] private RawImage _slot3Highlight;
-    [SerializeField] private TextMeshProUGUI _timerText;
-    [SerializeField] private TextMeshProUGUI _tScoreText;
-    [SerializeField] private TextMeshProUGUI _ctScoreText;
-    [SerializeField] private Image _timerBackgroundBox;
-    [SerializeField] private Color _normalTimerBgColor = new Color(0.12f, 0.12f, 0.12f, 0.9f);
-    [SerializeField] private Color _bombPlantedBgColor = new Color(0.85f, 0.15f, 0.15f, 0.95f);
-    [SerializeField] private Color _freezeTimeBgColor = new Color(0.15f, 0.5f, 0.85f, 0.9f);
-    [SerializeField] private Color _activeSlotColor = new Color(1f, 1f, 1f, 0.9f);
-    [SerializeField] private Color _inactiveSlotColor = new Color(0.2f, 0.2f, 0.2f, 0.4f);
+    private const string _NO_AMMO_STRING = "-";
+    private const string _SLASH_STRING = " / ";
 
-    private Bomb _activeBomb;
+    [SerializeField] private TMP_Text _healthText;
+    [SerializeField] private TMP_Text _armorText;
+    [SerializeField] private TMP_Text _ammoText;
+    [SerializeField] private TMP_Text _currentAmmoText;
+    [SerializeField] private TMP_Text _maxAmmoText;
+    [SerializeField] private Slider _healthSlider;
+    [SerializeField] private Slider _armorSlider;
 
-    public NetworkHealth PlayerHealth
-    {
-        get => _playerHealth;
-        set => _playerHealth = value;
-    }
-
-    public WeaponInventory Inventory
-    {
-        get => _inventory;
-        set => _inventory = value;
-    }
+    public NetworkHealth PlayerHealth { get; set; }
+    public WeaponInventory Inventory { get; set; }
 
     private void Update()
     {
-        UpdateStatsDisplay();
+        EnsureLocalPlayerReferences();
+        UpdateHealthAndArmor();
         UpdateAmmoDisplay();
-        UpdateInventoryDisplay();
-        UpdateRoundDisplay();
     }
 
-    private void UpdateStatsDisplay()
+    private void EnsureLocalPlayerReferences()
     {
-        if (_playerHealth == null) return;
+        if (PlayerHealth != null && Inventory != null) return;
+
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsClient) return;
+
+        NetworkObject localPlayer = NetworkManager.Singleton.LocalClient?.PlayerObject;
+        if (localPlayer == null) return;
+
+        if (PlayerHealth == null)
+        {
+            PlayerHealth = localPlayer.GetComponent<NetworkHealth>();
+        }
+
+        if (Inventory == null)
+        {
+            Inventory = localPlayer.GetComponent<WeaponInventory>();
+            if (Inventory == null)
+            {
+                Inventory = localPlayer.GetComponentInChildren<WeaponInventory>(true);
+            }
+        }
+    }
+
+    private void UpdateHealthAndArmor()
+    {
+        if (PlayerHealth == null) return;
 
         if (_healthText != null)
         {
-            _healthText.text = Mathf.CeilToInt(_playerHealth.CurrentHealth.Value).ToString();
+            _healthText.text = Mathf.CeilToInt(PlayerHealth.CurrentHealth.Value).ToString();
         }
 
         if (_armorText != null)
         {
-            _armorText.text = Mathf.CeilToInt(_playerHealth.CurrentArmor.Value).ToString();
+            _armorText.text = Mathf.CeilToInt(PlayerHealth.CurrentArmor.Value).ToString();
+        }
+
+        if (_healthSlider != null)
+        {
+            _healthSlider.maxValue = PlayerHealth.MaxHealth;
+            _healthSlider.value = PlayerHealth.CurrentHealth.Value;
+        }
+
+        if (_armorSlider != null)
+        {
+            _armorSlider.maxValue = PlayerHealth.MaxArmor;
+            _armorSlider.value = PlayerHealth.CurrentArmor.Value;
         }
     }
 
     private void UpdateAmmoDisplay()
     {
-        if (_inventory != null && _inventory.ActiveWeapon != null)
+        if (Inventory == null)
         {
-            WeaponBase activeWeapon = _inventory.ActiveWeapon;
-
-            if (_currentAmmoText != null)
-            {
-                _currentAmmoText.text = activeWeapon.CurrentAmmo.ToString();
-            }
-
-            if (_maxAmmoText != null)
-            {
-                _maxAmmoText.text = activeWeapon.MaxAmmo.ToString();
-            }
-
-            if (_ammoIconImage != null)
-            {
-                if (activeWeapon.data != null && activeWeapon.data.ammoIcon != null)
-                {
-                    _ammoIconImage.texture = activeWeapon.data.ammoIcon;
-                    _ammoIconImage.enabled = true;
-                    _ammoIconImage.gameObject.SetActive(true);
-                }
-                else
-                {
-                    _ammoIconImage.gameObject.SetActive(false);
-                }
-            }
+            SetEmptyAmmoDisplay();
+            return;
         }
-        else
+
+        WeaponBase weapon = Inventory.ActiveWeapon;
+        if (weapon == null)
         {
-            if (_currentAmmoText != null) _currentAmmoText.text = "-";
-            if (_maxAmmoText != null) _maxAmmoText.text = "-";
-            if (_ammoIconImage != null) _ammoIconImage.gameObject.SetActive(false);
+            SetEmptyAmmoDisplay();
+            return;
+        }
+
+        string currentStr = weapon.CurrentAmmo.ToString();
+        string maxStr = weapon.MaxAmmo.ToString();
+
+        if (_ammoText != null)
+        {
+            _ammoText.text = currentStr + _SLASH_STRING + maxStr;
+        }
+
+        if (_currentAmmoText != null)
+        {
+            _currentAmmoText.text = currentStr;
+        }
+
+        if (_maxAmmoText != null)
+        {
+            _maxAmmoText.text = maxStr;
         }
     }
 
-    private void UpdateInventoryDisplay()
+    private void SetEmptyAmmoDisplay()
     {
-        if (_inventory == null) return;
-
-        int activeIndex = _inventory.ActiveSlotIndex;
-
-        if (_slot1Highlight != null)
+        if (_ammoText != null)
         {
-            _slot1Highlight.color = (activeIndex == 1) ? _activeSlotColor : _inactiveSlotColor;
+            _ammoText.text = _NO_AMMO_STRING + _SLASH_STRING + _NO_AMMO_STRING;
         }
 
-        if (_slot2Highlight != null)
+        if (_currentAmmoText != null)
         {
-            _slot2Highlight.color = (activeIndex == 2) ? _activeSlotColor : _inactiveSlotColor;
+            _currentAmmoText.text = _NO_AMMO_STRING;
         }
 
-        if (_slot3Highlight != null)
+        if (_maxAmmoText != null)
         {
-            _slot3Highlight.color = (activeIndex == 3) ? _activeSlotColor : _inactiveSlotColor;
-        }
-    }
-
-    private void UpdateRoundDisplay()
-    {
-        if (RoundManager.Instance == null) return;
-
-        if (_activeBomb == null)
-        {
-            _activeBomb = FindAnyObjectByType<Bomb>();
-        }
-
-        if (_tScoreText != null)
-        {
-            _tScoreText.text = RoundManager.Instance.RedScore.Value.ToString();
-        }
-
-        if (_ctScoreText != null)
-        {
-            _ctScoreText.text = RoundManager.Instance.BlueScore.Value.ToString();
-        }
-
-        int totalSeconds = Mathf.Max(0, RoundManager.Instance.CurrentRoundTime.Value);
-        int minutes = totalSeconds / 60;
-        int seconds = totalSeconds % 60;
-
-        RoundPhase currentPhase = RoundManager.Instance.CurrentPhase.Value;
-        bool isBombPlanted = (_activeBomb != null && _activeBomb.State.Value == BombState.Planted) || RoundManager.Instance.IsBombPlanted.Value;
-
-        if (_timerText != null)
-        {
-            if (currentPhase == RoundPhase.WaitingForPlayers)
-            {
-                _timerText.text = "--:--";
-            }
-            else
-            {
-                _timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
-            }
-        }
-
-        if (_timerBackgroundBox != null)
-        {
-            if (currentPhase == RoundPhase.Warmup)
-            {
-                _timerBackgroundBox.color = _freezeTimeBgColor;
-            }
-            else if (currentPhase == RoundPhase.InProgress)
-            {
-                _timerBackgroundBox.color = isBombPlanted ? _bombPlantedBgColor : _normalTimerBgColor;
-            }
-            else
-            {
-                _timerBackgroundBox.color = _normalTimerBgColor;
-            }
+            _maxAmmoText.text = _NO_AMMO_STRING;
         }
     }
 }

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WeaponData
   weaponName: Ak_Chivito
   isAutomatic: 1
-  damage: 50
+  damage: 25
   range: 100
   fireRate: 0.15
   maxAmmo: 24

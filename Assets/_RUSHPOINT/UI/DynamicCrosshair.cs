@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class DynamicCrosshair : MonoBehaviour
@@ -6,13 +7,11 @@ public class DynamicCrosshair : MonoBehaviour
     [SerializeField] private RectTransform _bottomTick;
     [SerializeField] private RectTransform _leftTick;
     [SerializeField] private RectTransform _rightTick;
-
     [SerializeField] private float _baseGap = 12f;
     [SerializeField] private float _gapScaleMultiplier = 25f;
     [SerializeField] private float _maxGap = 160f;
     [SerializeField] private float _expandSpeed = 35f;
     [SerializeField] private float _contractSpeed = 20f;
-
     [SerializeField] private WeaponInventory _inventory;
 
     private float _currentGap;
@@ -25,17 +24,18 @@ public class DynamicCrosshair : MonoBehaviour
 
     private void Start()
     {
-        if (_inventory == null)
-        {
-            _inventory = FindAnyObjectByType<WeaponInventory>();
-        }
-
         _currentGap = _baseGap;
     }
 
     private void Update()
     {
-        if (_inventory == null || _inventory.ActiveWeapon == null) return;
+        if (_inventory == null)
+        {
+            TryBindLocalPlayer();
+            if (_inventory == null) return;
+        }
+
+        if (_inventory.ActiveWeapon == null) return;
 
         WeaponBase activeWeapon = _inventory.ActiveWeapon;
 
@@ -56,5 +56,16 @@ public class DynamicCrosshair : MonoBehaviour
         if (_bottomTick != null) _bottomTick.anchoredPosition = new Vector2(0f, -_currentGap);
         if (_leftTick != null) _leftTick.anchoredPosition = new Vector2(-_currentGap, 0f);
         if (_rightTick != null) _rightTick.anchoredPosition = new Vector2(_currentGap, 0f);
+    }
+
+    private void TryBindLocalPlayer()
+    {
+        if (NetworkManager.Singleton == null) return;
+
+        NetworkClient localClient = NetworkManager.Singleton.LocalClient;
+        if (localClient != null && localClient.PlayerObject != null)
+        {
+            _inventory = localClient.PlayerObject.GetComponentInChildren<WeaponInventory>();
+        }
     }
 }
