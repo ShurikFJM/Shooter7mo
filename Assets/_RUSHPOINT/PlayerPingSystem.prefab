@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8999824613138112711
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5046279987430895401}
+  - component: {fileID: 727213410146888004}
+  m_Layer: 0
+  m_Name: PlayerPingSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5046279987430895401
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8999824613138112711}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &727213410146888004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8999824613138112711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a10f0c5c7d6ee0342ba9e0bbd511af06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPingSystem
+  ShowTopMostFoldoutHeaderGroup: 1
+  _holdThreshold: 0.25
+  _pingCooldown: 0.35
+  _pingLayerMask:
+    serializedVersion: 2
+    m_Bits: 4096
+  _raycastDistance: 1000000
+  _radialMenu: {fileID: 0}
+  _dangerOption: {fileID: 0}
+  _groupOption: {fileID: 0}
+  _playerCamera: {fileID: 0}
+  _cameraLookController: {fileID: 0}
+  _pingPrefab: {fileID: 1168452274326045084, guid: ce86d52ef4360c34aa10a09e0ab64147, type: 3}

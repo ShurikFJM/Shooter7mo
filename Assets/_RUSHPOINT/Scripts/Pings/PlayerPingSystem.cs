@@ -1,7 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 public class PlayerPingSystem : NetworkBehaviour
 {
@@ -12,15 +11,14 @@ public class PlayerPingSystem : NetworkBehaviour
         Group = 2
     }
 
+    private const float _RADIAL_CENTER_DEADZONE_SQR = 2500f;
+    private const float _NORMAL_PING_OFFSET = 0.2f;
+    private const float _RAY_FORWARD_OFFSET = 0.5f;
+
     [SerializeField] private float _holdThreshold = 0.25f;
     [SerializeField] private float _pingCooldown = 0.35f;
     [SerializeField] private LayerMask _pingLayerMask = ~0;
     [SerializeField] private float _raycastDistance = 500f;
-    [SerializeField] private GameObject _radialMenu;
-    [SerializeField] private Image _dangerOption;
-    [SerializeField] private Image _groupOption;
-    [SerializeField] private Camera _playerCamera;
-    [SerializeField] private Behaviour _cameraLookController;
     [SerializeField] private GameObject _pingPrefab;
 
     private float _holdTimer;
@@ -29,38 +27,49 @@ public class PlayerPingSystem : NetworkBehaviour
     private bool _radialMenuOpen;
     private PingType _selectedPingType = PingType.Normal;
 
+    private Camera _playerCamera;
+    private PlayerTeam _playerTeam;
+    private NetworkPlayerController _playerController;
+
+    public bool IsRadialMenuOpen => _radialMenuOpen;
+
     private void Awake()
     {
-        if (_radialMenu != null)
-        {
-            _radialMenu.SetActive(false);
-        }
+        _playerTeam = GetComponent<PlayerTeam>();
+        _playerController = GetComponent<NetworkPlayerController>();
     }
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-        if (IsOwner)
-        {
-            EnsureCameraReference();
-        }
+        EnsureCameraReference();
+    }
+
+    private void Start()
+    {
+        EnsureCameraReference();
     }
 
     private void EnsureCameraReference()
     {
+        if (_playerCamera != null) return;
+
+        if (_playerController != null && _playerController.PlayerCamera != null)
+        {
+            _playerCamera = _playerController.PlayerCamera;
+            return;
+        }
+
+        _playerCamera = GetComponentInChildren<Camera>(true);
         if (_playerCamera == null)
         {
-            _playerCamera = GetComponentInChildren<Camera>();
-            if (_playerCamera == null)
-            {
-                _playerCamera = Camera.main;
-            }
+            _playerCamera = Camera.main;
         }
     }
 
     private void Update()
     {
-        if (!IsOwner) return;
+        if (IsSpawned && !IsOwner) return;
         if (Mouse.current == null) return;
 
         HandlePingInput();
@@ -107,21 +116,19 @@ public class PlayerPingSystem : NetworkBehaviour
     {
         _radialMenuOpen = true;
 
-        if (_radialMenu != null)
+        if (PingWheelUI.Instance != null)
         {
-            _radialMenu.SetActive(true);
+            PingWheelUI.Instance.Open();
         }
-
-        if (_cameraLookController != null)
+        else
         {
-            _cameraLookController.enabled = false;
+            FindFirstObjectByType<PingWheelUI>()?.Open();
         }
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
         _selectedPingType = PingType.Normal;
-        UpdateRadialVisuals(PingType.Normal);
     }
 
     private void UpdateRadialSelection()
@@ -130,14 +137,11 @@ public class PlayerPingSystem : NetworkBehaviour
         Vector2 mousePosition = Mouse.current.position.ReadValue();
         Vector2 direction = mousePosition - screenCenter;
 
-        if (direction.sqrMagnitude < 2500f)
+        if (direction.sqrMagnitude < _RADIAL_CENTER_DEADZONE_SQR)
         {
             _selectedPingType = PingType.Normal;
-            UpdateRadialVisuals(PingType.Normal);
-            return;
         }
-
-        if (direction.x < 0f)
+        else if (direction.x < 0f)
         {
             _selectedPingType = PingType.Danger;
         }
@@ -146,7 +150,14 @@ public class PlayerPingSystem : NetworkBehaviour
             _selectedPingType = PingType.Group;
         }
 
-        UpdateRadialVisuals(_selectedPingType);
+        if (PingWheelUI.Instance != null)
+        {
+            PingWheelUI.Instance.UpdateVisuals(_selectedPingType);
+        }
+        else
+        {
+            FindFirstObjectByType<PingWheelUI>()?.UpdateVisuals(_selectedPingType);
+        }
     }
 
     private void FinishPingInput()
@@ -164,35 +175,36 @@ public class PlayerPingSystem : NetworkBehaviour
 
         if (wasRadialMenuOpen && _selectedPingType == PingType.Normal)
         {
-            Debug.Log("[PING SYSTEM] Selección cancelada en el centro del menú radial.");
             return;
         }
 
-        if (PerformRaycast(out Vector3 hitPosition, out Vector3 hitNormal, out float distance, out string hitName))
+        if (PerformRaycast(out Vector3 hitPosition, out Vector3 hitNormal, out float distance))
         {
             PingType finalType = wasRadialMenuOpen ? _selectedPingType : PingType.Normal;
 
-            Debug.Log($"<color=green>[PING OK]</color> Tipo: <b>{finalType}</b> | Objeto: <b>{hitName}</b> | Distancia: <b>{distance:F1} metros</b> | Posición: {hitPosition}");
+            if (IsSpawned)
+            {
+                Team sendingTeam = _playerTeam != null ? _playerTeam.CurrentTeam.Value : Team.Red;
+                SendPingServerRpc(hitPosition, hitNormal, finalType, distance, sendingTeam);
+            }
+            else
+            {
+                SpawnPingLocally(hitPosition, hitNormal, finalType, distance);
+            }
 
-            SendPingServerRpc(hitPosition, hitNormal, finalType, distance);
             _lastPingTime = Time.time;
-        }
-        else
-        {
-            Debug.LogWarning("[PING WARN] Raycast no impactó con ninguna superficie o capa válida.");
         }
     }
 
     private void CloseRadialMenu()
     {
-        if (_radialMenu != null)
+        if (PingWheelUI.Instance != null)
         {
-            _radialMenu.SetActive(false);
+            PingWheelUI.Instance.Close();
         }
-
-        if (_cameraLookController != null)
+        else
         {
-            _cameraLookController.enabled = true;
+            FindFirstObjectByType<PingWheelUI>()?.Close();
         }
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -201,30 +213,32 @@ public class PlayerPingSystem : NetworkBehaviour
         _radialMenuOpen = false;
     }
 
-    private bool PerformRaycast(out Vector3 hitPoint, out Vector3 hitNormal, out float distance, out string hitObjectName)
+    private bool PerformRaycast(out Vector3 hitPoint, out Vector3 hitNormal, out float distance)
     {
         hitPoint = Vector3.zero;
         hitNormal = Vector3.up;
         distance = 0f;
-        hitObjectName = "Ninguno";
 
         EnsureCameraReference();
-        if (_playerCamera == null)
-        {
-            Debug.LogError("[PING ERROR] No se encontró referencia a la cámara del jugador.");
-            return false;
-        }
-        Ray ray = new Ray(_playerCamera.transform.position + _playerCamera.transform.forward * 0.2f, _playerCamera.transform.forward);
+        if (_playerCamera == null) return false;
 
-        RaycastHit[] hits = Physics.RaycastAll(ray, _raycastDistance, _pingLayerMask, QueryTriggerInteraction.Ignore);
+        Vector3 rayOrigin = _playerCamera.transform.position + (_playerCamera.transform.forward * _RAY_FORWARD_OFFSET);
+        Vector3 rayDirection = _playerCamera.transform.forward;
+
+        int playerLayerMask = 1 << gameObject.layer;
+        int activeLayerMask = _pingLayerMask.value == 0 ? ~playerLayerMask : (_pingLayerMask.value & ~playerLayerMask);
+
+        RaycastHit[] hits = Physics.RaycastAll(rayOrigin, rayDirection, _raycastDistance, activeLayerMask, QueryTriggerInteraction.Ignore);
 
         if (hits.Length > 0)
         {
-            System.Array.Sort(hits, (x, y) => x.distance.CompareTo(y.distance));
+            System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+            Transform myRoot = transform.root;
 
-            foreach (var hit in hits)
+            for (int i = 0; i < hits.Length; i++)
             {
-                if (hit.transform.IsChildOf(transform) || hit.transform == transform)
+                RaycastHit hit = hits[i];
+                if (hit.transform.root == myRoot)
                 {
                     continue;
                 }
@@ -232,10 +246,6 @@ public class PlayerPingSystem : NetworkBehaviour
                 hitPoint = hit.point;
                 hitNormal = hit.normal;
                 distance = Vector3.Distance(_playerCamera.transform.position, hit.point);
-                hitObjectName = hit.collider.name;
-
-                Debug.DrawLine(_playerCamera.transform.position, hit.point, Color.cyan, 3f);
-
                 return true;
             }
         }
@@ -243,46 +253,31 @@ public class PlayerPingSystem : NetworkBehaviour
         return false;
     }
 
-    private void UpdateRadialVisuals(PingType selectedType)
+    [Rpc(SendTo.Server)]
+    private void SendPingServerRpc(Vector3 position, Vector3 normal, PingType pingType, float distance, Team team)
     {
-        if (_dangerOption != null)
-        {
-            _dangerOption.color = (selectedType == PingType.Danger) ? Color.red : new Color(1f, 1f, 1f, 0.35f);
-        }
-
-        if (_groupOption != null)
-        {
-            _groupOption.color = (selectedType == PingType.Group) ? Color.cyan : new Color(1f, 1f, 1f, 0.35f);
-        }
+        SpawnPingClientRpc(position, normal, pingType, distance, team);
     }
 
-    [ServerRpc]
-    private void SendPingServerRpc(Vector3 position, Vector3 normal, PingType pingType, float distance)
+    [Rpc(SendTo.ClientsAndHost)]
+    private void SpawnPingClientRpc(Vector3 position, Vector3 normal, PingType pingType, float distance, Team team)
     {
-        SpawnPingClientRpc(position, normal, pingType, distance);
+        if (_playerTeam != null && _playerTeam.CurrentTeam.Value != team) return;
+
+        SpawnPingLocally(position, normal, pingType, distance);
     }
 
-    [ClientRpc]
-    private void SpawnPingClientRpc(Vector3 position, Vector3 normal, PingType pingType, float distance)
+    private void SpawnPingLocally(Vector3 position, Vector3 normal, PingType pingType, float distance)
     {
-        if (_pingPrefab == null)
-        {
-            Debug.LogError("[PING ERROR] No se ha asignado el _pingPrefab en el Inspector.");
-            return;
-        }
+        if (_pingPrefab == null) return;
 
         EnsureCameraReference();
 
-        GameObject pingObject = Instantiate(_pingPrefab, position + normal * 0.2f, Quaternion.identity);
-
+        GameObject pingObject = Instantiate(_pingPrefab, position + normal * _NORMAL_PING_OFFSET, Quaternion.identity);
         PingBillboard billboard = pingObject.GetComponent<PingBillboard>();
         if (billboard != null)
         {
             billboard.Initialize(pingType, distance, _playerCamera);
-        }
-        else
-        {
-            Debug.LogError("[PING ERROR] El prefab instanciado no contiene el componente PingBillboard.");
         }
     }
 }

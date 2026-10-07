@@ -150,6 +150,7 @@ GameObject:
   - component: {fileID: 219256414515823687}
   - component: {fileID: 8695485612168533332}
   - component: {fileID: 8818974824339966079}
+  - component: {fileID: 3763993040339902959}
   m_Layer: 11
   m_Name: NetworkPlayer
   m_TagString: Untagged
@@ -469,6 +470,26 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 1
+--- !u!114 &3763993040339902959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5347775635805665784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a10f0c5c7d6ee0342ba9e0bbd511af06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPingSystem
+  ShowTopMostFoldoutHeaderGroup: 1
+  _holdThreshold: 0.25
+  _pingCooldown: 0.35
+  _pingLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _raycastDistance: 500
+  _pingPrefab: {fileID: 1168452274326045084, guid: ce86d52ef4360c34aa10a09e0ab64147, type: 3}
 --- !u!1 &5650862837141661167
 GameObject:
   m_ObjectHideFlags: 0

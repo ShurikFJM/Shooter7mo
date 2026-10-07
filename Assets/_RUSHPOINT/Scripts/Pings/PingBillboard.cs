@@ -1,8 +1,12 @@
+using System.Collections;
+using TMPro;
 using UnityEngine;
-using TMPro; 
 
 public class PingBillboard : MonoBehaviour
 {
+    private const string _METERS_SUFFIX = "m";
+    private const float _ANIMATION_DURATION = 0.2f;
+
     [SerializeField] private float _lifetime = 4f;
     [SerializeField] private MeshRenderer _quadRenderer;
     [SerializeField] private Material _normalMaterial;
@@ -15,10 +19,12 @@ public class PingBillboard : MonoBehaviour
     [SerializeField] private float _maxScale = 3.0f;
 
     private Camera _targetCamera;
+    private float _currentScaleMultiplier = 1f;
 
     public void Initialize(PlayerPingSystem.PingType pingType, float initialDistance, Camera playerCamera = null)
     {
         _targetCamera = playerCamera != null ? playerCamera : Camera.main;
+
         if (_quadRenderer != null)
         {
             switch (pingType)
@@ -39,10 +45,26 @@ public class PingBillboard : MonoBehaviour
 
         if (_distanceTextMeshPro != null)
         {
-            _distanceTextMeshPro.text = $"{Mathf.RoundToInt(initialDistance)}m";
+            _distanceTextMeshPro.text = Mathf.RoundToInt(initialDistance).ToString() + _METERS_SUFFIX;
         }
 
+        StartCoroutine(SpawnPopRoutine());
         Destroy(gameObject, _lifetime);
+    }
+
+    private IEnumerator SpawnPopRoutine()
+    {
+        float timer = 0f;
+
+        while (timer < _ANIMATION_DURATION)
+        {
+            timer += Time.deltaTime;
+            float progress = timer / _ANIMATION_DURATION;
+            _currentScaleMultiplier = Mathf.Lerp(1.6f, 1f, progress);
+            yield return null;
+        }
+
+        _currentScaleMultiplier = 1f;
     }
 
     private void LateUpdate()
@@ -52,16 +74,18 @@ public class PingBillboard : MonoBehaviour
             _targetCamera = Camera.main;
             if (_targetCamera == null) return;
         }
+
         transform.rotation = _targetCamera.transform.rotation;
+
         if (_enableAutoScaling)
         {
             float dist = Vector3.Distance(transform.position, _targetCamera.transform.position);
-            float calculatedScale = Mathf.Clamp(dist * _scaleFactor, _minScale, _maxScale);
+            float calculatedScale = Mathf.Clamp(dist * _scaleFactor, _minScale, _maxScale) * _currentScaleMultiplier;
             transform.localScale = new Vector3(calculatedScale, calculatedScale, calculatedScale);
 
             if (_distanceTextMeshPro != null)
             {
-                _distanceTextMeshPro.text = $"{Mathf.RoundToInt(dist)}m";
+                _distanceTextMeshPro.text = Mathf.RoundToInt(dist).ToString() + _METERS_SUFFIX;
             }
         }
     }
