@@ -341,11 +341,9 @@ public class RoundManager : NetworkBehaviour
         {
             Vector3 bombPosition = (_defaultBombSpawn != null)
                 ? _defaultBombSpawn.position
-                : (_terroristSpawnPoints != null && _terroristSpawnPoints.Length > 0 ? _terroristSpawnPoints[0].position : Vector3.zero);
+                : (_terroristSpawnPoints != null && _terroristSpawnPoints.Length > 0 ? _terroristSpawnPoints[0].position + Vector3.up * 0.3f : Vector3.up * 0.3f);
 
-            _bomb.transform.position = bombPosition;
-            _bomb.State.Value = BombState.Dropped;
-            _bomb.CarrierClientId.Value = ulong.MaxValue;
+            _bomb.ServerResetBomb(bombPosition);
         }
     }
 

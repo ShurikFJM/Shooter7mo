@@ -272,7 +272,7 @@ public class WeaponBase : NetworkBehaviour
         float weaponRange = _data != null ? _data.range : _DEFAULT_RANGE;
         Vector3 targetPoint = rayOrigin + finalDirection * weaponRange;
 
-        RaycastHit[] hits = Physics.RaycastAll(rayOrigin, finalDirection, weaponRange, ~0, QueryTriggerInteraction.Ignore);
+        RaycastHit[] hits = Physics.RaycastAll(rayOrigin, finalDirection, weaponRange, ~0, QueryTriggerInteraction.Collide);
         Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
         Transform myRootTransform = cam.transform.root;

@@ -92,26 +92,26 @@ public class Bomb : NetworkBehaviour, IInteractable
         switch (currentState)
         {
             case BombState.Dropped:
-                ConfigurePhysicsState(true);
+                ConfigurePhysicsState(true, true);
                 SetRenderersVisibility(true);
                 if (_plantedVFX != null) _plantedVFX.SetActive(false);
                 break;
 
             case BombState.Carried:
-                ConfigurePhysicsState(false);
+                ConfigurePhysicsState(false, false);
                 SetRenderersVisibility(false);
                 if (_plantedVFX != null) _plantedVFX.SetActive(false);
                 break;
 
             case BombState.Planted:
-                ConfigurePhysicsState(false);
+                ConfigurePhysicsState(false, true);
                 SetRenderersVisibility(true);
                 if (_plantedVFX != null) _plantedVFX.SetActive(true);
                 break;
 
             case BombState.Defused:
             case BombState.Exploded:
-                ConfigurePhysicsState(false);
+                ConfigurePhysicsState(false, false);
                 SetRenderersVisibility(false);
                 if (_plantedVFX != null) _plantedVFX.SetActive(false);
                 break;
@@ -131,16 +131,23 @@ public class Bomb : NetworkBehaviour, IInteractable
         }
     }
 
-    private void ConfigurePhysicsState(bool isEnabled)
+    private void ConfigurePhysicsState(bool enablePhysics, bool enableCollider)
     {
         if (_bombRigidbody != null)
         {
-            _bombRigidbody.isKinematic = !isEnabled;
+            _bombRigidbody.isKinematic = !enablePhysics || !IsServer;
+            _bombRigidbody.useGravity = enablePhysics && IsServer;
+
+            if (!enablePhysics)
+            {
+                _bombRigidbody.linearVelocity = Vector3.zero;
+                _bombRigidbody.angularVelocity = Vector3.zero;
+            }
         }
 
         if (_bombCollider != null)
         {
-            _bombCollider.enabled = isEnabled;
+            _bombCollider.enabled = enableCollider;
         }
     }
 
@@ -239,6 +246,7 @@ public class Bomb : NetworkBehaviour, IInteractable
             authoritativePlantPosition = playerObject.transform.position;
         }
 
+        transform.SetParent(null);
         transform.SetPositionAndRotation(authoritativePlantPosition, requestedRotation);
 
         _plantedSite = targetSite;
@@ -247,7 +255,21 @@ public class Bomb : NetworkBehaviour, IInteractable
         CarrierClientId.Value = ulong.MaxValue;
         PlantedServerTime.Value = NetworkManager.Singleton.ServerTime.Time;
 
+        SyncPlantTransformClientRpc(authoritativePlantPosition, requestedRotation);
         targetSite.NotifyBombPlantedClientRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void SyncPlantTransformClientRpc(Vector3 plantPosition, Quaternion plantRotation)
+    {
+        transform.SetParent(null);
+        transform.SetPositionAndRotation(plantPosition, plantRotation);
+
+        SetRenderersVisibility(true);
+        if (_bombCollider != null)
+        {
+            _bombCollider.enabled = true;
+        }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
@@ -273,11 +295,41 @@ public class Bomb : NetworkBehaviour, IInteractable
     {
         if (!IsServer) return;
 
+        transform.SetParent(null);
         transform.position = position;
+
         CarrierClientId.Value = ulong.MaxValue;
         PlantedServerTime.Value = -1;
         _detonationTimer = 0f;
         State.Value = BombState.Dropped;
+
+        ResetBombClientRpc(position);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void ResetBombClientRpc(Vector3 resetPosition)
+    {
+        transform.SetParent(null);
+        transform.position = resetPosition;
+
+        if (_bombRigidbody != null)
+        {
+            _bombRigidbody.linearVelocity = Vector3.zero;
+            _bombRigidbody.angularVelocity = Vector3.zero;
+            _bombRigidbody.isKinematic = !IsServer;
+        }
+
+        if (_plantedVFX != null)
+        {
+            _plantedVFX.SetActive(false);
+        }
+
+        SetRenderersVisibility(true);
+
+        if (_bombCollider != null)
+        {
+            _bombCollider.enabled = true;
+        }
     }
 
     private void ExecuteServerDetonation()

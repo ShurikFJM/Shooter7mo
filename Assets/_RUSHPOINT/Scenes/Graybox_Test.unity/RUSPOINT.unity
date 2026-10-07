@@ -5643,16 +5643,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 373688663}
   m_CullTransparentMesh: 1
---- !u!54 &384484238 stripped
-Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 3848719315728107247, guid: c968eb74b182714418bb039def80ee75, type: 3}
-  m_PrefabInstance: {fileID: 599872261}
-  m_PrefabAsset: {fileID: 0}
---- !u!65 &384484240 stripped
-BoxCollider:
-  m_CorrespondingSourceObject: {fileID: 3217160544809793302, guid: c968eb74b182714418bb039def80ee75, type: 3}
-  m_PrefabInstance: {fileID: 599872261}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &384780655 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: df6cf6f258c4a4779a62d9a0187c2c5a, type: 3}
@@ -8863,6 +8853,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: C4
       objectReference: {fileID: 0}
+    - target: {fileID: 2203678861230458969, guid: c968eb74b182714418bb039def80ee75, type: 3}
+      propertyPath: m_Interpolate
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2203678861230458969, guid: c968eb74b182714418bb039def80ee75, type: 3}
+      propertyPath: m_CollisionDetection
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2757526690562863556, guid: c968eb74b182714418bb039def80ee75, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.05
@@ -8903,9 +8901,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3848719315728107247, guid: c968eb74b182714418bb039def80ee75, type: 3}
-      propertyPath: m_Mass
-      value: 1
+    - target: {fileID: 3217160544809793302, guid: c968eb74b182714418bb039def80ee75, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7957429688754832771, guid: c968eb74b182714418bb039def80ee75, type: 3}
       propertyPath: m_InScenePlaced
@@ -8915,14 +8913,6 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 1693040567
       objectReference: {fileID: 0}
-    - target: {fileID: 9221344759493067602, guid: c968eb74b182714418bb039def80ee75, type: 3}
-      propertyPath: _bombCollider
-      value: 
-      objectReference: {fileID: 384484240}
-    - target: {fileID: 9221344759493067602, guid: c968eb74b182714418bb039def80ee75, type: 3}
-      propertyPath: _bombRigidbody
-      value: 
-      objectReference: {fileID: 384484238}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -20669,7 +20659,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
   GlobalObjectIdHash: 651164208
   InScenePlacedSourceGlobalObjectIdHash: 0
-  m_InScenePlacedDisabledByDefault: 1
+  m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
