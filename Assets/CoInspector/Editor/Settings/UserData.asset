@@ -68,7 +68,7 @@ MonoBehaviour:
       mostClicked:
       - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]"}'
-        count: 16
+        count: 18
         gameObjects:
         - {fileID: 0}
       - paths:
@@ -316,23 +316,23 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 01:13 PM (October 7, 2026)
+    lastSaveTimePrint: 01:25 PM (October 7, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
     assetsCollapsed: 0
     lockedAsset: 0
-    maximizedAssetView: 0
+    maximizedAssetView: 1
     showImportSettings: 0
     suggestedHeight: 0
-    userAssetViewSize: -1
+    userAssetViewSize: 0
     previewHeight: 0
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
     lastValidTabWidth: 67
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 0
+    lastKnownHeight: 1
     tabs:
     - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]"}'
       paths: []
@@ -395,7 +395,7 @@ MonoBehaviour:
         component: {fileID: 0}
         missingComponentID:
           m_rawData: 0
-        foldout: 0
+        foldout: 1
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
@@ -405,7 +405,7 @@ MonoBehaviour:
         component: {fileID: 0}
         missingComponentID:
           m_rawData: 0
-        foldout: 0
+        foldout: 1
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
@@ -415,7 +415,7 @@ MonoBehaviour:
         component: {fileID: 0}
         missingComponentID:
           m_rawData: 0
-        foldout: 0
+        foldout: 1
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
@@ -425,7 +425,7 @@ MonoBehaviour:
         component: {fileID: 0}
         missingComponentID:
           m_rawData: 0
-        foldout: 0
+        foldout: 1
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
@@ -435,7 +435,7 @@ MonoBehaviour:
         component: {fileID: 0}
         missingComponentID:
           m_rawData: 0
-        foldout: 0
+        foldout: 1
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
@@ -445,7 +445,7 @@ MonoBehaviour:
         component: {fileID: 0}
         missingComponentID:
           m_rawData: 0
-        foldout: 0
+        foldout: 1
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
@@ -455,7 +455,7 @@ MonoBehaviour:
         component: {fileID: 0}
         missingComponentID:
           m_rawData: 0
-        foldout: 0
+        foldout: 1
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
@@ -479,9 +479,11 @@ MonoBehaviour:
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - 23b3b56b8ea620b4c8e3ef01590d59f3
+      - 2781b2cd3dec3dd428fee187d2a0dfce
     - assetGUIDs:
       - ce86d52ef4360c34aa10a09e0ab64147
+    - assetGUIDs:
+      - 23b3b56b8ea620b4c8e3ef01590d59f3
     - assetGUIDs:
       - af1d12ef84c112f4788fd6580308ef4b
     - assetGUIDs:
@@ -498,11 +500,9 @@ MonoBehaviour:
       - c000273e43838594b97148ea2cdbee9a
     - assetGUIDs:
       - 521d988c6614e0148ab34f60150a325b
-    - assetGUIDs:
-      - b013d4e59a7952f45bf28165f85235a4
-    targetObject: {fileID: 0}
+    targetObject: {fileID: 2100000, guid: 2781b2cd3dec3dd428fee187d2a0dfce, type: 2}
     targetObjects: []
-    lastSelectedAsset: 
+    lastSelectedAsset: Assets/_RUSHPOINT/Materials/Pings/Mat_PingNormal.mat
     lastClickedTab: -1
     previousTab: 1
   tipsShown: 01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
