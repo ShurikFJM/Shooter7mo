@@ -342,27 +342,27 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: c0cdf7899b937fe4d8c3594acffecb30, type: 2}
     - target: {fileID: -8679921383154817045, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.031770356
+      value: 0.04
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.03177034
+      value: 0.04
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.03177034
+      value: 0.04
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.002
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.139
+      value: 1.94
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       propertyPath: m_LocalRotation.w
@@ -392,9 +392,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       propertyPath: m_Name
-      value: Orriginal_USP_45
+      value: PistolaBrazo
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -569,7 +573,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ceb845fd9d23ef64293789ad23fdacbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
-  ShowTopMostFoldoutHeaderGroup: 1
   _data: {fileID: 11400000, guid: 1562786dfff06f94790af949b3c096ae, type: 2}
   _firePoint: {fileID: 0}
   _playerController: {fileID: 0}
