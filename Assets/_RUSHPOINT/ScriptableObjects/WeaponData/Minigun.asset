@@ -18,6 +18,7 @@ MonoBehaviour:
   range: 100
   fireRate: 0.1
   maxAmmo: 100
+  maxReserveMagazines: 2
   reloadTime: 5
   ammoIcon: {fileID: 0}
   recoilResetTime: 0.3

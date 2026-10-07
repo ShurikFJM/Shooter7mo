@@ -98,7 +98,7 @@ public class RoundPlayerHUD : MonoBehaviour
         }
 
         _roundNumberText.text =
-            $"ROUND {roundManager.RoundNumber.Value}";
+            $"{roundManager.RoundNumber.Value}";
     }
 
     private void UpdateResultUI(
