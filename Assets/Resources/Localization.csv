@@ -25,11 +25,25 @@ Control,Controls,Controles,Controle,操作方法
 ColorBlind,ColorBlind,Daltonismo,Daltonismo,色覚異常
 Strength,Strength,Intensidad,Intensidade,強度
 Correct ,Correct filter,Corregir Filtro,Corrigir filtro,適切なフィルター
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
 Japanese,日本語,日本語,日本語,日本語
+Tank,Tank,Tanque,Tanque,タンク
+Assault,Assault,Asalto,Assalto,暴行
+Healer,Healer,Medico,Médico,医者
+Mobility,Mobility,Movilidad,Mobilidade,モビリティ
+Sniper,Sniper,Francotirador,Atirador de elite,スナイパー
+Support,Support,Soporte,Suporte,中くらい
+Health,Health,Vida,Saúde,体力
+Shield,Shield,Escudo,Escudo,シールド
+Speed,Speed,Velocidad,Velocidade,スピード
+Select,Select Team,Seleccionar ,Selecionar ,チームを
+Team,Select Team,Seleccionar equipo,Selecionar equipe,チームを選択
+PickupBomb,Press [E] to pick up bomb,Presiona [E] para recoger la bomba,Pressione [E] para pegar a bomba,[E]を押して爆弾を拾う
+DropBomb,Press [E] to drop bomb,Presiona [E] para soltar la bomba,Pressione [E] para soltar a bomba,[E]を押して爆弾を落とす
+PlantBomb,Hold [E] to plant bomb,Mantén [E] para plantar la bomba,Segure [E] para plantar a bomba,[E]を長押しして爆弾を設置する
+DefuseBomb,Hold [E] to defuse bomb,Mantén [E] para desactivar la bomba,Segure [E] para desarmar a bomba,[E]を長押しして爆弾を解除する
+PlantingBomb,Planting...,Plantando...,Plantando...,設置中...
+DefusingBomb,Defusing...,Desactivando...,Desarmando...,解除中...
+Host,Host,Hospedar,Hospedar,ホスト
+Join,Join,Unirse,Entrar,参加
+code to Join,Code to Join,Código para unirse,Código para entrar,参加コード
+CurrentDevice,Current Device:Keyboard and mouse,Dispositivo actual: Teclado y ratón,Dispositivo atual: Teclado e mouse,現在のデバイス: キーボードとマウス
