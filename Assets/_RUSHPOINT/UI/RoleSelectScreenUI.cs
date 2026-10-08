@@ -1,14 +1,24 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
 
+/// <summary>
+/// Pantalla de seleccion de rol/equipo. En modo tutorial no depende de la red
+/// y solo avisa (evento RoleConfirmed) de lo que el jugador eligio.
+/// </summary>
 public class RoleSelectScreenUI : MonoBehaviour
 {
     private const string _HEALTH_PREFIX = "Health: ";
     private const string _ARMOR_PREFIX = "Armor: ";
     private const string _SPEED_PREFIX = "Speed: ";
 
+    [Header("Behaviour")]
+    [Tooltip("Abre la pantalla sola en OnEnable/Start. El TutorialManager lo desactiva en modo tutorial.")]
+    [SerializeField] private bool _autoOpenOnEnable = true;
+
+    [Header("References")]
     [SerializeField] private GameObject _screenRoot;
     [SerializeField] private RoleDatabaseSO _roleDatabase;
     [SerializeField] private TMP_Text _roleNameText;
@@ -36,8 +46,16 @@ public class RoleSelectScreenUI : MonoBehaviour
     private Team _selectedTeam = Team.Blue;
     private PlayerRoleType _selectedRole = PlayerRoleType.Assault;
     private bool _hasLockedIn = false;
+    private bool _buttonsBound = false;
+    private bool _phaseSubscribed = false;
+    private bool _tutorialMode = false;
 
     public bool HasLockedIn => _hasLockedIn;
+
+    /// <summary>Se dispara al confirmar la seleccion (en tutorial y en partida).</summary>
+    public event Action<PlayerRoleType, Team> RoleConfirmed;
+
+    // ------------------------------------------------------------------ lifecycle
 
     private void Awake()
     {
@@ -49,44 +67,128 @@ public class RoleSelectScreenUI : MonoBehaviour
 
     private void Start()
     {
-        if (!_hasLockedIn)
+        if (_autoOpenOnEnable && !_hasLockedIn)
         {
             OpenRoleScreen();
         }
 
-        if (RoundManager.Instance != null)
-        {
-            RoundManager.Instance.CurrentPhase.OnValueChanged += HandlePhaseChanged;
-        }
-    }
-
-    private void OnDestroy()
-    {
-        if (RoundManager.Instance != null)
-        {
-            RoundManager.Instance.CurrentPhase.OnValueChanged -= HandlePhaseChanged;
-        }
+        SubscribeToPhase();
     }
 
     private void OnEnable()
     {
-        if (!_hasLockedIn)
+        if (_autoOpenOnEnable && !_hasLockedIn)
         {
             OpenRoleScreen();
         }
+
+        SubscribeToPhase();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeFromPhase();
+    }
+
+    private void OnDestroy()
+    {
+        UnsubscribeFromPhase();
     }
 
     private void Update()
     {
-        if (_confirmButton != null && NetworkManager.Singleton != null)
+        bool connected = NetworkManager.Singleton != null && NetworkManager.Singleton.IsConnectedClient;
+        bool canInteract = !_hasLockedIn && (_tutorialMode || connected);
+
+        if (_confirmButton != null) _confirmButton.interactable = canInteract;
+        if (_lockInButton != null) _lockInButton.interactable = canInteract;
+    }
+
+    // ------------------------------------------------------------------ orders from outside
+
+    /// <summary>
+    /// En modo tutorial la pantalla no depende de la red ni se abre sola.
+    /// </summary>
+    public void SetTutorialMode(bool enabled)
+    {
+        _tutorialMode = enabled;
+
+        if (enabled)
         {
-            _confirmButton.interactable = !_hasLockedIn && NetworkManager.Singleton.IsConnectedClient;
+            _autoOpenOnEnable = false;
+
+            // En el tutorial el equipo lo controla el TutorialManager.
+            if (_selectTerroristButton != null) _selectTerroristButton.gameObject.SetActive(false);
+            if (_selectCounterTerroristButton != null) _selectCounterTerroristButton.gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Reabre la pantalla aunque ya se hubiera hecho lock-in y aunque el
+    /// Canvas estuviera desactivado.
+    /// </summary>
+    public void ForceOpen()
+    {
+        _hasLockedIn = false;
+
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
         }
 
-        if (_lockInButton != null && NetworkManager.Singleton != null)
+        BindButtonCallbacks();
+        OpenRoleScreen();
+    }
+
+    public void OpenRoleScreen()
+    {
+        if (_screenRoot != null)
         {
-            _lockInButton.interactable = !_hasLockedIn && NetworkManager.Singleton.IsConnectedClient;
+            _screenRoot.SetActive(true);
         }
+
+        if (_tacticalHudRoot != null) _tacticalHudRoot.SetActive(false);
+        if (_minimapRoot != null) _minimapRoot.SetActive(false);
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        UpdateTeamFeedbackUI();
+        SelectRolePreview(_selectedRole);
+    }
+
+    public void CloseRoleScreen()
+    {
+        if (_screenRoot != null)
+        {
+            _screenRoot.SetActive(false);
+        }
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    // ------------------------------------------------------------------ phase
+
+    private void SubscribeToPhase()
+    {
+        if (_phaseSubscribed) return;
+        if (RoundManager.Instance == null) return;
+
+        RoundManager.Instance.CurrentPhase.OnValueChanged += HandlePhaseChanged;
+        _phaseSubscribed = true;
+    }
+
+    private void UnsubscribeFromPhase()
+    {
+        if (!_phaseSubscribed) return;
+
+        if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.CurrentPhase.OnValueChanged -= HandlePhaseChanged;
+        }
+
+        _phaseSubscribed = false;
     }
 
     private void HandlePhaseChanged(RoundPhase previousPhase, RoundPhase currentPhase)
@@ -97,8 +199,13 @@ public class RoleSelectScreenUI : MonoBehaviour
         }
     }
 
+    // ------------------------------------------------------------------ buttons
+
     private void BindButtonCallbacks()
     {
+        if (_buttonsBound) return;
+        _buttonsBound = true;
+
         if (_selectTerroristButton != null) _selectTerroristButton.onClick.AddListener(() => SelectTeam(Team.Red));
         if (_selectCounterTerroristButton != null) _selectCounterTerroristButton.onClick.AddListener(() => SelectTeam(Team.Blue));
         if (_selectAssaultButton != null) _selectAssaultButton.onClick.AddListener(() => SelectRolePreview(PlayerRoleType.Assault));
@@ -153,14 +260,20 @@ public class RoleSelectScreenUI : MonoBehaviour
     public void ConfirmSelection()
     {
         if (_hasLockedIn) return;
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening) return;
+
+        NetworkManager nm = NetworkManager.Singleton;
+        bool networkReady = nm != null && nm.IsListening;
+
+        // Fuera del tutorial seguimos exigiendo red.
+        if (!_tutorialMode && !networkReady) return;
 
         _hasLockedIn = true;
 
         if (_confirmButton != null) _confirmButton.interactable = false;
         if (_lockInButton != null) _lockInButton.interactable = false;
 
-        if (RoleLobbyManager.Instance != null)
+        // En tutorial NO se usa RoleLobbyManager (teletransporta a spawns y llama a RoundManager).
+        if (networkReady && !_tutorialMode && RoleLobbyManager.Instance != null)
         {
             RoleLobbyManager.Instance.LockInRoleAndTeamServerRpc(_selectedRole, _selectedTeam);
         }
@@ -170,42 +283,15 @@ public class RoleSelectScreenUI : MonoBehaviour
         if (_tacticalHudRoot != null) _tacticalHudRoot.SetActive(true);
         if (_minimapRoot != null) _minimapRoot.SetActive(true);
 
-        if (NetworkManager.Singleton.LocalClient != null &&
-            NetworkManager.Singleton.LocalClient.PlayerObject != null)
+        if (networkReady && nm.LocalClient != null && nm.LocalClient.PlayerObject != null)
         {
-            Canvas playerCanvas = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponentInChildren<Canvas>(true);
+            Canvas playerCanvas = nm.LocalClient.PlayerObject.GetComponentInChildren<Canvas>(true);
             if (playerCanvas != null)
             {
                 playerCanvas.gameObject.SetActive(true);
             }
         }
+
+        RoleConfirmed?.Invoke(_selectedRole, _selectedTeam);
     }
-
-    public void OpenRoleScreen()
-    {
-        if (_screenRoot != null)
-        {
-            _screenRoot.SetActive(true);
-        }
-
-        if (_tacticalHudRoot != null) _tacticalHudRoot.SetActive(false);
-        if (_minimapRoot != null) _minimapRoot.SetActive(false);
-
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        UpdateTeamFeedbackUI();
-        SelectRolePreview(_selectedRole);
-    }
-
-    public void CloseRoleScreen()
-    {
-        if (_screenRoot != null)
-        {
-            _screenRoot.SetActive(false);
-        }
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
-}
+}   
