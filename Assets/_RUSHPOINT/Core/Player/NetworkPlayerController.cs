@@ -59,6 +59,8 @@ public class NetworkPlayerController : NetworkBehaviour
     private bool _isWalkingSlow;
     private bool _isCrouching;
     private bool _jumpRequested;
+    private bool _isFirePressed;
+    private float _nextFireTime;
     private float _cameraPitch;
     private float _defaultCameraLocalY;
     private bool _hasInitiatedSpectate;
@@ -269,6 +271,7 @@ public class NetworkPlayerController : NetworkBehaviour
             _isSprinting = false;
             _isWalkingSlow = false;
             _jumpRequested = false;
+            _isFirePressed = false;
         }
     }
 
@@ -340,6 +343,7 @@ public class NetworkPlayerController : NetworkBehaviour
             {
                 _moveInput = Vector2.zero;
                 _lookInput = Vector2.zero;
+                _isFirePressed = false;
                 return;
             }
 
@@ -366,9 +370,67 @@ public class NetworkPlayerController : NetworkBehaviour
             UpdateInputStates();
             HandleCameraRotation();
             HandleMovementExecution();
+            HandleWeaponCombatInput();
         }
 
         HandleCrouchHeightTransition();
+    }
+
+    private void HandleWeaponCombatInput()
+    {
+        if (Cursor.lockState != CursorLockMode.Locked) return;
+
+        BombInteractor bombInteractor = GetComponent<BombInteractor>();
+        if (bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing)) return;
+
+        if (_weaponInventory == null) return;
+        WeaponBase currentWeapon = _weaponInventory.ActiveWeapon;
+        if (currentWeapon == null) return;
+
+        if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
+        {
+            currentWeapon.Reload();
+        }
+
+        bool isLeftMouseButtonPressed = Mouse.current != null && Mouse.current.leftButton.isPressed;
+        bool wantsToFire = _isFirePressed || isLeftMouseButtonPressed;
+
+        if (!wantsToFire) return;
+
+        WeaponData weaponData = currentWeapon.WeaponData;
+        float fireInterval = (weaponData != null && weaponData.fireRate > 0f) ? weaponData.fireRate : 0.15f;
+
+        if (Time.time >= _nextFireTime)
+        {
+            if (currentWeapon is HealingPistol healingPistol)
+            {
+                healingPistol.PerformHealShot();
+            }
+            else
+            {
+                currentWeapon.Fire();
+            }
+
+            _nextFireTime = Time.time + fireInterval;
+
+            if (weaponData != null && !weaponData.isAutomatic)
+            {
+                _isFirePressed = false;
+            }
+        }
+    }
+
+    public void OnFire(InputValue value)
+    {
+        _isFirePressed = value.isPressed;
+    }
+
+    public void OnReload(InputValue value)
+    {
+        if (value.isPressed && _weaponInventory != null && _weaponInventory.ActiveWeapon != null)
+        {
+            _weaponInventory.ActiveWeapon.Reload();
+        }
     }
 
     public void SetCursorLocked(bool locked)
@@ -383,6 +445,7 @@ public class NetworkPlayerController : NetworkBehaviour
             _isSprinting = false;
             _isWalkingSlow = false;
             _jumpRequested = false;
+            _isFirePressed = false;
         }
     }
 

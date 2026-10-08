@@ -111,6 +111,9 @@ PrefabInstance:
       addedObject: {fileID: 7766674123106095484}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 08558bf7dce54e0439aaba26fcfecff7, type: 3}
       insertIndex: -1
+      addedObject: {fileID: -5311079784678323652}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 08558bf7dce54e0439aaba26fcfecff7, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 7402650409074979056}
   m_SourcePrefab: {fileID: 100100000, guid: 08558bf7dce54e0439aaba26fcfecff7, type: 3}
 --- !u!1 &6196486273028906150 stripped
@@ -215,6 +218,33 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &-5311079784678323652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6196486273028906150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 4288907450
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  m_InScenePlacedDisabledByDefault: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  m_InScenePlaced: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &7402650409074979056
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -227,17 +257,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50cc8b087eee6754e8f55c23d698d416, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealingPistol
-  _data: {fileID: 11400000, guid: 8909aac897f922e478ed93bb704d144c, type: 2}
-  _firePoint: {fileID: 6959122962073881821}
-  _playerController: {fileID: 0}
-  _weaponAnimator: {fileID: 0}
-  _tracerMaterial: {fileID: 2100000, guid: 51ed506a1326a3744a1d207a5f084f05, type: 2}
-  _muzzleFlash: {fileID: 0}
-  _weaponModelTransform: {fileID: 6824510085390698012}
-  _kickbackOffset: {x: 0, y: 0.02, z: -0.08}
-  _kickbackRotation: {x: -3, y: 1, z: 0}
-  _returnSpeed: 15
+  ShowTopMostFoldoutHeaderGroup: 1
+  data: {fileID: 11400000, guid: 8909aac897f922e478ed93bb704d144c, type: 2}
+  _magazineCapacity: 30
+  _maxReserveAmmo: 90
+  _reloadDuration: 2.2
+  _baseSpread: 1
+  CurrentAmmoNet:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  ReserveAmmoNet:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  IsReloadingNet:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  ReloadRemainingTimeNet:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
   _healAmount: 25
+  _healRange: 50
   _healImpactEffect: {fileID: 0}
 --- !u!4 &6824510085390698012 stripped
 Transform:

@@ -18,6 +18,7 @@ MonoBehaviour:
   range: 100
   fireRate: 0.15
   maxAmmo: 24
+  maxReserveMagazines: 3
   reloadTime: 2
   ammoIcon: {fileID: 2800000, guid: d2ed4396f80d60a46b62b739dd7d48b7, type: 3}
   recoilResetTime: 0.3
@@ -41,9 +42,9 @@ MonoBehaviour:
   movementSpreadMultiplier: 5
   airSpreadMultiplier: 12
   shootSounds:
-  - {fileID: 8300000, guid: 22591d64820866e48bbf6c51ed3954bd, type: 3}
-  - {fileID: 8300000, guid: 6ce3b44051a393647b2756fe6aad6ad6, type: 3}
-  - {fileID: 8300000, guid: 7bd2600146711b04db580d3985bcdf52, type: 3}
+  - {fileID: 8300000, guid: 982ee4fe0b3f91445af13e699d643890, type: 3}
+  - {fileID: 8300000, guid: dbe308f97b5c24948be3a028fe3ca33d, type: 3}
+  - {fileID: 8300000, guid: c43d8fa14198306468670dd93b631b99, type: 3}
   reloadSound: {fileID: 8300000, guid: 6cb082d89b7f54d41848bffa0f6aa253, type: 3}
   impactPrefabs:
   - {fileID: 2766617808642064096, guid: 7f344191bfd226543ad11976c26ebd9f, type: 3}

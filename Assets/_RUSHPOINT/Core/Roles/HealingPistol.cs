@@ -3,22 +3,34 @@ using UnityEngine;
 
 public class HealingPistol : WeaponBase
 {
-    private const float _DEFAULT_HEAL_AMOUNT = 35f;
+    private const float DEFAULT_HEAL_AMOUNT = 35f;
+    private const float DEFAULT_HEAL_RANGE = 50f;
+    private const float VIEWPORT_CENTER_X = 0.5f;
+    private const float VIEWPORT_CENTER_Y = 0.5f;
 
-    [SerializeField] private float _healAmount = _DEFAULT_HEAL_AMOUNT;
+    [SerializeField] private float _healAmount = DEFAULT_HEAL_AMOUNT;
+    [SerializeField] private float _healRange = DEFAULT_HEAL_RANGE;
     [SerializeField] private ParticleSystem _healImpactEffect;
 
-    protected override void Shoot()
+    public void PerformHealShot()
     {
-        base.Shoot();
+        if (!CanFire())
+        {
+            return;
+        }
 
-        Camera playerCam = GetComponentInParent<NetworkPlayerController>()?.PlayerCamera;
-        if (playerCam == null) return;
+        Fire();
 
-        Ray ray = playerCam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        float range = data != null ? data.range : 50f;
+        Camera playerCameraInstance = GetComponentInParent<NetworkPlayerController>()?.PlayerCamera;
+        if (playerCameraInstance == null)
+        {
+            return;
+        }
 
-        if (Physics.Raycast(ray, out RaycastHit hit, range, ~0, QueryTriggerInteraction.Collide))
+        Ray aimRay = playerCameraInstance.ViewportPointToRay(new Vector3(VIEWPORT_CENTER_X, VIEWPORT_CENTER_Y, 0f));
+        float range = data != null ? data.range : _healRange;
+
+        if (Physics.Raycast(aimRay, out RaycastHit hit, range, ~0, QueryTriggerInteraction.Collide))
         {
             Transform hitRoot = hit.collider.transform.root;
             NetworkPlayerController targetPlayer = hitRoot.GetComponent<NetworkPlayerController>();
@@ -29,13 +41,18 @@ public class HealingPistol : WeaponBase
                 if (targetHealth != null && targetHealth.IsAlive.Value)
                 {
                     targetHealth.HealServerRpc(_healAmount);
-
-                    if (_healImpactEffect != null)
-                    {
-                        Instantiate(_healImpactEffect, hit.point, Quaternion.LookRotation(hit.normal));
-                    }
+                    SpawnHealImpactEffectClientRpc(hit.point, hit.normal);
                 }
             }
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void SpawnHealImpactEffectClientRpc(Vector3 impactPoint, Vector3 surfaceNormal)
+    {
+        if (_healImpactEffect != null)
+        {
+            Instantiate(_healImpactEffect, impactPoint, Quaternion.LookRotation(surfaceNormal));
         }
     }
 }

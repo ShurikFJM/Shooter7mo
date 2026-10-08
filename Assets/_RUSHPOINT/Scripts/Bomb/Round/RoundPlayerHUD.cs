@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class RoundPlayerHUD : MonoBehaviour
 {
+    private const string TIME_FORMAT = "{0:00}:{1:00}";
+    private const string TERRORISTS_WIN_TEXT = "TERRORISTS WIN";
+    private const string COUNTER_TERRORISTS_WIN_TEXT = "COUNTER-TERRORISTS WIN";
+    private const string ROUND_OVER_TEXT = "ROUND OVER";
+    private const string TERRORISTS_MATCH_WIN_TEXT = "TERRORISTS WIN THE MATCH";
+    private const string COUNTER_TERRORISTS_MATCH_WIN_TEXT = "COUNTER-TERRORISTS WIN THE MATCH";
+
     [SerializeField] private TMP_Text _roundTimerText;
     [SerializeField] private TMP_Text _terroristScoreText;
     [SerializeField] private TMP_Text _counterTerroristScoreText;
@@ -37,13 +44,16 @@ public class RoundPlayerHUD : MonoBehaviour
 
     private void UpdateTimer(RoundManager roundManager)
     {
-        if (_roundTimerText == null) return;
+        if (_roundTimerText == null)
+        {
+            return;
+        }
 
         int totalSeconds = Mathf.Max(roundManager.CurrentRoundTime.Value, 0);
         int minutes = totalSeconds / 60;
         int seconds = totalSeconds % 60;
 
-        _roundTimerText.text = $"{minutes:00}:{seconds:00}";
+        _roundTimerText.text = string.Format(TIME_FORMAT, minutes, seconds);
     }
 
     private void UpdateScore(RoundManager roundManager)
@@ -61,9 +71,12 @@ public class RoundPlayerHUD : MonoBehaviour
 
     private void UpdateRoundNumber(RoundManager roundManager)
     {
-        if (_roundNumberText == null) return;
+        if (_roundNumberText == null)
+        {
+            return;
+        }
 
-        _roundNumberText.text = $"ROUND {roundManager.RoundNumber.Value}";
+        _roundNumberText.text = roundManager.RoundNumber.Value.ToString();
     }
 
     private void UpdateResultUI(RoundManager roundManager)
@@ -99,21 +112,24 @@ public class RoundPlayerHUD : MonoBehaviour
 
         Team winner = roundManager.LastRoundWinner.Value;
 
-        if (_roundWinnerText == null) return;
+        if (_roundWinnerText == null)
+        {
+            return;
+        }
 
         if (winner == Team.Red)
         {
-            _roundWinnerText.text = "TERRORISTS WIN";
+            _roundWinnerText.text = TERRORISTS_WIN_TEXT;
             _roundWinnerText.color = _terroristColor;
         }
         else if (winner == Team.Blue)
         {
-            _roundWinnerText.text = "COUNTER-TERRORISTS WIN";
+            _roundWinnerText.text = COUNTER_TERRORISTS_WIN_TEXT;
             _roundWinnerText.color = _counterTerroristColor;
         }
         else
         {
-            _roundWinnerText.text = "ROUND OVER";
+            _roundWinnerText.text = ROUND_OVER_TEXT;
         }
     }
 
@@ -129,16 +145,19 @@ public class RoundPlayerHUD : MonoBehaviour
             _matchResultRoot.SetActive(true);
         }
 
-        if (_matchWinnerText == null) return;
+        if (_matchWinnerText == null)
+        {
+            return;
+        }
 
         if (roundManager.RedScore.Value > roundManager.BlueScore.Value)
         {
-            _matchWinnerText.text = "TERRORISTS WIN THE MATCH";
+            _matchWinnerText.text = TERRORISTS_MATCH_WIN_TEXT;
             _matchWinnerText.color = _terroristColor;
         }
         else
         {
-            _matchWinnerText.text = "COUNTER-TERRORISTS WIN THE MATCH";
+            _matchWinnerText.text = COUNTER_TERRORISTS_MATCH_WIN_TEXT;
             _matchWinnerText.color = _counterTerroristColor;
         }
     }

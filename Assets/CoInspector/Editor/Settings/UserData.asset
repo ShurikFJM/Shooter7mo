@@ -67,13 +67,13 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
-        count: 19
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]"}'
+        count: 26
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]"}'
-        count: 18
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
+        count: 24
         gameObjects:
         - {fileID: 0}
       - paths:
@@ -93,12 +93,17 @@ MonoBehaviour:
         gameObjects:
         - {fileID: 0}
       - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]"}'
+        count: 7
+        gameObjects:
+        - {fileID: 0}
+      - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]/Plane[0]"}'
         count: 6
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/SettingsPanel[0]/Panel_Audio[0]/MusicVolumeText[0]"}'
         count: 5
         gameObjects:
         - {fileID: 0}
@@ -107,68 +112,50 @@ MonoBehaviour:
         count: 4
         gameObjects:
         - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/Roles[0]/Mobility[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/Roles[0]/Sniper[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/Roles[0]/Support[0]"}'
-        count: 4
-        gameObjects:
-        - {fileID: 0}
-        - {fileID: 0}
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/SettingsPanel[0]/Panel_Audio[0]/MusicVolumeText[0]"}'
-        count: 2
-        gameObjects:
-        - {fileID: 0}
       recentlyClicked:
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/SettingsPanel[0]/Panel_Audio[0]/MusicVolumeText[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/SettingsPanel[0]/Panel_Audio[0]/SFXVolumeText[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/SettingsPanel[0]/Panel_Audio[0]/MasterVolumeText[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/SettingsPanel[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
       - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"AudioManager[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/ReloadingPopup[0]/ReloadingOirgressBar[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
-      - paths: []
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]"}'
         count: 1
-        gameObjects: []
-      - paths: []
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/ReloadingPopup[0]"}'
         count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
+        gameObjects:
+        - {fileID: 0}
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 02:51 PM (October 8, 2026)
+    lastSaveTimePrint: 03:46 PM (October 8, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -179,35 +166,35 @@ MonoBehaviour:
     suggestedHeight: 0
     userAssetViewSize: -1
     previewHeight: 0
-    scrollPosition: {x: 0, y: 0}
+    scrollPosition: {x: 0, y: 191}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 181
+    lastValidTabWidth: 45
     alreadyCalculatedHeight: 0
     lastKnownHeight: 0
     tabs:
-    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/SettingsPanel[0]/Panel_Audio[0]/MusicVolumeText[0]"}'
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
       paths: []
-      tabWidth: 117
-      name: MusicVolumeText
-      icon: {fileID: -3593279590788295529, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: "MusicVolumeTe\u2026"
+      tabWidth: 42
+      name: C4
+      icon: {fileID: 7853449062886713960, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: C4
       filterString: 
       newTab: 0
-      scrollPosition: 0
+      scrollPosition: 191
       isSelected: 0
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: "MusicVolumeTe\u2026"
+        m_Text: C4
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "MusicVolumeTe\u2026\u200B"
+        m_TextWithWhitespace: "C4\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
-      previewHeight: 13
+      previewHeight: 150
       debug: 0
       filtering: 0
       prefab: 0
@@ -251,8 +238,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: recttransform
-        niceComponentName: rect transform
+        componentName: transform
+        niceComponentName: transform
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -261,8 +248,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: canvasrenderer
-        niceComponentName: canvas renderer
+        componentName: meshfilter
+        niceComponentName: mesh filter
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -271,142 +258,104 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: textmeshprougui
-        niceComponentName: text mesh pro ugui
+        componentName: meshrenderer
+        niceComponentName: mesh renderer
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: networkobject
+        niceComponentName: network object
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: bomb
+        niceComponentName: bomb
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: boxcollider
+        niceComponentName: box collider
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: rigidbody
+        niceComponentName: rigidbody
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: networktransform
+        niceComponentName: network transform
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: audiosource
+        niceComponentName: audio source
       historyPaths:
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/SettingsPanel[0]/Panel_Audio[0]/MusicVolumeText[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/SettingsPanel[0]/Panel_Audio[0]/SFXVolumeText[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/SettingsPanel[0]/Panel_Audio[0]/MasterVolumeText[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/SettingsPanel[0]"}'
-        prefab: 0
       - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
         prefab: 0
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"AudioManager[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/Roles[0]/Mobility[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/Roles[0]/Sniper[0]"}'
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/Roles[0]/Support[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/Roles[0]/Support[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_RoleSelecter[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
-        prefab: 0
-      owner: {fileID: 0}
-    - path: 
-      paths: []
-      tabWidth: 61
-      name: 
-      icon: {fileID: 0}
-      shortName: New Tab
-      filterString: 
-      newTab: 1
-      scrollPosition: 0
-      isSelected: 0
-      allCollapsed: 0
-      runtimeFoldouts: 
-      runtimeMultiComponents: []
-      tabTextContent:
-        m_Text: New Tab
-        m_Image: {fileID: 0}
-        m_Tooltip: 
-        m_TextWithWhitespace: "New Tab\u200B"
-      multiEditMode: 0
-      locked: 0
-      hasPreview: 0
-      previewHeight: 150
-      debug: 0
-      filtering: 0
-      prefab: 0
-      multiFoldout: 1
-      target: {fileID: 0}
-      targets: []
-      linkedPrefabs: []
-      trackMultiTarget: {fileID: 0}
-      serializedTransform:
-        owner: {fileID: 0}
-        localPosition: {x: 0, y: 0, z: 0}
-        localRotation: {x: 0, y: 0, z: 0, w: 0}
-        localScale: {x: 0, y: 0, z: 0}
-        originalPosition: {x: 0, y: 0, z: 0}
-        originalRotation: {x: 0, y: 0, z: 0, w: 0}
-        originalLocalScale: {x: 0, y: 0, z: 0}
-        anchorMin: {x: 0, y: 0}
-        anchorMax: {x: 0, y: 0}
-        anchoredPosition: {x: 0, y: 0}
-        sizeDelta: {x: 0, y: 0}
-        pivot: {x: 0, y: 0}
-        originalAnchorMin: {x: 0, y: 0}
-        originalAnchorMax: {x: 0, y: 0}
-        originalAnchoredPosition: {x: 0, y: 0}
-        originalSizeDelta: {x: 0, y: 0}
-        originalPivot: {x: 0, y: 0}
-        isRectTransform: 0
-        appliedTransform: 0
-        undidTransform: 0
-        autoSave: 0
-      serializedTransforms: []
-      savePlayModeTransform: 0
-      index: 1
-      historyPosition: 0
-      componentMaps: []
-      historyPaths: []
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - 4fe04e5d22ec9e344ac22a125741595b
+      - dda28ca6a7daf5044902f62f3916f393
     - assetGUIDs:
-      - 23b3b56b8ea620b4c8e3ef01590d59f3
+      - ceb845fd9d23ef64293789ad23fdacbc
+      - b013d4e59a7952f45bf28165f85235a4
+      - b6dc5f43b3f4c7a4197a352f2fcf1e66
     - assetGUIDs:
-      - b9dcaceb890d30a42b10612af0430ba8
+      - b6dc5f43b3f4c7a4197a352f2fcf1e66
     - assetGUIDs:
-      - 1cb266b2e58f6e64386e17188e527d7c
+      - ceb845fd9d23ef64293789ad23fdacbc
     - assetGUIDs:
-      - 1e7d60d320c503e42a4d7569ab16ec92
+      - b2b691b9bf54e074ea544fb911929835
     - assetGUIDs:
-      - 077e6706d5672024c8e30ba7a6937f6d
+      - d862c7961e433f341bf7e31c0c920788
     - assetGUIDs:
-      - c968eb74b182714418bb039def80ee75
+      - a6fd360511e64274b99ea5110a1c2cd2
     - assetGUIDs:
-      - 1626479aafbb0b546aef83acd8ecabb3
+      - 23d9e60c71fdcf7428814f0119a08027
     - assetGUIDs:
-      - 2da46b308d8957248a88ac3d8e1ecf95
-      - 40a70974aafb634428d16c0fb09b1a30
-      - 8e58c5f376c03654fb710736a221e8e3
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
-      - 29032e0b419e88e40b706cf37cd5fde0
+      - 0ce53365b9b805b4dae916acf6cc64c1
     - assetGUIDs:
-      - 2da46b308d8957248a88ac3d8e1ecf95
-      - 40a70974aafb634428d16c0fb09b1a30
-      - 8e58c5f376c03654fb710736a221e8e3
-      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 27d34e20eb7d60345ad8224a6be120d9
     - assetGUIDs:
-      - 2da46b308d8957248a88ac3d8e1ecf95
-      - 40a70974aafb634428d16c0fb09b1a30
-      - 8e58c5f376c03654fb710736a221e8e3
-    targetObject: {fileID: 11500000, guid: 4fe04e5d22ec9e344ac22a125741595b, type: 3}
+      - 24cf391e3622de743a54e6e771f28333
+    targetObject: {fileID: 2800000, guid: dda28ca6a7daf5044902f62f3916f393, type: 3}
     targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Core/Managers/CursorStateManager.cs
-    lastClickedTab: 0
+    lastSelectedAsset: Assets/CoInspector/Editor/Custom/Textures/icon_sceneTools2x.png
+    lastClickedTab: -1
     previousTab: 1
   - tracker:
       mostClicked: []
@@ -524,6 +473,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Graybox_Test.unity/RUSPOINT.unity
     lastClickedTab: -1
     previousTab: 1
-  tipsShown: 01000000010000000000000001000000000000000000000000000000010000000100000000000000000000000000000001000000010000000000000000000000010000000000000001000000000000000000000000000000000000000000000001000000010000000100000001000000000000000000000000000000010000000000000000000000010000000000000001000000000000000100000000000000010000000100000000000000010000000000000000000000
+  tipsShown: 01000000010000000100000001000000010000000100000000000000010000000100000001000000000000000000000001000000010000000000000000000000010000000000000001000000000000000000000000000000000000000100000001000000010000000100000001000000010000000000000000000000010000000000000000000000010000000000000001000000000000000100000000000000010000000100000000000000010000000000000000000000
   playModeStartScene: {}
   enteringPlayMode: 0

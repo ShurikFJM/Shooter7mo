@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 
 public enum RoundPhase : byte
@@ -22,16 +23,22 @@ public enum Team : byte
 [RequireComponent(typeof(NetworkObject))]
 public class RoundManager : NetworkBehaviour
 {
+    private const int DEFAULT_ROUNDS_TO_WIN = 13;
+    private const float DEFAULT_WARMUP_DURATION = 7f;
+    private const float DEFAULT_ROUND_TIME_LIMIT = 115f;
+    private const float DEFAULT_ROUND_END_DISPLAY_DURATION = 5f;
+    private const float BOMB_SPAWN_GROUND_OFFSET_Y = 0.3f;
+
     public static RoundManager Instance { get; private set; }
 
     [SerializeField] private Bomb _bomb;
     [SerializeField] private Transform[] _terroristSpawnPoints;
     [SerializeField] private Transform[] _counterTerroristSpawnPoints;
     [SerializeField] private Transform _defaultBombSpawn;
-    [SerializeField] private float _warmupDuration = 7f;
-    [SerializeField] private float _roundTimeLimit = 115f;
-    [SerializeField] private float _roundEndDisplayDuration = 5f;
-    [SerializeField] private int _roundsToWinMatch = 13;
+    [SerializeField] private float _warmupDuration = DEFAULT_WARMUP_DURATION;
+    [SerializeField] private float _roundTimeLimit = DEFAULT_ROUND_TIME_LIMIT;
+    [SerializeField] private float _roundEndDisplayDuration = DEFAULT_ROUND_END_DISPLAY_DURATION;
+    [SerializeField] private int _roundsToWinMatch = DEFAULT_ROUNDS_TO_WIN;
 
     public NetworkVariable<RoundPhase> CurrentPhase = new NetworkVariable<RoundPhase>(
         RoundPhase.WaitingForPlayers,
@@ -228,11 +235,18 @@ public class RoundManager : NetworkBehaviour
 
         ResetEntitiesForNewRound();
 
+        int lastSecondReported = -1;
+
         while (true)
         {
             double elapsed = GetPhaseElapsed();
             int remaining = Mathf.CeilToInt(Mathf.Max(_warmupDuration - (float)elapsed, 0f));
-            CurrentRoundTime.Value = remaining;
+
+            if (remaining != lastSecondReported)
+            {
+                lastSecondReported = remaining;
+                CurrentRoundTime.Value = remaining;
+            }
 
             if (elapsed >= _warmupDuration) break;
             yield return null;
@@ -245,6 +259,8 @@ public class RoundManager : NetworkBehaviour
         PhaseStartServerTime.Value = NetworkManager.Singleton.ServerTime.Time;
         CurrentRoundTime.Value = Mathf.CeilToInt(_roundTimeLimit);
 
+        int lastSecondReported = -1;
+
         while (CurrentPhase.Value == RoundPhase.InProgress)
         {
             if (_bomb != null && _bomb.State.Value == BombState.Planted)
@@ -253,7 +269,12 @@ public class RoundManager : NetworkBehaviour
                 {
                     double elapsedDetonation = NetworkManager.Singleton.ServerTime.Time - _bomb.PlantedServerTime.Value;
                     int bombRemaining = Mathf.CeilToInt(Mathf.Max(_bomb.DetonationTimeDuration - (float)elapsedDetonation, 0f));
-                    CurrentRoundTime.Value = bombRemaining;
+
+                    if (bombRemaining != lastSecondReported)
+                    {
+                        lastSecondReported = bombRemaining;
+                        CurrentRoundTime.Value = bombRemaining;
+                    }
 
                     if (elapsedDetonation >= _bomb.DetonationTimeDuration)
                     {
@@ -268,7 +289,12 @@ public class RoundManager : NetworkBehaviour
             {
                 double elapsed = GetPhaseElapsed();
                 int roundRemaining = Mathf.CeilToInt(Mathf.Max(_roundTimeLimit - (float)elapsed, 0f));
-                CurrentRoundTime.Value = roundRemaining;
+
+                if (roundRemaining != lastSecondReported)
+                {
+                    lastSecondReported = roundRemaining;
+                    CurrentRoundTime.Value = roundRemaining;
+                }
 
                 if (elapsed >= _roundTimeLimit)
                 {
@@ -288,11 +314,18 @@ public class RoundManager : NetworkBehaviour
         CurrentPhase.Value = RoundPhase.RoundEnd;
         PhaseStartServerTime.Value = NetworkManager.Singleton.ServerTime.Time;
 
+        int lastSecondReported = -1;
+
         while (true)
         {
             double elapsed = GetPhaseElapsed();
             int remaining = Mathf.CeilToInt(Mathf.Max(_roundEndDisplayDuration - (float)elapsed, 0f));
-            CurrentRoundTime.Value = remaining;
+
+            if (remaining != lastSecondReported)
+            {
+                lastSecondReported = remaining;
+                CurrentRoundTime.Value = remaining;
+            }
 
             if (elapsed >= _roundEndDisplayDuration) break;
             yield return null;
@@ -391,20 +424,38 @@ public class RoundManager : NetworkBehaviour
             NetworkClient client = clientPair.Value;
             if (client.PlayerObject == null) continue;
 
-            PlayerTeam player = client.PlayerObject.GetComponent<PlayerTeam>();
-            if (player == null) continue;
+            PlayerTeam playerTeamComp = client.PlayerObject.GetComponent<PlayerTeam>();
+            if (playerTeamComp == null) continue;
 
-            Team team = player.CurrentTeam.Value;
+            Team team = playerTeamComp.CurrentTeam.Value;
             Transform[] spawns = (team == Team.Red) ? _terroristSpawnPoints : _counterTerroristSpawnPoints;
             int spawnIndex = (team == Team.Red) ? tIndex++ : ctIndex++;
 
             if (spawns != null && spawns.Length > 0)
             {
                 Transform targetSpawn = spawns[spawnIndex % spawns.Length];
-                TeleportPlayerClientRpc(targetSpawn.position, targetSpawn.rotation, player.OwnerClientId);
+                Vector3 targetPosition = targetSpawn.position;
+                Quaternion targetRotation = targetSpawn.rotation;
+
+                CharacterController characterController = client.PlayerObject.GetComponent<CharacterController>();
+                if (characterController != null) characterController.enabled = false;
+
+                NetworkTransform networkTransform = client.PlayerObject.GetComponent<NetworkTransform>();
+                if (networkTransform != null)
+                {
+                    networkTransform.Teleport(targetPosition, targetRotation, client.PlayerObject.transform.localScale);
+                }
+                else
+                {
+                    client.PlayerObject.transform.SetPositionAndRotation(targetPosition, targetRotation);
+                }
+
+                if (characterController != null) characterController.enabled = true;
+
+                TeleportPlayerClientRpc(targetPosition, targetRotation, playerTeamComp.OwnerClientId);
             }
 
-            NetworkHealth health = player.GetComponent<NetworkHealth>();
+            NetworkHealth health = client.PlayerObject.GetComponent<NetworkHealth>();
             if (health != null)
             {
                 health.ResetHealthServer();
@@ -416,8 +467,8 @@ public class RoundManager : NetworkBehaviour
             Vector3 bombPosition = (_defaultBombSpawn != null)
                 ? _defaultBombSpawn.position
                 : (_terroristSpawnPoints != null && _terroristSpawnPoints.Length > 0
-                    ? _terroristSpawnPoints[0].position + Vector3.up * 0.3f
-                    : Vector3.up * 0.3f);
+                    ? _terroristSpawnPoints[0].position + Vector3.up * BOMB_SPAWN_GROUND_OFFSET_Y
+                    : Vector3.up * BOMB_SPAWN_GROUND_OFFSET_Y);
 
             _bomb.ServerResetBomb(bombPosition);
         }
@@ -434,7 +485,17 @@ public class RoundManager : NetworkBehaviour
         CharacterController characterController = playerObj.GetComponent<CharacterController>();
 
         if (characterController != null) characterController.enabled = false;
-        playerObj.transform.SetPositionAndRotation(targetPosition, targetRotation);
+
+        NetworkTransform networkTransform = playerObj.GetComponent<NetworkTransform>();
+        if (networkTransform != null)
+        {
+            networkTransform.Teleport(targetPosition, targetRotation, playerObj.transform.localScale);
+        }
+        else
+        {
+            playerObj.transform.SetPositionAndRotation(targetPosition, targetRotation);
+        }
+
         if (characterController != null) characterController.enabled = true;
     }
 

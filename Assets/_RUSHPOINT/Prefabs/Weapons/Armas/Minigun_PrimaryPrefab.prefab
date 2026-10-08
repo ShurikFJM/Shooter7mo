@@ -95,6 +95,9 @@ PrefabInstance:
       addedObject: {fileID: 870959579531941478}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f6958171f9ecb204ab6d9e906a724c37, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 8563409465994692942}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f6958171f9ecb204ab6d9e906a724c37, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 4741298159481736270}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f6958171f9ecb204ab6d9e906a724c37, type: 3}
       insertIndex: -1
@@ -207,6 +210,33 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &8563409465994692942
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7904622146041607645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 333547055
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  m_InScenePlacedDisabledByDefault: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  m_InScenePlaced: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &4741298159481736270
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -219,16 +249,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ceb845fd9d23ef64293789ad23fdacbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
-  _data: {fileID: 11400000, guid: 649de373d04f9324385bdf92813c10d6, type: 2}
-  _firePoint: {fileID: 7172998619759856457}
-  _playerController: {fileID: 0}
-  _weaponAnimator: {fileID: 0}
-  _tracerMaterial: {fileID: 2100000, guid: 51ed506a1326a3744a1d207a5f084f05, type: 2}
-  _muzzleFlash: {fileID: 0}
-  _weaponModelTransform: {fileID: 7419974344405593959}
-  _kickbackOffset: {x: 0, y: 0.02, z: -0.08}
-  _kickbackRotation: {x: -3, y: 1, z: 0}
-  _returnSpeed: 15
+  ShowTopMostFoldoutHeaderGroup: 1
+  data: {fileID: 11400000, guid: 649de373d04f9324385bdf92813c10d6, type: 2}
+  _magazineCapacity: 30
+  _maxReserveAmmo: 90
+  _reloadDuration: 2.2
+  _baseSpread: 1
+  CurrentAmmoNet:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  ReserveAmmoNet:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  IsReloadingNet:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  ReloadRemainingTimeNet:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!95 &333205552318805244
 Animator:
   serializedVersion: 7

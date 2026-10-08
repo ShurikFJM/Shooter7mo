@@ -1,51 +1,41 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.InputSystem;
 using TMPro;
 using Unity.Netcode;
-
-public enum TeamSide
-{
-    Terrorist,
-    CounterTerrorist
-}
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(NetworkObject))]
 public class TacticalChatManager : NetworkBehaviour
 {
+    private const int MAX_MESSAGE_HISTORY = 10;
+    private const string DEFAULT_PLAYER_NAME_PREFIX = "Player_";
+    private const string PLAYER_PREFS_NAME_KEY = "PlayerUsername";
+    private const string TERRORIST_COLOR_HEX = "#FFA500";
+    private const string COUNTER_TERRORIST_COLOR_HEX = "#4DA6FF";
+    private const string DEAD_COLOR_HEX = "#FF4444";
+    private const string MESSAGE_COLOR_HEX = "#FFFFFF";
+
     public static TacticalChatManager Instance { get; private set; }
 
-    [Header("UI Containers & Inputs")]
-    [SerializeField] private GameObject _chatInputContainer;
-    [SerializeField] private TMP_InputField _chatInputField;
-    [SerializeField] private TextMeshProUGUI _channelPromptText;
-    [SerializeField] private TextMeshProUGUI _chatLogText;
+    [SerializeField] private GameObject chatInputContainer;
+    [SerializeField] private TMP_InputField chatInputField;
+    [SerializeField] private TextMeshProUGUI channelPromptText;
+    [SerializeField] private TextMeshProUGUI chatLogText;
+    [SerializeField] private float chatLogDisplayDuration = 6f;
 
-    [Header("Configuración")]
-    [SerializeField] private float _chatLogDisplayDuration = 6f;
-    private const int MaxMessageHistory = 10;
-
-    [Header("Paleta de Colores")]
-    [SerializeField] private string _tColorHex = "#FFA500";
-    [SerializeField] private string _ctColorHex = "#4DA6FF";
-    [SerializeField] private string _deadColorHex = "#FF4444";
-    [SerializeField] private string _messageColorHex = "#FFFFFF";
-
-    [Header("Datos Jugador Local")]
-    public string localPlayerName = "Jugador";
-    public TeamSide localTeam = TeamSide.CounterTerrorist;
+    public string localPlayerName = string.Empty;
+    public Team localTeam = Team.Blue;
     public bool isLocalPlayerDead;
 
     private bool _isChatOpen;
     private bool _isTeamChatOnly;
-
-    private readonly List<string> _messageHistory = new();
-
+    private readonly List<string> _messageHistory = new List<string>();
     private Coroutine _hideChatLogCoroutine;
 
     private InputAction _globalChatAction;
     private InputAction _teamChatAction;
+    private InputAction _toggleChannelAction;
     private InputAction _sendMessageAction;
     private InputAction _closeChatAction;
 
@@ -61,18 +51,23 @@ public class TacticalChatManager : NetworkBehaviour
 
         Instance = this;
 
-        ConfigureInputActions();
-        ConfigureInitialUI();
+        InitializeInputActions();
+        InitializeUserInterface();
+    }
+
+    private void Start()
+    {
+        ResolveLocalPlayerProfile();
     }
 
     private void OnEnable()
     {
-        SubscribeToInputEvents();
+        EnableInputActions();
     }
 
     private void OnDisable()
     {
-        UnsubscribeFromInputEvents();
+        DisableInputActions();
     }
 
     public override void OnDestroy()
@@ -81,98 +76,94 @@ public class TacticalChatManager : NetworkBehaviour
         DisposeInputActions();
     }
 
-    private void ConfigureInitialUI()
+    private void InitializeUserInterface()
     {
-        if (_chatInputContainer != null)
+        if (chatInputContainer != null)
         {
-            _chatInputContainer.SetActive(false);
+            chatInputContainer.SetActive(false);
         }
 
-        if (_chatLogText != null)
+        if (chatLogText != null)
         {
-            _chatLogText.gameObject.SetActive(false);
+            chatLogText.gameObject.SetActive(false);
         }
     }
 
-    private void ConfigureInputActions()
+    private void InitializeInputActions()
     {
-        _globalChatAction = new InputAction(
-            name: "GlobalChat",
-            type: InputActionType.Button,
-            binding: "<Keyboard>/y"
-        );
+        _globalChatAction = new InputAction(name: "GlobalChat", type: InputActionType.Button, binding: "<Keyboard>/y");
+        _teamChatAction = new InputAction(name: "TeamChat", type: InputActionType.Button, binding: "<Keyboard>/t");
+        _toggleChannelAction = new InputAction(name: "ToggleChannel", type: InputActionType.Button, binding: "<Keyboard>/tab");
 
-        _teamChatAction = new InputAction(
-            name: "TeamChat",
-            type: InputActionType.Button,
-            binding: "<Keyboard>/t"
-        );
-
-        _sendMessageAction = new InputAction(
-            name: "SendChatMessage",
-            type: InputActionType.Button
-        );
-
+        _sendMessageAction = new InputAction(name: "SendChatMessage", type: InputActionType.Button);
         _sendMessageAction.AddBinding("<Keyboard>/enter");
         _sendMessageAction.AddBinding("<Keyboard>/numpadEnter");
 
-        _closeChatAction = new InputAction(
-            name: "CloseChat",
-            type: InputActionType.Button,
-            binding: "<Keyboard>/escape"
-        );
+        _closeChatAction = new InputAction(name: "CloseChat", type: InputActionType.Button, binding: "<Keyboard>/escape");
     }
 
-    private void SubscribeToInputEvents()
+    private void EnableInputActions()
     {
         if (_globalChatAction != null)
         {
-            _globalChatAction.performed += OnGlobalChatPerformed;
+            _globalChatAction.performed += HandleGlobalChatPerformed;
             _globalChatAction.Enable();
         }
 
         if (_teamChatAction != null)
         {
-            _teamChatAction.performed += OnTeamChatPerformed;
+            _teamChatAction.performed += HandleTeamChatPerformed;
             _teamChatAction.Enable();
+        }
+
+        if (_toggleChannelAction != null)
+        {
+            _toggleChannelAction.performed += HandleToggleChannelPerformed;
+            _toggleChannelAction.Enable();
         }
 
         if (_sendMessageAction != null)
         {
-            _sendMessageAction.performed += OnSendMessagePerformed;
+            _sendMessageAction.performed += HandleSendMessagePerformed;
             _sendMessageAction.Enable();
         }
 
         if (_closeChatAction != null)
         {
-            _closeChatAction.performed += OnCloseChatPerformed;
+            _closeChatAction.performed += HandleCloseChatPerformed;
             _closeChatAction.Enable();
         }
     }
 
-    private void UnsubscribeFromInputEvents()
+    private void DisableInputActions()
     {
         if (_globalChatAction != null)
         {
-            _globalChatAction.performed -= OnGlobalChatPerformed;
+            _globalChatAction.performed -= HandleGlobalChatPerformed;
             _globalChatAction.Disable();
         }
 
         if (_teamChatAction != null)
         {
-            _teamChatAction.performed -= OnTeamChatPerformed;
+            _teamChatAction.performed -= HandleTeamChatPerformed;
             _teamChatAction.Disable();
+        }
+
+        if (_toggleChannelAction != null)
+        {
+            _toggleChannelAction.performed -= HandleToggleChannelPerformed;
+            _toggleChannelAction.Disable();
         }
 
         if (_sendMessageAction != null)
         {
-            _sendMessageAction.performed -= OnSendMessagePerformed;
+            _sendMessageAction.performed -= HandleSendMessagePerformed;
             _sendMessageAction.Disable();
         }
 
         if (_closeChatAction != null)
         {
-            _closeChatAction.performed -= OnCloseChatPerformed;
+            _closeChatAction.performed -= HandleCloseChatPerformed;
             _closeChatAction.Disable();
         }
     }
@@ -181,18 +172,14 @@ public class TacticalChatManager : NetworkBehaviour
     {
         _globalChatAction?.Dispose();
         _teamChatAction?.Dispose();
+        _toggleChannelAction?.Dispose();
         _sendMessageAction?.Dispose();
         _closeChatAction?.Dispose();
     }
 
-    private void OnGlobalChatPerformed(InputAction.CallbackContext context)
+    private void HandleGlobalChatPerformed(InputAction.CallbackContext context)
     {
-        if (_isChatOpen)
-        {
-            return;
-        }
-
-        if (IsPauseMenuActive())
+        if (_isChatOpen || IsPauseMenuActive())
         {
             return;
         }
@@ -200,14 +187,9 @@ public class TacticalChatManager : NetworkBehaviour
         OpenChat(false);
     }
 
-    private void OnTeamChatPerformed(InputAction.CallbackContext context)
+    private void HandleTeamChatPerformed(InputAction.CallbackContext context)
     {
-        if (_isChatOpen)
-        {
-            return;
-        }
-
-        if (IsPauseMenuActive())
+        if (_isChatOpen || IsPauseMenuActive())
         {
             return;
         }
@@ -215,7 +197,18 @@ public class TacticalChatManager : NetworkBehaviour
         OpenChat(true);
     }
 
-    private void OnSendMessagePerformed(InputAction.CallbackContext context)
+    private void HandleToggleChannelPerformed(InputAction.CallbackContext context)
+    {
+        if (!_isChatOpen)
+        {
+            return;
+        }
+
+        _isTeamChatOnly = !_isTeamChatOnly;
+        UpdateChannelPromptUI();
+    }
+
+    private void HandleSendMessagePerformed(InputAction.CallbackContext context)
     {
         if (!_isChatOpen)
         {
@@ -225,7 +218,7 @@ public class TacticalChatManager : NetworkBehaviour
         SendCurrentMessage();
     }
 
-    private void OnCloseChatPerformed(InputAction.CallbackContext context)
+    private void HandleCloseChatPerformed(InputAction.CallbackContext context)
     {
         if (!_isChatOpen)
         {
@@ -242,32 +235,32 @@ public class TacticalChatManager : NetworkBehaviour
             return;
         }
 
+        ResolveLocalPlayerProfile();
+
         _isChatOpen = true;
         _isTeamChatOnly = teamOnly;
 
-        if (_chatInputContainer != null)
+        if (chatInputContainer != null)
         {
-            _chatInputContainer.SetActive(true);
+            chatInputContainer.SetActive(true);
         }
 
         ShowChatLog();
-
         StopHideChatLogCoroutine();
+        UpdateChannelPromptUI();
 
-        if (_channelPromptText != null)
+        if (CursorStateManager.Instance != null)
         {
-            _channelPromptText.text = teamOnly
-                ? "<color=#FFFF00>[EQUIPO]:</color>"
-                : "<color=#FFFFFF>[TODOS]:</color>";
+            CursorStateManager.Instance.RegisterCursorUnlockRequester();
         }
 
-        SetPlayerInputLock(true);
+        SetPlayerMovementInputLock(true);
 
-        if (_chatInputField != null)
+        if (chatInputField != null)
         {
-            _chatInputField.text = string.Empty;
-            _chatInputField.Select();
-            _chatInputField.ActivateInputField();
+            chatInputField.text = string.Empty;
+            chatInputField.Select();
+            chatInputField.ActivateInputField();
         }
     }
 
@@ -275,81 +268,110 @@ public class TacticalChatManager : NetworkBehaviour
     {
         _isChatOpen = false;
 
-        if (_chatInputField != null)
+        if (chatInputField != null)
         {
-            _chatInputField.DeactivateInputField();
+            chatInputField.DeactivateInputField();
         }
 
-        if (_chatInputContainer != null)
+        if (chatInputContainer != null)
         {
-            _chatInputContainer.SetActive(false);
+            chatInputContainer.SetActive(false);
+        }
+
+        if (CursorStateManager.Instance != null)
+        {
+            CursorStateManager.Instance.UnregisterCursorUnlockRequester();
         }
 
         if (!IsPauseMenuActive())
         {
-            SetPlayerInputLock(false);
+            SetPlayerMovementInputLock(false);
         }
 
         ResetHideTimer();
     }
 
+    private void UpdateChannelPromptUI()
+    {
+        if (channelPromptText == null)
+        {
+            return;
+        }
+
+        channelPromptText.text = _isTeamChatOnly
+            ? "<color=#FFFF00>[TEAM (TAB)]:</color>"
+            : "<color=#FFFFFF>[ALL (TAB)]:</color>";
+    }
+
     private void SendCurrentMessage()
     {
-        if (_chatInputField == null || string.IsNullOrWhiteSpace(_chatInputField.text))
+        if (chatInputField == null || string.IsNullOrWhiteSpace(chatInputField.text))
         {
             CloseChat();
             return;
         }
 
-        string rawText = _chatInputField.text.Trim();
+        string rawMessage = chatInputField.text.Trim();
 
-        CheckLocalPlayerDeathState();
+        ResolveLocalPlayerProfile();
 
         SendMessageServerRpc(
             localPlayerName,
             localTeam,
             isLocalPlayerDead,
             _isTeamChatOnly,
-            rawText
+            rawMessage
         );
 
         CloseChat();
     }
 
-    private void CheckLocalPlayerDeathState()
+    private void ResolveLocalPlayerProfile()
     {
-        if (NetworkManager.Singleton == null)
+        if (string.IsNullOrEmpty(localPlayerName))
+        {
+            if (PlayerPrefs.HasKey(PLAYER_PREFS_NAME_KEY))
+            {
+                localPlayerName = PlayerPrefs.GetString(PLAYER_PREFS_NAME_KEY);
+            }
+            else if (NetworkManager.Singleton != null)
+            {
+                localPlayerName = string.Concat(DEFAULT_PLAYER_NAME_PREFIX, NetworkManager.Singleton.LocalClientId);
+            }
+            else
+            {
+                localPlayerName = string.Concat(DEFAULT_PLAYER_NAME_PREFIX, Random.Range(100, 999));
+            }
+        }
+
+        if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null)
         {
             return;
         }
 
-        if (NetworkManager.Singleton.SpawnManager == null)
+        NetworkObject localPlayerObject = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+        if (localPlayerObject == null)
         {
             return;
         }
 
-        NetworkObject localPlayer =
-            NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
-
-        if (localPlayer == null)
+        PlayerTeam playerTeamComponent = localPlayerObject.GetComponent<PlayerTeam>();
+        if (playerTeamComponent != null)
         {
-            return;
+            localTeam = playerTeamComponent.CurrentTeam.Value;
         }
 
-        NetworkHealth health = localPlayer.GetComponent<NetworkHealth>();
-
-        if (health == null)
+        NetworkHealth healthComponent = localPlayerObject.GetComponent<NetworkHealth>();
+        if (healthComponent != null)
         {
-            return;
+            isLocalPlayerDead = healthComponent.CurrentHealth.Value <= 0f;
         }
-
-        isLocalPlayerDead = health.CurrentHealth.Value <= 0;
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void SendMessageServerRpc(
         string senderName,
-        TeamSide senderTeam,
+        Team senderTeam,
         bool isDead,
         bool isTeamOnly,
         string message)
@@ -366,48 +388,35 @@ public class TacticalChatManager : NetworkBehaviour
     [ClientRpc]
     private void ReceiveMessageClientRpc(
         string senderName,
-        TeamSide senderTeam,
+        Team senderTeam,
         bool isDead,
         bool isTeamOnly,
         string message)
     {
+        ResolveLocalPlayerProfile();
+
         if (isTeamOnly && senderTeam != localTeam)
         {
             return;
         }
 
-        string teamColor = senderTeam == TeamSide.Terrorist
-            ? _tColorHex
-            : _ctColorHex;
+        string teamColorHex = senderTeam == Team.Red ? TERRORIST_COLOR_HEX : COUNTER_TERRORIST_COLOR_HEX;
+        string teamPrefix = senderTeam == Team.Red ? "(T)" : "(CT)";
+        string deadPrefix = isDead ? string.Concat("<color=", DEAD_COLOR_HEX, ">*DEAD* </color>") : string.Empty;
 
-        string teamLabel = senderTeam == TeamSide.Terrorist
-            ? "(Equipo - T)"
-            : "(Equipo - CT)";
-
-        string formattedLine = string.Empty;
-
-        if (isDead)
-        {
-            formattedLine +=
-                $"<color={_deadColorHex}>*MUERTO*</color> ";
-        }
-
+        string formattedLine;
         if (isTeamOnly)
         {
-            formattedLine +=
-                $"<color={teamColor}>{teamLabel} {senderName}</color>: " +
-                $"<color={_messageColorHex}>{message}</color>";
+            formattedLine = string.Concat(deadPrefix, "<color=", teamColorHex, ">[TEAM] ", teamPrefix, " ", senderName, "</color>: <color=", MESSAGE_COLOR_HEX, ">", message, "</color>");
         }
         else
         {
-            formattedLine +=
-                $"<color={teamColor}>{senderName}</color>: " +
-                $"<color={_messageColorHex}>{message}</color>";
+            formattedLine = string.Concat(deadPrefix, "<color=", teamColorHex, ">[ALL] ", teamPrefix, " ", senderName, "</color>: <color=", MESSAGE_COLOR_HEX, ">", message, "</color>");
         }
 
         _messageHistory.Add(formattedLine);
 
-        if (_messageHistory.Count > MaxMessageHistory)
+        if (_messageHistory.Count > MAX_MESSAGE_HISTORY)
         {
             _messageHistory.RemoveAt(0);
         }
@@ -423,70 +432,62 @@ public class TacticalChatManager : NetworkBehaviour
 
     private void UpdateChatUI()
     {
-        if (_chatLogText == null)
+        if (chatLogText == null)
         {
             return;
         }
 
-        _chatLogText.text = string.Join("\n", _messageHistory);
+        chatLogText.text = string.Join("\n", _messageHistory);
     }
 
     private void ShowChatLog()
     {
-        if (_chatLogText == null)
+        if (chatLogText == null)
         {
             return;
         }
 
-        if (!_chatLogText.gameObject.activeSelf)
+        if (!chatLogText.gameObject.activeSelf)
         {
-            _chatLogText.gameObject.SetActive(true);
+            chatLogText.gameObject.SetActive(true);
         }
     }
 
     private void ResetHideTimer()
     {
         StopHideChatLogCoroutine();
-
         _hideChatLogCoroutine = StartCoroutine(HideChatLogRoutine());
     }
 
     private void StopHideChatLogCoroutine()
     {
-        if (_hideChatLogCoroutine == null)
+        if (_hideChatLogCoroutine != null)
         {
-            return;
+            StopCoroutine(_hideChatLogCoroutine);
+            _hideChatLogCoroutine = null;
         }
-
-        StopCoroutine(_hideChatLogCoroutine);
-        _hideChatLogCoroutine = null;
     }
 
     private IEnumerator HideChatLogRoutine()
     {
-        yield return new WaitForSeconds(_chatLogDisplayDuration);
+        yield return new WaitForSeconds(chatLogDisplayDuration);
 
-        if (!_isChatOpen && _chatLogText != null)
+        if (!_isChatOpen && chatLogText != null)
         {
-            _chatLogText.gameObject.SetActive(false);
+            chatLogText.gameObject.SetActive(false);
         }
 
         _hideChatLogCoroutine = null;
     }
 
-    private void SetPlayerInputLock(bool locked)
+    private void SetPlayerMovementInputLock(bool locked)
     {
-        if (NetworkManager.Singleton != null &&
-            NetworkManager.Singleton.SpawnManager != null)
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
         {
-            NetworkObject localPlayer =
-                NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
-
-            if (localPlayer != null)
+            NetworkObject localPlayerObject = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+            if (localPlayerObject != null)
             {
-                PlayerInput playerInput =
-                    localPlayer.GetComponent<PlayerInput>();
-
+                PlayerInput playerInput = localPlayerObject.GetComponent<PlayerInput>();
                 if (playerInput != null)
                 {
                     if (locked)
@@ -500,17 +501,10 @@ public class TacticalChatManager : NetworkBehaviour
                 }
             }
         }
-
-        Cursor.lockState = locked
-            ? CursorLockMode.None
-            : CursorLockMode.Locked;
-
-        Cursor.visible = locked;
     }
 
     private bool IsPauseMenuActive()
     {
-        return PauseMenuManager.Instance != null &&
-               PauseMenuManager.Instance.IsPaused;
+        return PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused;
     }
 }
