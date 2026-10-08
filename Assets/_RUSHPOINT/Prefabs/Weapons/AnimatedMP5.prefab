@@ -96,6 +96,9 @@ PrefabInstance:
       addedObject: {fileID: 269361856991386560}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a38d6bf4e1deec44f8844f03d8ca05d6, type: 3}
       insertIndex: -1
+      addedObject: {fileID: -1097807574370269833}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a38d6bf4e1deec44f8844f03d8ca05d6, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 8554940621901093095}
   m_SourcePrefab: {fileID: 100100000, guid: a38d6bf4e1deec44f8844f03d8ca05d6, type: 3}
 --- !u!4 &1311487867240231249 stripped
@@ -205,6 +208,33 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &-1097807574370269833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1835366282357566443}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 185337407
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  m_InScenePlacedDisabledByDefault: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  m_InScenePlaced: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &8554940621901093095
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -217,13 +247,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ceb845fd9d23ef64293789ad23fdacbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
-  _data: {fileID: 11400000, guid: 111ae2b5472c6d641b7226df2e4dfa3b, type: 2}
-  _firePoint: {fileID: 5933987247346305336}
-  _playerController: {fileID: 0}
-  _weaponAnimator: {fileID: 0}
-  _tracerMaterial: {fileID: 2100000, guid: 51ed506a1326a3744a1d207a5f084f05, type: 2}
-  _muzzleFlash: {fileID: 0}
-  _weaponModelTransform: {fileID: 1311487867240231249}
-  _kickbackOffset: {x: 0, y: 0.02, z: -0.08}
-  _kickbackRotation: {x: -3, y: 1, z: 0}
-  _returnSpeed: 15
+  ShowTopMostFoldoutHeaderGroup: 1
+  data: {fileID: 0}
+  _audioSource: {fileID: 0}
+  _muzzleTransform: {fileID: 0}
+  _muzzleFlashEffect: {fileID: 0}
+  _tracerPrefab: {fileID: 0}
+  _magazineCapacity: 30
+  _maxReserveAmmo: 90
+  _reloadDuration: 2.2
+  _baseSpread: 1
+  _currentAmmo: 0
+  _reserveAmmo: 0
+  _isReloading: 0
+  _reloadRemainingTime: 0

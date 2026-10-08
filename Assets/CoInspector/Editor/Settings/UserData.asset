@@ -67,13 +67,18 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
+        count: 28
+        gameObjects:
+        - {fileID: 0}
+      - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/Canvas[0]"}'
         count: 26
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
-        count: 24
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"SpectadorManager[0]"}'
+        count: 25
         gameObjects:
         - {fileID: 0}
       - paths:
@@ -114,6 +119,11 @@ MonoBehaviour:
         - {fileID: 0}
       recentlyClicked:
       - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"SpectadorManager[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
         count: 1
         gameObjects:
@@ -146,16 +156,11 @@ MonoBehaviour:
         count: 1
         gameObjects:
         - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_UI[0]/ReloadingPopup[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 03:46 PM (October 8, 2026)
+    lastSaveTimePrint: 04:26 PM (October 8, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -166,31 +171,31 @@ MonoBehaviour:
     suggestedHeight: 0
     userAssetViewSize: -1
     previewHeight: 0
-    scrollPosition: {x: 0, y: 191}
+    scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 45
+    lastValidTabWidth: 64
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 0
+    lastKnownHeight: 1
     tabs:
-    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
+    - path: '{"sceneGUID":"27d34e20eb7d60345ad8224a6be120d9","path":"SryingeGun_PrimaryPrefab[0]"}'
       paths: []
-      tabWidth: 42
-      name: C4
-      icon: {fileID: 7853449062886713960, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: C4
+      tabWidth: 61
+      name: SryingeGun_PrimaryPrefab
+      icon: {fileID: -5093997336329155648, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: New Tab
       filterString: 
       newTab: 0
-      scrollPosition: 191
+      scrollPosition: 0
       isSelected: 0
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: C4
+        m_Text: SryingeGun_PrimaryPrefab
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "C4\u200B"
+        m_TextWithWhitespace: "SryingeGun_PrimaryPrefab\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
@@ -229,132 +234,40 @@ MonoBehaviour:
       savePlayModeTransform: 0
       index: 0
       historyPosition: 0
-      componentMaps:
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: transform
-        niceComponentName: transform
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: meshfilter
-        niceComponentName: mesh filter
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: meshrenderer
-        niceComponentName: mesh renderer
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: networkobject
-        niceComponentName: network object
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: bomb
-        niceComponentName: bomb
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: boxcollider
-        niceComponentName: box collider
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: rigidbody
-        niceComponentName: rigidbody
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: networktransform
-        niceComponentName: network transform
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: audiosource
-        niceComponentName: audio source
+      componentMaps: []
       historyPaths:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"C4[0]"}'
+        - '{"sceneGUID":"27d34e20eb7d60345ad8224a6be120d9","path":"SryingeGun_PrimaryPrefab[0]"}'
         prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - dda28ca6a7daf5044902f62f3916f393
-    - assetGUIDs:
-      - ceb845fd9d23ef64293789ad23fdacbc
-      - b013d4e59a7952f45bf28165f85235a4
-      - b6dc5f43b3f4c7a4197a352f2fcf1e66
-    - assetGUIDs:
-      - b6dc5f43b3f4c7a4197a352f2fcf1e66
-    - assetGUIDs:
-      - ceb845fd9d23ef64293789ad23fdacbc
+      - 27d34e20eb7d60345ad8224a6be120d9
     - assetGUIDs:
       - b2b691b9bf54e074ea544fb911929835
     - assetGUIDs:
+      - 24cf391e3622de743a54e6e771f28333
+    - assetGUIDs:
       - d862c7961e433f341bf7e31c0c920788
     - assetGUIDs:
-      - a6fd360511e64274b99ea5110a1c2cd2
+      - 66b21236603c7124cbe7c5eda54de385
     - assetGUIDs:
-      - 23d9e60c71fdcf7428814f0119a08027
+      - 50cc8b087eee6754e8f55c23d698d416
     - assetGUIDs:
-      - 0ce53365b9b805b4dae916acf6cc64c1
+      - 51ed506a1326a3744a1d207a5f084f05
     - assetGUIDs:
-      - 27d34e20eb7d60345ad8224a6be120d9
+      - 111ae2b5472c6d641b7226df2e4dfa3b
     - assetGUIDs:
-      - 24cf391e3622de743a54e6e771f28333
-    targetObject: {fileID: 2800000, guid: dda28ca6a7daf5044902f62f3916f393, type: 3}
+      - 1562786dfff06f94790af949b3c096ae
+    - assetGUIDs:
+      - 0cae0d41acb5de04e98054defaa6f15d
+    - assetGUIDs:
+      - 0155401892f92844cb6f08b4897b3810
+    targetObject: {fileID: 0}
     targetObjects: []
-    lastSelectedAsset: Assets/CoInspector/Editor/Custom/Textures/icon_sceneTools2x.png
+    lastSelectedAsset: 
     lastClickedTab: -1
     previousTab: 1
   - tracker:
@@ -473,6 +386,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Graybox_Test.unity/RUSPOINT.unity
     lastClickedTab: -1
     previousTab: 1
-  tipsShown: 01000000010000000100000001000000010000000100000000000000010000000100000001000000000000000000000001000000010000000000000000000000010000000000000001000000000000000000000000000000000000000100000001000000010000000100000001000000010000000000000000000000010000000000000000000000010000000000000001000000000000000100000000000000010000000100000000000000010000000000000000000000
+  tipsShown: 01000000010000000100000001000000010000000100000001000000010000000100000001000000000000000000000001000000010000000000000001000000010000000100000001000000000000000000000000000000000000000100000001000000010000000100000001000000010000000000000001000000010000000000000000000000010000000000000001000000000000000100000000000000010000000100000000000000010000000100000000000000
   playModeStartScene: {}
   enteringPlayMode: 0

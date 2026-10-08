@@ -380,6 +380,11 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (Cursor.lockState != CursorLockMode.Locked) return;
 
+        bool isRoundLocked = RoundManager.Instance != null &&
+            RoundManager.Instance.CurrentPhase.Value != RoundPhase.InProgress;
+
+        if (isRoundLocked) return;
+
         BombInteractor bombInteractor = GetComponent<BombInteractor>();
         if (bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing)) return;
 
@@ -398,9 +403,9 @@ public class NetworkPlayerController : NetworkBehaviour
         if (!wantsToFire) return;
 
         WeaponData weaponData = currentWeapon.WeaponData;
-        float fireInterval = (weaponData != null && weaponData.fireRate > 0f) ? weaponData.fireRate : 0.15f;
+        bool isAutomatic = weaponData != null && weaponData.isAutomatic;
 
-        if (Time.time >= _nextFireTime)
+        if (currentWeapon.CanFire())
         {
             if (currentWeapon is HealingPistol healingPistol)
             {
@@ -411,9 +416,7 @@ public class NetworkPlayerController : NetworkBehaviour
                 currentWeapon.Fire();
             }
 
-            _nextFireTime = Time.time + fireInterval;
-
-            if (weaponData != null && !weaponData.isAutomatic)
+            if (!isAutomatic)
             {
                 _isFirePressed = false;
             }

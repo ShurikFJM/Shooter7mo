@@ -249,7 +249,7 @@ CapsuleCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Radius: 0.5
   m_Height: 2
@@ -262,7 +262,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6374784843208623985}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
@@ -289,7 +289,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6374784843208623985}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
   m_Name: 
@@ -549,7 +549,7 @@ AudioSource:
   m_GameObject: {fileID: 1978381668156629706}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 149552297876152156, guid: 2157669b2e7d95f4ca5cbc4c019a0121, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
@@ -649,32 +649,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ceb845fd9d23ef64293789ad23fdacbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
-  ShowTopMostFoldoutHeaderGroup: 1
-  data: {fileID: 0}
-  _magazineCapacity: 30
-  _maxReserveAmmo: 90
-  _reloadDuration: 2.2
-  _baseSpread: 1
-  CurrentAmmoNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ReserveAmmoNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  IsReloadingNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ReloadRemainingTimeNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
+  _data: {fileID: 11400000, guid: 1562786dfff06f94790af949b3c096ae, type: 2}
+  _tracerMaterial: {fileID: 2100000, guid: 51ed506a1326a3744a1d207a5f084f05, type: 2}
+  _weaponModelTransform: {fileID: 1170741331068106864}
+  _firePoint: {fileID: 231782551315511889}
+  _muzzleFlash: {fileID: 0}
+  _weaponAnimator: {fileID: 5622735202235127978}
+  _reloadAnimationTrigger: Reload
+  _kickbackOffset: {x: 0, y: 0, z: -0.05}
+  _kickbackRotation: {x: -3, y: 0, z: 0}
+  _returnSpeed: 10
+  _currentAmmo: 0
+  _reserveAmmo: 0
+  _isReloading: 0
+  _reloadRemainingTime: 0
 --- !u!1 &4653910448596576480 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -2944240825254529157, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}

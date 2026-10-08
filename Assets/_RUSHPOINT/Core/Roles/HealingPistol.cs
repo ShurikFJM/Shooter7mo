@@ -28,7 +28,7 @@ public class HealingPistol : WeaponBase
         }
 
         Ray aimRay = playerCameraInstance.ViewportPointToRay(new Vector3(VIEWPORT_CENTER_X, VIEWPORT_CENTER_Y, 0f));
-        float range = data != null ? data.range : _healRange;
+        float range = _data != null ? _data.range : _healRange;
 
         if (Physics.Raycast(aimRay, out RaycastHit hit, range, ~0, QueryTriggerInteraction.Collide))
         {

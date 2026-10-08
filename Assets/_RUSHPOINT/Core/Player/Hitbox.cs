@@ -17,18 +17,6 @@ public class Hitbox : MonoBehaviour
     public HitboxType Type => _type;
     public NetworkHealth TargetHealth => _targetHealth;
 
-    public float GetMultiplier()
-    {
-        switch (_type)
-        {
-            case HitboxType.Head: return 4.0f;
-            case HitboxType.Chest: return 1.0f;
-            case HitboxType.Arms: return 1.0f;
-            case HitboxType.Legs: return 0.75f;
-            default: return 1.0f;
-        }
-    }
-
     public void ReceiveHit(float baseDamage, ulong attackerId)
     {
         if (_targetHealth == null) return;
@@ -39,7 +27,6 @@ public class Hitbox : MonoBehaviour
             return;
         }
 
-        float finalDamage = baseDamage * GetMultiplier();
-        _targetHealth.TakeDamage(finalDamage, _type, attackerId);
+        _targetHealth.TakeDamage(baseDamage, _type, attackerId);
     }
 }

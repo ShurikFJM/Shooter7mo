@@ -92,7 +92,7 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f6958171f9ecb204ab6d9e906a724c37, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 870959579531941478}
+      addedObject: {fileID: 7656884441399243894}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f6958171f9ecb204ab6d9e906a724c37, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8563409465994692942}
@@ -113,7 +113,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: f6958171f9ecb204ab6d9e906a724c37, type: 3}
   m_PrefabInstance: {fileID: 7022152128843204748}
   m_PrefabAsset: {fileID: 0}
---- !u!82 &870959579531941478
+--- !u!82 &7656884441399243894
 AudioSource:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -222,7 +222,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 333547055
+  GlobalObjectIdHash: 752103715
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -249,32 +249,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ceb845fd9d23ef64293789ad23fdacbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
-  ShowTopMostFoldoutHeaderGroup: 1
-  data: {fileID: 11400000, guid: 649de373d04f9324385bdf92813c10d6, type: 2}
-  _magazineCapacity: 30
-  _maxReserveAmmo: 90
-  _reloadDuration: 2.2
-  _baseSpread: 1
-  CurrentAmmoNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ReserveAmmoNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  IsReloadingNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ReloadRemainingTimeNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
+  _data: {fileID: 11400000, guid: 649de373d04f9324385bdf92813c10d6, type: 2}
+  _tracerMaterial: {fileID: 2100000, guid: 51ed506a1326a3744a1d207a5f084f05, type: 2}
+  _weaponModelTransform: {fileID: 7419974344405593959}
+  _firePoint: {fileID: 7172998619759856457}
+  _muzzleFlash: {fileID: 0}
+  _weaponAnimator: {fileID: 0}
+  _reloadAnimationTrigger: Reload
+  _kickbackOffset: {x: 0, y: 0, z: -0.05}
+  _kickbackRotation: {x: -3, y: 0, z: 0}
+  _returnSpeed: 10
+  _currentAmmo: 0
+  _reserveAmmo: 0
+  _isReloading: 0
+  _reloadRemainingTime: 0
 --- !u!95 &333205552318805244
 Animator:
   serializedVersion: 7

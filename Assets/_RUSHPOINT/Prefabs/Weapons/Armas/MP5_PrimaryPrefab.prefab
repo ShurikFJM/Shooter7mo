@@ -344,29 +344,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ceb845fd9d23ef64293789ad23fdacbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
-  ShowTopMostFoldoutHeaderGroup: 1
-  data: {fileID: 11400000, guid: 111ae2b5472c6d641b7226df2e4dfa3b, type: 2}
-  _magazineCapacity: 30
-  _maxReserveAmmo: 90
-  _reloadDuration: 2.2
-  _baseSpread: 1
-  CurrentAmmoNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ReserveAmmoNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  IsReloadingNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ReloadRemainingTimeNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
+  _data: {fileID: 11400000, guid: 111ae2b5472c6d641b7226df2e4dfa3b, type: 2}
+  _tracerMaterial: {fileID: 2100000, guid: 51ed506a1326a3744a1d207a5f084f05, type: 2}
+  _weaponModelTransform: {fileID: 4758599331097624134}
+  _firePoint: {fileID: 3622237355373215832}
+  _muzzleFlash: {fileID: 0}
+  _weaponAnimator: {fileID: 0}
+  _reloadAnimationTrigger: Reload
+  _kickbackOffset: {x: 0, y: 0, z: -0.05}
+  _kickbackRotation: {x: -3, y: 0, z: 0}
+  _returnSpeed: 10
+  _currentAmmo: 0
+  _reserveAmmo: 0
+  _isReloading: 0
+  _reloadRemainingTime: 0

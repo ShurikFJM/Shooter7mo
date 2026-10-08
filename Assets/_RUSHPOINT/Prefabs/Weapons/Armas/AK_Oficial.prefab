@@ -339,7 +339,7 @@ AudioSource:
   m_GameObject: {fileID: 6677107256558942080}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 149552297876152156, guid: 2157669b2e7d95f4ca5cbc4c019a0121, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
@@ -466,29 +466,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ceb845fd9d23ef64293789ad23fdacbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
-  ShowTopMostFoldoutHeaderGroup: 1
-  data: {fileID: 11400000, guid: 7cfe7f91b1b9ec34d9ae422b379a66c7, type: 2}
-  _magazineCapacity: 30
-  _maxReserveAmmo: 90
-  _reloadDuration: 2.2
-  _baseSpread: 1
-  CurrentAmmoNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ReserveAmmoNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  IsReloadingNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ReloadRemainingTimeNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
+  _data: {fileID: 11400000, guid: 7cfe7f91b1b9ec34d9ae422b379a66c7, type: 2}
+  _tracerMaterial: {fileID: 2100000, guid: 51ed506a1326a3744a1d207a5f084f05, type: 2}
+  _weaponModelTransform: {fileID: 6332633925144325434}
+  _firePoint: {fileID: 7104995611434977514}
+  _muzzleFlash: {fileID: 0}
+  _weaponAnimator: {fileID: 481511074118910174}
+  _reloadAnimationTrigger: Reload
+  _kickbackOffset: {x: 0, y: 0, z: -0.05}
+  _kickbackRotation: {x: -3, y: 0, z: 0}
+  _returnSpeed: 10
+  _currentAmmo: 0
+  _reserveAmmo: 0
+  _isReloading: 0
+  _reloadRemainingTime: 0
