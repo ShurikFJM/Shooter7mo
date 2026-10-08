@@ -26,7 +26,6 @@ public enum PingModifier
     Alt
 }
 
-/// <summary>Combinacion de input que identifica un tipo de ping.</summary>
 [Serializable]
 public class PingInputBinding
 {
@@ -70,14 +69,6 @@ public enum TutorialState
     Completed
 }
 
-/// <summary>
-/// Director unico del tutorial: arranca la red en local, controla la UI
-/// (selector de roles, HUD, cursor), aplica el rol al jugador y decide el avance de pasos.
-/// Los demas scripts solo le notifican eventos (OnEnteredSideA, OnPingPlaced, ...).
-///
-/// DefaultExecutionOrder alto: su Start corre DESPUES del de LobbyUI, que desactiva
-/// el canvas del selector de roles al iniciar.
-/// </summary>
 [DefaultExecutionOrder(200)]
 public class TutorialManager : NetworkBehaviour
 {
@@ -93,18 +84,15 @@ public class TutorialManager : NetworkBehaviour
     [SerializeField] private Transform _terroristSpawnPoint;
 
     [Header("Player spawn")]
-    [Tooltip("Prefab de tu jugador (NetworkPlayerController + NetworkObject). Arrastra aqui el PREFAB, no un objeto de la escena. Se spawnea al confirmar la clase, no al iniciar.")]
+    [Tooltip("Prefab de tu jugador (NetworkPlayerController + NetworkObject).")]
     [SerializeField] private NetworkObject _playerPrefab;
 
     [Header("Medic training dummy")]
-    [Tooltip("Distancia (m) a la que aparece el dummy respecto al jugador.")]
     [SerializeField] private float _dummyDistance = 6f;
-    [Tooltip("Vida con la que aparece el dummy (hay que curarlo).")]
     [SerializeField] private float _dummyStartHealth = 40f;
 
     [Header("Finish")]
     [SerializeField] private string _mainMenuSceneName = "MainMenuScene";
-    [Tooltip("Segundos que se muestra el texto final antes de cargar el menu.")]
     [SerializeField] private float _finishDelay = 4f;
 
     [Header("Local network (tutorial)")]
@@ -112,7 +100,6 @@ public class TutorialManager : NetworkBehaviour
     [SerializeField] private ushort _localPort = 7777;
 
     [Header("Ping inputs (paso PingSystem)")]
-    [Tooltip("Ajusta estas combinaciones a las de tu sistema de pings real.")]
     [SerializeField] private PingInputBinding _normalPingInput = new PingInputBinding(PingMouseButton.Middle, PingModifier.None);
     [SerializeField] private PingInputBinding _dangerPingInput = new PingInputBinding(PingMouseButton.Middle, PingModifier.Shift);
     [SerializeField] private PingInputBinding _groupPingInput = new PingInputBinding(PingMouseButton.Middle, PingModifier.Ctrl);
@@ -130,8 +117,6 @@ public class TutorialManager : NetworkBehaviour
     private NetworkHealth _dummyHealth;
     private bool _dummySpawning;
 
-    // ------------------------------------------------------------------ lifecycle
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -148,7 +133,6 @@ public class TutorialManager : NetworkBehaviour
         InitializeUiState();
         StartLocalSession();
 
-        // Primero hay que elegir clase para empezar.
         SetState(TutorialState.ChooseClass);
         OpenRoleSelector();
 
@@ -188,26 +172,12 @@ public class TutorialManager : NetworkBehaviour
         }
     }
 
-    // ------------------------------------------------------------------ network
-
-    /// <summary>
-    /// Arranca un host local. Fuerza el transporte a UDP directo (sin Relay ni WebSockets),
-    /// que es lo que provocaba "You must call SetRelayServerData()".
-    /// </summary>
     private void StartLocalSession()
     {
         NetworkManager nm = NetworkManager.Singleton;
-        if (nm == null)
-        {
-            Debug.LogError("[Tutorial] No hay NetworkManager en la escena.");
-            return;
-        }
+        if (nm == null) return;
 
-        if (nm.IsListening)
-        {
-            Debug.Log("[Tutorial] La red ya estaba activa.");
-            return;
-        }
+        if (nm.IsListening) return;
 
         UnityTransport transport = nm.NetworkConfig != null
             ? nm.NetworkConfig.NetworkTransport as UnityTransport
@@ -217,58 +187,29 @@ public class TutorialManager : NetworkBehaviour
         {
             transport.UseWebSockets = false;
             transport.UseEncryption = false;
-            // SetConnectionData tambien cambia el protocolo a "Unity Transport" (no Relay).
             transport.SetConnectionData(_localAddress, _localPort);
-        }
-        else
-        {
-            Debug.LogWarning("[Tutorial] El transporte no es UnityTransport; revisa su configuracion.");
         }
 
         PreparePlayerPrefabWithoutAutoSpawn(nm);
-
-        bool started = nm.StartHost();
-        Debug.Log($"[Tutorial] StartHost() => {started}");
-
-        if (!started)
-        {
-            Debug.LogError("[Tutorial] StartHost() fallo. Revisa el UnityTransport del NetworkManager (Protocol Type = Unity Transport, Use Web Sockets desactivado).");
-        }
+        nm.StartHost();
     }
 
-    // ------------------------------------------------------------------ player spawn
-
-    /// <summary>
-    /// Guarda tu prefab, lo registra en Network Prefabs y deja NetworkConfig.PlayerPrefab vacio
-    /// para que Netcode NO spawnee el jugador al arrancar el host. Se spawnea al elegir clase.
-    /// </summary>
     private void PreparePlayerPrefabWithoutAutoSpawn(NetworkManager nm)
     {
         _runtimePlayerPrefab = _playerPrefab != null
             ? _playerPrefab.gameObject
             : nm.NetworkConfig.PlayerPrefab;
 
-        if (_runtimePlayerPrefab == null)
-        {
-            Debug.LogError("[Tutorial] No hay Player Prefab: asigna 'Player Prefab' en el TutorialManager.");
-            return;
-        }
+        if (_runtimePlayerPrefab == null) return;
 
         if (!nm.NetworkConfig.Prefabs.Contains(_runtimePlayerPrefab))
         {
             nm.AddNetworkPrefab(_runtimePlayerPrefab);
         }
 
-        // Sin PlayerPrefab, StartHost() no crea ningun jugador.
         nm.NetworkConfig.PlayerPrefab = null;
-
-        Debug.Log($"[Tutorial] Player Prefab '{_runtimePlayerPrefab.name}' listo; se spawneara al confirmar la clase.");
     }
 
-    /// <summary>
-    /// Se ejecuta al confirmar la primera clase: spawnea el jugador, le aplica el rol,
-    /// lo coloca, muestra el HUD, bloquea el cursor y arranca el paso de la bomba.
-    /// </summary>
     private IEnumerator SpawnPlayerAndStartRoutine(PlayerRoleType role)
     {
         NetworkManager nm = NetworkManager.Singleton;
@@ -286,7 +227,6 @@ public class TutorialManager : NetworkBehaviour
 
         if (!ready || _runtimePlayerPrefab == null)
         {
-            Debug.LogError("[Tutorial] No se pudo spawnear el jugador (red no lista o falta Player Prefab).");
             _spawnRoutine = null;
             OpenRoleSelector();
             yield break;
@@ -295,14 +235,15 @@ public class TutorialManager : NetworkBehaviour
         if (nm.SpawnManager.GetLocalPlayerObject() == null)
         {
             Vector3 position = _terroristSpawnPoint != null ? _terroristSpawnPoint.position : Vector3.zero;
-            Quaternion rotation = _terroristSpawnPoint != null ? _terroristSpawnPoint.rotation : Quaternion.identity;
+            Quaternion safeYawRotation = _terroristSpawnPoint != null
+                ? Quaternion.Euler(0f, _terroristSpawnPoint.eulerAngles.y, 0f)
+                : Quaternion.identity;
 
-            GameObject instance = Instantiate(_runtimePlayerPrefab, position, rotation);
+            GameObject instance = Instantiate(_runtimePlayerPrefab, position, safeYawRotation);
             NetworkObject networkObject = instance.GetComponent<NetworkObject>();
 
             if (networkObject == null)
             {
-                Debug.LogError("[Tutorial] El Player Prefab no tiene NetworkObject.");
                 Destroy(instance);
                 _spawnRoutine = null;
                 OpenRoleSelector();
@@ -310,7 +251,6 @@ public class TutorialManager : NetworkBehaviour
             }
 
             networkObject.SpawnAsPlayerObject(nm.LocalClientId, true);
-            Debug.Log("[Tutorial] Jugador spawneado tras elegir clase.");
         }
 
         ApplyRoleToLocalPlayer(role);
@@ -319,7 +259,6 @@ public class TutorialManager : NetworkBehaviour
         if (_tacticalHudCanvas != null) _tacticalHudCanvas.SetActive(true);
         if (_minimapCanvas != null) _minimapCanvas.SetActive(true);
 
-        // OnNetworkSpawn del jugador libera el cursor: lo volvemos a bloquear.
         _initialRoleChosen = true;
         SetGameplayCursor();
         ApplyBombStep();
@@ -351,30 +290,53 @@ public class TutorialManager : NetworkBehaviour
             CharacterController characterController = localPlayer.GetComponent<CharacterController>();
             if (characterController != null) characterController.enabled = false;
 
+            Quaternion safeYawRotation = Quaternion.Euler(0f, _terroristSpawnPoint.eulerAngles.y, 0f);
+
             localPlayer.transform.position = _terroristSpawnPoint.position;
-            localPlayer.transform.rotation = _terroristSpawnPoint.rotation;
+            localPlayer.transform.rotation = safeYawRotation;
+
+            NetworkPlayerController controller = localPlayer.GetComponent<NetworkPlayerController>();
+            if (controller != null)
+            {
+                Transform cameraRoot = GetPrivateField<Transform>(controller, "_cameraRoot");
+                if (cameraRoot != null)
+                {
+                    cameraRoot.localRotation = Quaternion.identity;
+                }
+
+                FieldInfo pitchField = typeof(NetworkPlayerController).GetField(
+                    "_cameraPitch",
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                if (pitchField != null)
+                {
+                    pitchField.SetValue(controller, 0f);
+                }
+
+                if (controller.PlayerCamera != null)
+                {
+                    controller.PlayerCamera.transform.localRotation = Quaternion.identity;
+                }
+            }
 
             if (characterController != null) characterController.enabled = true;
         }
-    }
 
-    // ------------------------------------------------------------------ role / UI orders
+        GameObject lobbyCamera = GameObject.FindWithTag("LobbyCamera");
+        if (lobbyCamera != null)
+        {
+            lobbyCamera.SetActive(false);
+        }
+    }
 
     private void InitializeUiState()
     {
-        // Include: encuentra el script aunque el Canvas este desactivado.
         _roleScreen = FindAnyObjectByType<RoleSelectScreenUI>(FindObjectsInactive.Include);
         if (_roleScreen != null)
         {
             _roleScreen.SetTutorialMode(true);
             _roleScreen.RoleConfirmed += HandleRoleConfirmed;
         }
-        else
-        {
-            Debug.LogWarning("[Tutorial] No se encontro RoleSelectScreenUI en la escena.");
-        }
 
-        // El HUD no tiene sentido sin jugador: se activa al spawnearlo.
         if (_tacticalHudCanvas != null) _tacticalHudCanvas.SetActive(false);
         if (_minimapCanvas != null) _minimapCanvas.SetActive(false);
     }
@@ -386,7 +348,6 @@ public class TutorialManager : NetworkBehaviour
         if (_roleScreen != null)
         {
             _roleScreen.ForceOpen();
-            Debug.Log("[Tutorial] Selector de roles abierto.");
         }
     }
 
@@ -398,11 +359,8 @@ public class TutorialManager : NetworkBehaviour
 
     private void HandleRoleConfirmed(PlayerRoleType role, Team team)
     {
-        Debug.Log($"[Tutorial] Rol confirmado: {role} (estado: {_currentState})");
-
         if (_currentState == TutorialState.ChooseClass)
         {
-            // Primera clase: el jugador aun no existe, se spawnea ahora.
             if (_spawnRoutine == null)
             {
                 _spawnRoutine = StartCoroutine(SpawnPlayerAndStartRoutine(role));
@@ -414,24 +372,13 @@ public class TutorialManager : NetworkBehaviour
         OnRoleSwappedTo(role.ToString());
     }
 
-    /// <summary>
-    /// Aplica el rol directamente al jugador local (host), sin pasar por RoleLobbyManager.
-    /// </summary>
     private void ApplyRoleToLocalPlayer(PlayerRoleType role)
     {
         NetworkManager nm = NetworkManager.Singleton;
-        if (nm == null || !nm.IsListening)
-        {
-            Debug.LogWarning("[Tutorial] Red inactiva: no se puede aplicar el rol al jugador.");
-            return;
-        }
+        if (nm == null || !nm.IsListening) return;
 
         NetworkObject localPlayer = nm.SpawnManager.GetLocalPlayerObject();
-        if (localPlayer == null)
-        {
-            Debug.LogWarning("[Tutorial] Todavia no hay jugador local spawneado.");
-            return;
-        }
+        if (localPlayer == null) return;
 
         NetworkPlayerController controller = localPlayer.GetComponent<NetworkPlayerController>();
         if (controller != null)
@@ -439,8 +386,6 @@ public class TutorialManager : NetworkBehaviour
             controller.SetInitialRole(role);
         }
     }
-
-    // ------------------------------------------------------------------ bomb
 
     private void InitializeTutorialBombListener()
     {
@@ -510,12 +455,9 @@ public class TutorialManager : NetworkBehaviour
         }
     }
 
-    // ------------------------------------------------------------------ state
-
     private void SetState(TutorialState newState)
     {
         _currentState = newState;
-        Debug.Log($"[Tutorial] Estado => {newState}");
         UpdateInstructionText();
 
         if (newState == TutorialState.Completed)
@@ -564,15 +506,8 @@ public class TutorialManager : NetworkBehaviour
         }
     }
 
-    // ------------------------------------------------------------------ ping input
-
-    /// <summary>
-    /// Lee el input del jugador: si coincide con la combinacion de un tipo de ping
-    /// que aun no se ha hecho, lo marca. Al completar los tres pasa a RoleSwapping.
-    /// </summary>
     private void DetectPingInput()
     {
-        // Con el selector abierto o el cursor libre no cuenta (el jugador esta en un menu).
         if (Cursor.lockState != CursorLockMode.Locked) return;
 
         if (!TryGetMousePress(out PingMouseButton pressedButton)) return;
@@ -628,8 +563,6 @@ public class TutorialManager : NetworkBehaviour
                "Group (" + _groupPingInput + ")" + (_hasPingGroup ? " [x]" : "");
     }
 
-    // ------------------------------------------------------------------ notifications (other scripts call these)
-
     public void OnEnteredSideA()
     {
         if (_currentState == TutorialState.MoveToSideA)
@@ -638,7 +571,6 @@ public class TutorialManager : NetworkBehaviour
         }
     }
 
-    /// <param name="pingType">0 = Normal, 1 = Danger, 2 = Group</param>
     public void OnPingPlaced(int pingType)
     {
         if (_currentState != TutorialState.PingSystem) return;
@@ -646,8 +578,6 @@ public class TutorialManager : NetworkBehaviour
         if (pingType == 0) _hasPingNormal = true;
         if (pingType == 1) _hasPingDanger = true;
         if (pingType == 2) _hasPingGroup = true;
-
-        Debug.Log($"[Tutorial] Ping {pingType} (N:{_hasPingNormal} D:{_hasPingDanger} G:{_hasPingGroup})");
 
         if (_hasPingNormal && _hasPingDanger && _hasPingGroup)
         {
@@ -659,26 +589,15 @@ public class TutorialManager : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// Cambia al jugador a Medic en el momento, sin abrir el selector de roles
-    /// (asi no hay que pausar ni desactivar al jugador) y arranca el entrenamiento.
-    /// </summary>
     private void SwitchToMedicNow()
     {
         ApplyRoleToLocalPlayer(PlayerRoleType.Medic);
         SetState(TutorialState.MedicTraining);
         SetGameplayCursor();
-        Debug.Log("[Tutorial] Rol cambiado a Medic automaticamente.");
 
         StartCoroutine(SpawnTrainingDummyRoutine());
     }
 
-    // ------------------------------------------------------------------ medic dummy
-
-    /// <summary>
-    /// Spawnea un segundo jugador "muerto de input" (sin NetworkPlayerController, sin camara,
-    /// sin PlayerInput) a unos metros del jugador, con poca vida, para poder curarlo.
-    /// </summary>
     private IEnumerator SpawnTrainingDummyRoutine()
     {
         if (_dummyPlayer != null || _dummySpawning) yield break;
@@ -691,15 +610,12 @@ public class TutorialManager : NetworkBehaviour
 
         if (localPlayer == null || _runtimePlayerPrefab == null)
         {
-            Debug.LogError("[Tutorial] No se puede crear el dummy (sin jugador local o sin Player Prefab).");
             _dummySpawning = false;
             yield break;
         }
 
         TryGetDummySpawnPose(localPlayer.transform, out Vector3 position, out Quaternion rotation);
 
-        // Se instancia bajo un padre INACTIVO: asi no corren Awake/OnEnable (PlayerInput
-        // no roba los dispositivos del jugador real) hasta que lo hemos neutralizado.
         GameObject holder = new GameObject("DummyHolder");
         holder.SetActive(false);
 
@@ -714,7 +630,6 @@ public class TutorialManager : NetworkBehaviour
         NetworkObject networkObject = dummy.GetComponent<NetworkObject>();
         if (networkObject == null)
         {
-            Debug.LogError("[Tutorial] El Player Prefab no tiene NetworkObject; no se puede crear el dummy.");
             Destroy(dummy);
             _dummySpawning = false;
             yield break;
@@ -723,7 +638,6 @@ public class TutorialManager : NetworkBehaviour
         networkObject.Spawn(true);
         _dummyPlayer = networkObject;
 
-        // Un frame despues, por si NetworkHealth inicializa su vida al spawnear.
         yield return null;
 
         PlayerTeam localTeam = localPlayer.GetComponent<PlayerTeam>();
@@ -739,19 +653,10 @@ public class TutorialManager : NetworkBehaviour
             _dummyHealth.CurrentHealth.Value = _dummyStartHealth;
             _dummyHealth.CurrentHealth.OnValueChanged += HandleDummyHealthChanged;
         }
-        else
-        {
-            Debug.LogWarning("[Tutorial] El dummy no tiene NetworkHealth: no se podra curar.");
-        }
 
-        Debug.Log($"[Tutorial] Dummy spawneado a {_dummyDistance} m en {position}.");
         _dummySpawning = false;
     }
 
-    /// <summary>
-    /// Espera unos segundos con el texto de FINISHED, apaga la sesion local de red
-    /// y carga el menu principal.
-    /// </summary>
     private IEnumerator FinishTutorialRoutine()
     {
         yield return new WaitForSecondsRealtime(_finishDelay);
@@ -773,14 +678,9 @@ public class TutorialManager : NetworkBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        Debug.Log($"[Tutorial] Cargando {_mainMenuSceneName}");
         SceneManager.LoadScene(_mainMenuSceneName);
     }
 
-    /// <summary>
-    /// Lo llama la HealingPistol cuando su raycast toca un collider. Si pertenece al dummy
-    /// y estamos en MedicTraining, completa el tutorial. Devuelve true si era el dummy.
-    /// </summary>
     public bool OnTrainingDummyHit(Collider collider)
     {
         if (_dummyPlayer == null || collider == null) return false;
@@ -790,7 +690,6 @@ public class TutorialManager : NetworkBehaviour
 
         if (_currentState == TutorialState.MedicTraining)
         {
-            Debug.Log("[Tutorial] Healer impacto en el dummy.");
             CheckMedicTrainingProgress(100f);
         }
 
@@ -799,24 +698,17 @@ public class TutorialManager : NetworkBehaviour
 
     private void HandleDummyHealthChanged(float previousHealth, float currentHealth)
     {
-        // Basta con un solo disparo del healer: cualquier subida de vida completa el paso.
         if (currentHealth > previousHealth)
         {
             CheckMedicTrainingProgress(100f);
         }
     }
 
-    /// <summary>
-    /// Deja el dummy inerte. Se hace con el objeto aun inactivo (antes de Spawn) porque
-    /// Netcode ejecuta OnNetworkSpawn aunque un componente este deshabilitado, y en el
-    /// NetworkPlayerController ese metodo activa camara, PlayerInput, cursor y HUD.
-    /// </summary>
     private static void NeutralizeDummy(GameObject dummy)
     {
         NetworkPlayerController controller = dummy.GetComponent<NetworkPlayerController>();
         if (controller != null)
         {
-            // Visual en tercera persona, sin camara ni audio propios.
             GameObject firstPerson = GetPrivateField<GameObject>(controller, "_firstPersonRoot");
             GameObject thirdPerson = GetPrivateField<GameObject>(controller, "_thirdPersonRoot");
             Camera camera = GetPrivateField<Camera>(controller, "_playerCamera");
@@ -833,12 +725,9 @@ public class TutorialManager : NetworkBehaviour
         UnityEngine.InputSystem.PlayerInput playerInput = dummy.GetComponent<UnityEngine.InputSystem.PlayerInput>();
         if (playerInput != null) DestroyImmediate(playerInput);
 
-        // Canvas propio del jugador (HUD) fuera, igual que hace el controller con los remotos.
         Canvas ownCanvas = dummy.GetComponentInChildren<Canvas>(true);
         if (ownCanvas != null) ownCanvas.gameObject.SetActive(false);
 
-        // Cualquier otro script propio que lea input (interactuar, pings, armas...) se apaga,
-        // salvo los que hacen falta para poder curarlo.
         foreach (MonoBehaviour behaviour in dummy.GetComponentsInChildren<MonoBehaviour>(true))
         {
             if (behaviour == null) continue;
@@ -859,10 +748,6 @@ public class TutorialManager : NetworkBehaviour
         return field != null ? field.GetValue(target) as T : null;
     }
 
-    /// <summary>
-    /// Busca un punto a _dummyDistance metros del jugador (delante; si esta bloqueado,
-    /// a los lados o detras), sobre el suelo, mirando hacia el jugador.
-    /// </summary>
     private void TryGetDummySpawnPose(Transform player, out Vector3 position, out Quaternion rotation)
     {
         Vector3 forward = Vector3.ProjectOnPlane(player.forward, Vector3.up);
@@ -902,11 +787,6 @@ public class TutorialManager : NetworkBehaviour
                 found = true;
                 break;
             }
-        }
-
-        if (!found)
-        {
-            Debug.LogWarning("[Tutorial] No se encontro un hueco libre a " + _dummyDistance + " m; el dummy va delante del jugador.");
         }
 
         Vector3 toPlayer = player.position - position;
