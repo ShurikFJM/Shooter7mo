@@ -5,14 +5,15 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class WeaponBase : MonoBehaviour
 {
-    private const float _SPREAD_RECOVERY_SPEED = 12f;
+    private const float _SPREAD_RECOVERY_SPEED = 14f;
+    private const float _MAX_SPREAD_PENALTY = 0.08f;
     private const float _MUZZLE_FLASH_DURATION = 0.05f;
     private const float _IMPACT_LIFETIME = 10f;
     private const float _TRACER_DURATION = 0.04f;
     private const float _TRACER_DESTROY_DELAY = 0.05f;
     private const float _DEFAULT_DAMAGE = 25f;
     private const float _DEFAULT_RELOAD_TIME = 2f;
-    private const float _DEFAULT_BASE_SPREAD = 0.01f;
+    private const float _DEFAULT_BASE_SPREAD = 0.005f;
 
     [SerializeField] protected WeaponData _data;
     [SerializeField] private Material _tracerMaterial;
@@ -22,9 +23,9 @@ public class WeaponBase : MonoBehaviour
     [SerializeField] private Animator _weaponAnimator;
     [SerializeField] private string _reloadAnimationTrigger = "Reload";
 
-    [SerializeField] private Vector3 _kickbackOffset = new Vector3(0f, 0f, -0.05f);
-    [SerializeField] private Vector3 _kickbackRotation = new Vector3(-3f, 0f, 0f);
-    [SerializeField] private float _returnSpeed = 10f;
+    [SerializeField] private Vector3 _kickbackOffset = new Vector3(0f, 0f, -0.03f);
+    [SerializeField] private Vector3 _kickbackRotation = new Vector3(-1.5f, 0f, 0f);
+    [SerializeField] private float _returnSpeed = 12f;
 
     [SerializeField] private int _currentAmmo;
     [SerializeField] private int _reserveAmmo;
@@ -46,11 +47,11 @@ public class WeaponBase : MonoBehaviour
     public WeaponData WeaponData => _data;
     public int CurrentAmmo => _currentAmmo;
     public int ReserveAmmo => _reserveAmmo;
-    public int MagazineCapacity => _data != null ? _data.maxAmmo : 30;
-    public int MaxReserveAmmo => _data != null ? _data.maxAmmo * _data.maxReserveMagazines : 90;
-    public int MaxAmmo => _data != null ? _data.maxAmmo : 30;
+    public int MagazineCapacity => _data != null ? _data.maxAmmo : 30; [cite: 19]
+    public int MaxReserveAmmo => _data != null ? _data.maxAmmo * _data.maxReserveMagazines : 90; [cite: 19]
+    public int MaxAmmo => _data != null ? _data.maxAmmo : 30; [cite: 19]
     public bool IsReloading => _isReloading;
-    public float ReloadDuration => _data != null ? _data.reloadTime : _DEFAULT_RELOAD_TIME;
+    public float ReloadDuration => _data != null ? _data.reloadTime : _DEFAULT_RELOAD_TIME; [cite: 19]
     public float ReloadProgressNormalized => ReloadDuration > 0f ? Mathf.Clamp01(1f - (_reloadRemainingTime / ReloadDuration)) : 0f;
 
     private void Awake()
@@ -114,8 +115,8 @@ public class WeaponBase : MonoBehaviour
     {
         if (_data != null)
         {
-            _currentAmmo = _data.maxAmmo;
-            _reserveAmmo = _data.maxAmmo * _data.maxReserveMagazines;
+            _currentAmmo = _data.maxAmmo; [cite: 19]
+            _reserveAmmo = _data.maxAmmo * _data.maxReserveMagazines; [cite: 19]
         }
     }
 
@@ -159,22 +160,22 @@ public class WeaponBase : MonoBehaviour
 
     public virtual float GetCurrentSpread()
     {
-        float totalSpread = _data != null ? _data.baseSpread : _DEFAULT_BASE_SPREAD;
+        float totalSpread = _data != null ? _data.baseSpread : _DEFAULT_BASE_SPREAD; [cite: 19]
         totalSpread += _firingSpreadPenalty;
 
         if (_playerController != null)
         {
             if (!_playerController.IsGrounded && _data != null)
             {
-                totalSpread *= _data.airSpreadMultiplier;
+                totalSpread *= _data.airSpreadMultiplier; [cite: 19]
             }
             else if (_playerController.IsMoving && _data != null)
             {
-                totalSpread *= _data.movementSpreadMultiplier;
+                totalSpread *= _data.movementSpreadMultiplier; [cite: 19]
             }
         }
 
-        return totalSpread;
+        return Mathf.Clamp(totalSpread, 0f, 0.12f);
     }
 
     public virtual bool CanFire()
@@ -195,12 +196,12 @@ public class WeaponBase : MonoBehaviour
     protected virtual void Shoot()
     {
         _currentAmmo--;
-        float fireRate = _data != null && _data.fireRate > 0f ? _data.fireRate : 0.15f;
+        float fireRate = _data != null && _data.fireRate > 0f ? _data.fireRate : 0.15f; [cite: 19]
         _nextTimeToFire = Time.time + fireRate;
 
         if (_data != null)
         {
-            _firingSpreadPenalty += _data.spreadPerShot;
+            _firingSpreadPenalty = Mathf.Min(_firingSpreadPenalty + _data.spreadPerShot, _MAX_SPREAD_PENALTY); [cite: 19]
         }
 
         PlayRandomShootSound();
@@ -212,14 +213,14 @@ public class WeaponBase : MonoBehaviour
         Vector3 rayDirection = camTransform.forward;
 
         float currentSpread = GetCurrentSpread();
-        if (currentSpread > 0.001f)
+        if (currentSpread > 0.0001f)
         {
-            rayDirection += camTransform.right * Random.Range(-currentSpread, currentSpread);
-            rayDirection += camTransform.up * Random.Range(-currentSpread, currentSpread);
+            Vector2 randomCircle = Random.insideUnitCircle * currentSpread;
+            rayDirection += (camTransform.right * randomCircle.x) + (camTransform.up * randomCircle.y);
             rayDirection.Normalize();
         }
 
-        float maxRange = _data != null ? _data.range : 100f;
+        float maxRange = _data != null ? _data.range : 100f; [cite: 19]
         Vector3 targetPoint = rayOrigin + (rayDirection * maxRange);
 
         RaycastHit[] hits = Physics.RaycastAll(rayOrigin, rayDirection, maxRange, ~0, QueryTriggerInteraction.Ignore);
@@ -240,7 +241,7 @@ public class WeaponBase : MonoBehaviour
             Hitbox hitTarget = hit.collider.GetComponent<Hitbox>();
             if (hitTarget != null)
             {
-                float baseDamage = _data != null ? _data.damage : _DEFAULT_DAMAGE;
+                float baseDamage = _data != null ? _data.damage : _DEFAULT_DAMAGE; [cite: 19]
                 ulong attackerId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
                 hitTarget.ReceiveHit(baseDamage, attackerId);
             }
@@ -263,10 +264,10 @@ public class WeaponBase : MonoBehaviour
 
     private void PlayRandomShootSound()
     {
-        if (_data != null && _data.shootSounds != null && _data.shootSounds.Length > 0 && _audioSource != null)
+        if (_data != null && _data.shootSounds != null && _data.shootSounds.Length > 0 && _audioSource != null) [cite: 19]
         {
-            int randomIndex = Random.Range(0, _data.shootSounds.Length);
-            AudioClip clip = _data.shootSounds[randomIndex];
+            int randomIndex = Random.Range(0, _data.shootSounds.Length); [cite: 19]
+            AudioClip clip = _data.shootSounds[randomIndex]; [cite: 19]
             if (clip != null)
             {
                 _audioSource.PlayOneShot(clip);
@@ -281,7 +282,7 @@ public class WeaponBase : MonoBehaviour
             return;
         }
 
-        if (_currentAmmo >= _data.maxAmmo || _reserveAmmo <= 0)
+        if (_currentAmmo >= _data.maxAmmo || _reserveAmmo <= 0) [cite: 19]
         {
             return;
         }
@@ -316,12 +317,12 @@ public class WeaponBase : MonoBehaviour
     private IEnumerator ReloadCoroutine()
     {
         _isReloading = true;
-        float waitTime = _data != null ? _data.reloadTime : _DEFAULT_RELOAD_TIME;
+        float waitTime = _data != null ? _data.reloadTime : _DEFAULT_RELOAD_TIME; [cite: 19]
         _reloadRemainingTime = waitTime;
 
-        if (_data != null && _data.reloadSound != null && _audioSource != null)
+        if (_data != null && _data.reloadSound != null && _audioSource != null) [cite: 19]
         {
-            _audioSource.PlayOneShot(_data.reloadSound);
+            _audioSource.PlayOneShot(_data.reloadSound); [cite: 19]
         }
 
         if (_weaponAnimator != null)
@@ -332,7 +333,7 @@ public class WeaponBase : MonoBehaviour
 
         yield return new WaitForSeconds(waitTime);
 
-        int neededAmmo = _data.maxAmmo - _currentAmmo;
+        int neededAmmo = _data.maxAmmo - _currentAmmo; [cite: 19]
         int ammoToTransfer = Mathf.Min(neededAmmo, _reserveAmmo);
 
         _currentAmmo += ammoToTransfer;
@@ -373,10 +374,10 @@ public class WeaponBase : MonoBehaviour
 
     private void CreateImpactVisual(RaycastHit hit)
     {
-        if (_data != null && _data.impactPrefabs != null && _data.impactPrefabs.Length > 0)
+        if (_data != null && _data.impactPrefabs != null && _data.impactPrefabs.Length > 0) [cite: 19]
         {
-            int randomIndex = Random.Range(0, _data.impactPrefabs.Length);
-            GameObject selectedPrefab = _data.impactPrefabs[randomIndex];
+            int randomIndex = Random.Range(0, _data.impactPrefabs.Length); [cite: 19]
+            GameObject selectedPrefab = _data.impactPrefabs[randomIndex]; [cite: 19]
 
             if (selectedPrefab != null)
             {
