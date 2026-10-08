@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 3217160544809793302}
   - component: {fileID: 2203678861230458969}
   - component: {fileID: 1373492885218431986}
+  - component: {fileID: 5141321757497337635}
   m_Layer: 7
   m_Name: C4
   m_TagString: Untagged
@@ -107,7 +108,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1693040567
+  GlobalObjectIdHash: 1366868768
   InScenePlacedSourceGlobalObjectIdHash: 1366868768
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -135,18 +136,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bomb
   ShowTopMostFoldoutHeaderGroup: 1
-  _pickupRadius: 2.5
-  _defuseRadius: 2.5
-  _plantDuration: 4
-  _defuseDuration: 5
-  _detonationTime: 40
-  _bombRigidbody: {fileID: 2203678861230458969}
-  _bombCollider: {fileID: 3217160544809793302}
-  _plantedVFX: {fileID: 0}
-  _bombRenderers:
-  - {fileID: 1328483374050561359}
   _bombCarrierTeam: 1
   _defuseTeam: 2
+  _detonationDuration: 45
+  _dropVfxPrefab: {fileID: 0}
+  _plantVfxPrefab: {fileID: 0}
+  _defuseVfxPrefab: {fileID: 0}
+  _explosionVfxPrefab: {fileID: 0}
+  _globalPlantedClip: {fileID: 8300000, guid: ad71a4e14ac42f84e9cb6473357af1c9, type: 3}
+  _bombAudioSource: {fileID: 5141321757497337635}
+  _plantedBeepClip: {fileID: 8300000, guid: 077e6706d5672024c8e30ba7a6937f6d, type: 3}
+  _initialBeepInterval: 1
+  _fastestBeepInterval: 0.1
+  _audioMinDistance: 5
+  _audioMaxDistance: 80
   State:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -256,3 +259,100 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!82 &5141321757497337635
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1801406241733419328}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

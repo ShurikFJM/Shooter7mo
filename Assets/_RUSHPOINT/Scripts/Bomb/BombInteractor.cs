@@ -17,6 +17,11 @@ public class BombInteractor : NetworkBehaviour
     [SerializeField] private float _defuseHoldTime = 5f;
     [SerializeField] private PlayerTeam _playerTeam;
 
+    [Header("Audio SFX (Disparo único al iniciar acción)")]
+    [SerializeField] private AudioSource _interactorAudioSource;
+    [SerializeField] private AudioClip _startPlantingClip;
+    [SerializeField] private AudioClip _startDefusingClip;
+
     private readonly Collider[] _bombHitBuffer = new Collider[_MAX_BUFFER_HITS];
     private readonly Collider[] _siteHitBuffer = new Collider[_MAX_BUFFER_HITS];
 
@@ -53,6 +58,17 @@ public class BombInteractor : NetworkBehaviour
         if (_playerTeam == null)
         {
             _playerTeam = GetComponent<PlayerTeam>();
+        }
+
+        if (_interactorAudioSource == null)
+        {
+            _interactorAudioSource = GetComponent<AudioSource>();
+            if (_interactorAudioSource == null)
+            {
+                _interactorAudioSource = gameObject.AddComponent<AudioSource>();
+                _interactorAudioSource.spatialBlend = 0f;
+                _interactorAudioSource.playOnAwake = false;
+            }
         }
     }
 
@@ -259,6 +275,12 @@ public class BombInteractor : NetworkBehaviour
     {
         _isPlanting = true;
         _plantProgress = 0f;
+
+        // Sonido único al empezar
+        if (_startPlantingClip != null && _interactorAudioSource != null)
+        {
+            _interactorAudioSource.PlayOneShot(_startPlantingClip);
+        }
     }
 
     private void StopPlantingProcess()
@@ -271,6 +293,12 @@ public class BombInteractor : NetworkBehaviour
     {
         _isDefusing = true;
         _defuseProgress = 0f;
+
+        // Sonido único al empezar
+        if (_startDefusingClip != null && _interactorAudioSource != null)
+        {
+            _interactorAudioSource.PlayOneShot(_startDefusingClip);
+        }
     }
 
     private void StopDefusingProcess()
@@ -326,7 +354,12 @@ public class BombInteractor : NetworkBehaviour
     {
         if (_carriedBomb == null) return;
 
-        _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId, transform.position, transform.forward);
+        Vector3 dropOrigin = _interactOrigin != null ? _interactOrigin.position : (transform.position + Vector3.up * 1.2f);
+        Vector3 throwDirection = transform.forward;
+        throwDirection.y = 0f;
+        throwDirection = throwDirection.sqrMagnitude > 0.001f ? throwDirection.normalized : transform.forward;
+
+        _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId, dropOrigin, throwDirection);
 
         _carriedBomb = null;
         StopPlantingProcess();

@@ -93,20 +93,10 @@ public class WeaponBase : MonoBehaviour
         {
             _firePoint = _playerController.PlayerCamera.transform;
         }
-
-        if (_data != null && _currentAmmo <= 0 && !_isReloading)
-        {
-            _currentAmmo = _data.maxAmmo;
-        }
     }
 
     private void Start()
     {
-        if (_data != null && _currentAmmo <= 0)
-        {
-            _currentAmmo = _data.maxAmmo;
-        }
-
         if (_firePoint == null && _playerController != null && _playerController.PlayerCamera != null)
         {
             _firePoint = _playerController.PlayerCamera.transform;

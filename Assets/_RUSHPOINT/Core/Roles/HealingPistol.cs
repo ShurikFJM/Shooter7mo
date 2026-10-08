@@ -1,6 +1,5 @@
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class HealingPistol : WeaponBase
 {
@@ -23,22 +22,17 @@ public class HealingPistol : WeaponBase
         {
             Transform hitRoot = hit.collider.transform.root;
             NetworkPlayerController targetPlayer = hitRoot.GetComponent<NetworkPlayerController>();
-            PlayerTeam targetTeam = hitRoot.GetComponent<PlayerTeam>();
-            PlayerTeam myTeam = GetComponentInParent<PlayerTeam>();
 
-            if (targetPlayer != null && targetTeam != null && myTeam != null)
+            if (targetPlayer != null)
             {
-                if (targetTeam.CurrentTeam.Value == myTeam.CurrentTeam.Value)
+                NetworkHealth targetHealth = hitRoot.GetComponent<NetworkHealth>();
+                if (targetHealth != null && targetHealth.IsAlive.Value)
                 {
-                    NetworkHealth targetHealth = hitRoot.GetComponent<NetworkHealth>();
-                    if (targetHealth != null && targetHealth.IsAlive.Value)
-                    {
-                        targetHealth.HealServerRpc(_healAmount);
+                    targetHealth.HealServerRpc(_healAmount);
 
-                        if (_healImpactEffect != null)
-                        {
-                            Instantiate(_healImpactEffect, hit.point, Quaternion.LookRotation(hit.normal));
-                        }
+                    if (_healImpactEffect != null)
+                    {
+                        Instantiate(_healImpactEffect, hit.point, Quaternion.LookRotation(hit.normal));
                     }
                 }
             }
