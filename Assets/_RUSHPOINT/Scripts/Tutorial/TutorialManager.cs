@@ -1,7 +1,10 @@
 using System;
 using System.Collections;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using Unity.Netcode.Transports.UTP;
 using TMPro;
 #if ENABLE_INPUT_SYSTEM
@@ -93,6 +96,17 @@ public class TutorialManager : NetworkBehaviour
     [Tooltip("Prefab de tu jugador (NetworkPlayerController + NetworkObject). Arrastra aqui el PREFAB, no un objeto de la escena. Se spawnea al confirmar la clase, no al iniciar.")]
     [SerializeField] private NetworkObject _playerPrefab;
 
+    [Header("Medic training dummy")]
+    [Tooltip("Distancia (m) a la que aparece el dummy respecto al jugador.")]
+    [SerializeField] private float _dummyDistance = 6f;
+    [Tooltip("Vida con la que aparece el dummy (hay que curarlo).")]
+    [SerializeField] private float _dummyStartHealth = 40f;
+
+    [Header("Finish")]
+    [SerializeField] private string _mainMenuSceneName = "MainMenuScene";
+    [Tooltip("Segundos que se muestra el texto final antes de cargar el menu.")]
+    [SerializeField] private float _finishDelay = 4f;
+
     [Header("Local network (tutorial)")]
     [SerializeField] private string _localAddress = "127.0.0.1";
     [SerializeField] private ushort _localPort = 7777;
@@ -112,6 +126,9 @@ public class TutorialManager : NetworkBehaviour
     private bool _hasPingGroup;
     private Coroutine _spawnRoutine;
     private GameObject _runtimePlayerPrefab;
+    private NetworkObject _dummyPlayer;
+    private NetworkHealth _dummyHealth;
+    private bool _dummySpawning;
 
     // ------------------------------------------------------------------ lifecycle
 
@@ -153,6 +170,11 @@ public class TutorialManager : NetworkBehaviour
         if (Instance == this)
         {
             Instance = null;
+        }
+
+        if (_dummyHealth != null)
+        {
+            _dummyHealth.CurrentHealth.OnValueChanged -= HandleDummyHealthChanged;
         }
 
         if (_sceneBomb != null)
@@ -495,6 +517,12 @@ public class TutorialManager : NetworkBehaviour
         _currentState = newState;
         Debug.Log($"[Tutorial] Estado => {newState}");
         UpdateInstructionText();
+
+        if (newState == TutorialState.Completed)
+        {
+            Invoke(nameof(DespawnTrainingDummy), 2f);
+            StartCoroutine(FinishTutorialRoutine());
+        }
     }
 
     private void UpdateInstructionText()
@@ -528,10 +556,10 @@ public class TutorialManager : NetworkBehaviour
                 _instructionText.text = "Select the Medic class and press Confirm.";
                 break;
             case TutorialState.MedicTraining:
-                _instructionText.text = "Draw your Healing Pistol and fire until the target unit is at 100%.";
+                _instructionText.text = "Draw your Healing Pistol and heal the target unit.";
                 break;
             case TutorialState.Completed:
-                _instructionText.text = "Training sequence complete. Ready for competitive operations.";
+                _instructionText.text = "FINISHED\nTraining sequence complete. Returning to main menu...";
                 break;
         }
     }
@@ -641,6 +669,265 @@ public class TutorialManager : NetworkBehaviour
         SetState(TutorialState.MedicTraining);
         SetGameplayCursor();
         Debug.Log("[Tutorial] Rol cambiado a Medic automaticamente.");
+
+        StartCoroutine(SpawnTrainingDummyRoutine());
+    }
+
+    // ------------------------------------------------------------------ medic dummy
+
+    /// <summary>
+    /// Spawnea un segundo jugador "muerto de input" (sin NetworkPlayerController, sin camara,
+    /// sin PlayerInput) a unos metros del jugador, con poca vida, para poder curarlo.
+    /// </summary>
+    private IEnumerator SpawnTrainingDummyRoutine()
+    {
+        if (_dummyPlayer != null || _dummySpawning) yield break;
+        _dummySpawning = true;
+
+        NetworkManager nm = NetworkManager.Singleton;
+        NetworkObject localPlayer = nm != null && nm.IsServer
+            ? nm.SpawnManager.GetLocalPlayerObject()
+            : null;
+
+        if (localPlayer == null || _runtimePlayerPrefab == null)
+        {
+            Debug.LogError("[Tutorial] No se puede crear el dummy (sin jugador local o sin Player Prefab).");
+            _dummySpawning = false;
+            yield break;
+        }
+
+        TryGetDummySpawnPose(localPlayer.transform, out Vector3 position, out Quaternion rotation);
+
+        // Se instancia bajo un padre INACTIVO: asi no corren Awake/OnEnable (PlayerInput
+        // no roba los dispositivos del jugador real) hasta que lo hemos neutralizado.
+        GameObject holder = new GameObject("DummyHolder");
+        holder.SetActive(false);
+
+        GameObject dummy = Instantiate(_runtimePlayerPrefab, position, rotation, holder.transform);
+        dummy.name = "TutorialDummy";
+
+        NeutralizeDummy(dummy);
+
+        dummy.transform.SetParent(null, true);
+        Destroy(holder);
+
+        NetworkObject networkObject = dummy.GetComponent<NetworkObject>();
+        if (networkObject == null)
+        {
+            Debug.LogError("[Tutorial] El Player Prefab no tiene NetworkObject; no se puede crear el dummy.");
+            Destroy(dummy);
+            _dummySpawning = false;
+            yield break;
+        }
+
+        networkObject.Spawn(true);
+        _dummyPlayer = networkObject;
+
+        // Un frame despues, por si NetworkHealth inicializa su vida al spawnear.
+        yield return null;
+
+        PlayerTeam localTeam = localPlayer.GetComponent<PlayerTeam>();
+        PlayerTeam dummyTeam = dummy.GetComponent<PlayerTeam>();
+        if (localTeam != null && dummyTeam != null)
+        {
+            dummyTeam.CurrentTeam.Value = localTeam.CurrentTeam.Value;
+        }
+
+        _dummyHealth = dummy.GetComponent<NetworkHealth>();
+        if (_dummyHealth != null)
+        {
+            _dummyHealth.CurrentHealth.Value = _dummyStartHealth;
+            _dummyHealth.CurrentHealth.OnValueChanged += HandleDummyHealthChanged;
+        }
+        else
+        {
+            Debug.LogWarning("[Tutorial] El dummy no tiene NetworkHealth: no se podra curar.");
+        }
+
+        Debug.Log($"[Tutorial] Dummy spawneado a {_dummyDistance} m en {position}.");
+        _dummySpawning = false;
+    }
+
+    /// <summary>
+    /// Espera unos segundos con el texto de FINISHED, apaga la sesion local de red
+    /// y carga el menu principal.
+    /// </summary>
+    private IEnumerator FinishTutorialRoutine()
+    {
+        yield return new WaitForSecondsRealtime(_finishDelay);
+
+        NetworkManager nm = NetworkManager.Singleton;
+        if (nm != null && nm.IsListening)
+        {
+            nm.Shutdown();
+
+            float timeout = 3f;
+            while (nm != null && nm.ShutdownInProgress && timeout > 0f)
+            {
+                timeout -= Time.unscaledDeltaTime;
+                yield return null;
+            }
+        }
+
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        Debug.Log($"[Tutorial] Cargando {_mainMenuSceneName}");
+        SceneManager.LoadScene(_mainMenuSceneName);
+    }
+
+    /// <summary>
+    /// Lo llama la HealingPistol cuando su raycast toca un collider. Si pertenece al dummy
+    /// y estamos en MedicTraining, completa el tutorial. Devuelve true si era el dummy.
+    /// </summary>
+    public bool OnTrainingDummyHit(Collider collider)
+    {
+        if (_dummyPlayer == null || collider == null) return false;
+
+        NetworkObject hitObject = collider.GetComponentInParent<NetworkObject>();
+        if (hitObject != _dummyPlayer) return false;
+
+        if (_currentState == TutorialState.MedicTraining)
+        {
+            Debug.Log("[Tutorial] Healer impacto en el dummy.");
+            CheckMedicTrainingProgress(100f);
+        }
+
+        return true;
+    }
+
+    private void HandleDummyHealthChanged(float previousHealth, float currentHealth)
+    {
+        // Basta con un solo disparo del healer: cualquier subida de vida completa el paso.
+        if (currentHealth > previousHealth)
+        {
+            CheckMedicTrainingProgress(100f);
+        }
+    }
+
+    /// <summary>
+    /// Deja el dummy inerte. Se hace con el objeto aun inactivo (antes de Spawn) porque
+    /// Netcode ejecuta OnNetworkSpawn aunque un componente este deshabilitado, y en el
+    /// NetworkPlayerController ese metodo activa camara, PlayerInput, cursor y HUD.
+    /// </summary>
+    private static void NeutralizeDummy(GameObject dummy)
+    {
+        NetworkPlayerController controller = dummy.GetComponent<NetworkPlayerController>();
+        if (controller != null)
+        {
+            // Visual en tercera persona, sin camara ni audio propios.
+            GameObject firstPerson = GetPrivateField<GameObject>(controller, "_firstPersonRoot");
+            GameObject thirdPerson = GetPrivateField<GameObject>(controller, "_thirdPersonRoot");
+            Camera camera = GetPrivateField<Camera>(controller, "_playerCamera");
+            AudioListener listener = GetPrivateField<AudioListener>(controller, "_audioListener");
+
+            if (firstPerson != null) firstPerson.SetActive(false);
+            if (thirdPerson != null) thirdPerson.SetActive(true);
+            if (camera != null) camera.gameObject.SetActive(false);
+            if (listener != null) listener.enabled = false;
+
+            DestroyImmediate(controller);
+        }
+
+        UnityEngine.InputSystem.PlayerInput playerInput = dummy.GetComponent<UnityEngine.InputSystem.PlayerInput>();
+        if (playerInput != null) DestroyImmediate(playerInput);
+
+        // Canvas propio del jugador (HUD) fuera, igual que hace el controller con los remotos.
+        Canvas ownCanvas = dummy.GetComponentInChildren<Canvas>(true);
+        if (ownCanvas != null) ownCanvas.gameObject.SetActive(false);
+
+        // Cualquier otro script propio que lea input (interactuar, pings, armas...) se apaga,
+        // salvo los que hacen falta para poder curarlo.
+        foreach (MonoBehaviour behaviour in dummy.GetComponentsInChildren<MonoBehaviour>(true))
+        {
+            if (behaviour == null) continue;
+            if (behaviour is NetworkObject || behaviour is NetworkTransform) continue;
+            if (behaviour is NetworkHealth || behaviour is PlayerTeam) continue;
+            if (!string.IsNullOrEmpty(behaviour.GetType().Namespace)) continue;
+
+            behaviour.enabled = false;
+        }
+    }
+
+    private static T GetPrivateField<T>(object target, string fieldName) where T : class
+    {
+        FieldInfo field = target.GetType().GetField(
+            fieldName,
+            BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+        return field != null ? field.GetValue(target) as T : null;
+    }
+
+    /// <summary>
+    /// Busca un punto a _dummyDistance metros del jugador (delante; si esta bloqueado,
+    /// a los lados o detras), sobre el suelo, mirando hacia el jugador.
+    /// </summary>
+    private void TryGetDummySpawnPose(Transform player, out Vector3 position, out Quaternion rotation)
+    {
+        Vector3 forward = Vector3.ProjectOnPlane(player.forward, Vector3.up);
+        forward = forward.sqrMagnitude > 0.001f ? forward.normalized : Vector3.forward;
+
+        Vector3[] directions =
+        {
+            forward,
+            Quaternion.Euler(0f, 90f, 0f) * forward,
+            Quaternion.Euler(0f, -90f, 0f) * forward,
+            -forward
+        };
+
+        position = player.position + forward * _dummyDistance;
+        bool found = false;
+
+        foreach (Vector3 direction in directions)
+        {
+            Vector3 candidate = player.position + direction * _dummyDistance;
+            Vector3 rayOrigin = new Vector3(candidate.x, player.position.y + 1.5f, candidate.z);
+
+            if (!Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, 6f, ~0, QueryTriggerInteraction.Ignore))
+            {
+                continue;
+            }
+
+            candidate.y = hit.point.y;
+
+            bool blocked = Physics.CheckCapsule(
+                candidate + Vector3.up * 0.5f,
+                candidate + Vector3.up * 1.6f,
+                0.4f, ~0, QueryTriggerInteraction.Ignore);
+
+            if (!blocked)
+            {
+                position = candidate;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            Debug.LogWarning("[Tutorial] No se encontro un hueco libre a " + _dummyDistance + " m; el dummy va delante del jugador.");
+        }
+
+        Vector3 toPlayer = player.position - position;
+        toPlayer.y = 0f;
+        rotation = toPlayer.sqrMagnitude > 0.001f ? Quaternion.LookRotation(toPlayer) : Quaternion.identity;
+    }
+
+    private void DespawnTrainingDummy()
+    {
+        if (_dummyHealth != null)
+        {
+            _dummyHealth.CurrentHealth.OnValueChanged -= HandleDummyHealthChanged;
+            _dummyHealth = null;
+        }
+
+        if (_dummyPlayer != null && _dummyPlayer.IsSpawned)
+        {
+            _dummyPlayer.Despawn(true);
+        }
+
+        _dummyPlayer = null;
     }
 
     public void OnRoleSwappedTo(string roleName)

@@ -21,6 +21,17 @@ public class HealingPistol : WeaponBase
 
         if (Physics.Raycast(ray, out RaycastHit hit, range, ~0, QueryTriggerInteraction.Collide))
         {
+            // Tutorial: si el disparo toca al dummy de entrenamiento, el paso se da por completado.
+            if (TutorialManager.Instance != null && TutorialManager.Instance.OnTrainingDummyHit(hit.collider))
+            {
+                if (_healImpactEffect != null)
+                {
+                    Instantiate(_healImpactEffect, hit.point, Quaternion.LookRotation(hit.normal));
+                }
+
+                return;
+            }
+
             Transform hitRoot = hit.collider.transform.root;
             NetworkPlayerController targetPlayer = hitRoot.GetComponent<NetworkPlayerController>();
             PlayerTeam targetTeam = hitRoot.GetComponent<PlayerTeam>();
