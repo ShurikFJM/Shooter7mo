@@ -72,7 +72,23 @@ public class PlayerPingSystem : NetworkBehaviour
         if (IsSpawned && !IsOwner) return;
         if (Mouse.current == null) return;
 
+        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
+        {
+            if (_isHoldingPing || _radialMenuOpen)
+            {
+                CancelPingInput();
+            }
+            return;
+        }
+
         HandlePingInput();
+    }
+
+    private void CancelPingInput()
+    {
+        _isHoldingPing = false;
+        _holdTimer = 0f;
+        CloseRadialMenu();
     }
 
     private void HandlePingInput()
@@ -122,7 +138,7 @@ public class PlayerPingSystem : NetworkBehaviour
         }
         else
         {
-            FindFirstObjectByType<PingWheelUI>()?.Open();
+            FindAnyObjectByType<PingWheelUI>()?.Open();
         }
 
         Cursor.lockState = CursorLockMode.None;
@@ -156,7 +172,7 @@ public class PlayerPingSystem : NetworkBehaviour
         }
         else
         {
-            FindFirstObjectByType<PingWheelUI>()?.UpdateVisuals(_selectedPingType);
+            FindAnyObjectByType<PingWheelUI>()?.UpdateVisuals(_selectedPingType);
         }
     }
 
@@ -204,7 +220,7 @@ public class PlayerPingSystem : NetworkBehaviour
         }
         else
         {
-            FindFirstObjectByType<PingWheelUI>()?.Close();
+            FindAnyObjectByType<PingWheelUI>()?.Close();
         }
 
         Cursor.lockState = CursorLockMode.Locked;

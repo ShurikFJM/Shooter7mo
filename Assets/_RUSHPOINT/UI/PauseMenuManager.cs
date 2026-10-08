@@ -135,6 +135,11 @@ public class PauseMenuManager : MonoBehaviour
         SetPauseState(false);
     }
 
+    public void PauseGame()
+    {
+        SetPauseState(true);
+    }
+
     private void SetPauseState(bool state)
     {
         _isPaused = state;
@@ -143,19 +148,35 @@ public class PauseMenuManager : MonoBehaviour
         {
             if (_pauseMenuRoot != null) _pauseMenuRoot.SetActive(true);
             ShowMainPausePanel();
-
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            CursorStateManager.Instance?.RegisterCursorUnlockRequester();
         }
         else
         {
             ForceHideAll();
-
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            CursorStateManager.Instance?.UnregisterCursorUnlockRequester();
         }
 
         UpdateLocalPlayerInputState(!_isPaused);
+    }
+
+    private bool ShouldKeepCursorUnlocked()
+    {
+        if (RoleSelectScreenUI.Instance != null && RoleSelectScreenUI.Instance.IsRoleSelectionActive)
+        {
+            return true;
+        }
+
+        if (RoundManager.Instance != null && RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers)
+        {
+            return true;
+        }
+
+        if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private void ForceHideAll()
@@ -198,14 +219,35 @@ public class PauseMenuManager : MonoBehaviour
         if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null) return;
 
         NetworkObject localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
-        if (localPlayer != null)
+        if (localPlayer == null) return;
+
+        NetworkPlayerController playerController = localPlayer.GetComponent<NetworkPlayerController>();
+        PlayerInput playerInput = localPlayer.GetComponent<PlayerInput>();
+
+        if (!enableInput)
         {
-            PlayerInput playerInput = localPlayer.GetComponent<PlayerInput>();
+            if (playerController != null)
+            {
+                playerController.SetCursorLocked(false);
+            }
+
             if (playerInput != null)
             {
-                if (enableInput) playerInput.ActivateInput();
-                else playerInput.DeactivateInput();
+                playerInput.DeactivateInput();
             }
+            return;
+        }
+
+        bool shouldKeepCursorUnlocked = ShouldKeepCursorUnlocked();
+
+        if (playerInput != null)
+        {
+            playerInput.ActivateInput();
+        }
+
+        if (playerController != null)
+        {
+            playerController.SetCursorLocked(!shouldKeepCursorUnlocked);
         }
     }
 

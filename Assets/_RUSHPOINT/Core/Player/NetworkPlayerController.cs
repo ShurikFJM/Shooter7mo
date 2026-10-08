@@ -16,7 +16,7 @@ public class NetworkPlayerController : NetworkBehaviour
     private const float _CROUCH_TRANSITION_SPEED = 12f;
     private const float _MIN_MOVE_MAGNITUDE_SQR = 0.01f;
     private const float _CAMERA_PLANE_DISTANCE = 1f;
-    private const string _LOBBY_CAMERA_TAG = "LobbyCamera";
+    private const string LOBBY_CAMERA_TAG = "LobbyCamera";
 
     [SerializeField] private CharacterController _characterController;
     [SerializeField] private Transform _cameraRoot;
@@ -42,10 +42,16 @@ public class NetworkPlayerController : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    public Camera PlayerCamera => _playerCamera;
+    public bool IsGrounded => _characterController != null && _characterController.isGrounded;
+    public bool IsMoving => _moveInput.sqrMagnitude > _MIN_MOVE_MAGNITUDE_SQR;
+    public RoleDataSO ActiveRole => _activeRole;
+
     private RoleDataSO _activeRole;
     private NetworkHealth _networkHealth;
     private PlayerTeam _playerTeam;
     private WeaponInventory _weaponInventory;
+    private PlayerMovementAudio _playerMovementAudio;
     private float _verticalVelocity;
     private Vector2 _moveInput;
     private Vector2 _lookInput;
@@ -55,13 +61,8 @@ public class NetworkPlayerController : NetworkBehaviour
     private bool _jumpRequested;
     private float _cameraPitch;
     private float _defaultCameraLocalY;
-    private bool _hasInitiatedSpectate = false;
+    private bool _hasInitiatedSpectate;
     private PlayerRoleType _lastAppliedRole = (PlayerRoleType)(-1);
-
-    public Camera PlayerCamera => _playerCamera;
-    public bool IsGrounded => _characterController != null && _characterController.isGrounded;
-    public bool IsMoving => _moveInput.sqrMagnitude > _MIN_MOVE_MAGNITUDE_SQR;
-    public RoleDataSO ActiveRole => _activeRole;
 
     private void Awake()
     {
@@ -93,6 +94,7 @@ public class NetworkPlayerController : NetworkBehaviour
         _networkHealth = GetComponent<NetworkHealth>();
         _playerTeam = GetComponent<PlayerTeam>();
         _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
+        _playerMovementAudio = GetComponent<PlayerMovementAudio>();
     }
 
     public override void OnNetworkSpawn()
@@ -154,8 +156,15 @@ public class NetworkPlayerController : NetworkBehaviour
                 localPlayerCanvas.gameObject.SetActive(false);
             }
 
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            if (CursorStateManager.Instance != null)
+            {
+                CursorStateManager.Instance.OnCursorLockStateChanged += HandleCursorLockStateChanged;
+                CursorStateManager.Instance.ForceEvaluateState();
+            }
+            else
+            {
+                SetCursorLocked(true);
+            }
 
             Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include);
             foreach (Canvas canvas in allCanvases)
@@ -174,7 +183,7 @@ public class NetworkPlayerController : NetworkBehaviour
                 tacticalHud.Inventory = _weaponInventory;
             }
 
-            Camera lobbyCamera = GameObject.FindWithTag(_LOBBY_CAMERA_TAG)?.GetComponent<Camera>();
+            Camera lobbyCamera = GameObject.FindWithTag(LOBBY_CAMERA_TAG)?.GetComponent<Camera>();
             if (lobbyCamera != null)
             {
                 lobbyCamera.gameObject.SetActive(false);
@@ -244,6 +253,23 @@ public class NetworkPlayerController : NetworkBehaviour
         {
             _networkHealth.CurrentHealth.OnValueChanged -= HandleHealthChanged;
         }
+
+        if (IsOwner && CursorStateManager.Instance != null)
+        {
+            CursorStateManager.Instance.OnCursorLockStateChanged -= HandleCursorLockStateChanged;
+        }
+    }
+
+    private void HandleCursorLockStateChanged(bool isLocked)
+    {
+        if (!isLocked)
+        {
+            _moveInput = Vector2.zero;
+            _lookInput = Vector2.zero;
+            _isSprinting = false;
+            _isWalkingSlow = false;
+            _jumpRequested = false;
+        }
     }
 
     private void HandleHealthChanged(float previousHealth, float currentHealth)
@@ -310,6 +336,13 @@ public class NetworkPlayerController : NetworkBehaviour
                 return;
             }
 
+            if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
+            {
+                _moveInput = Vector2.zero;
+                _lookInput = Vector2.zero;
+                return;
+            }
+
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
                 bool isUiOpen = (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused) ||
@@ -318,8 +351,15 @@ public class NetworkPlayerController : NetworkBehaviour
 
                 if (!isUiOpen && Cursor.lockState != CursorLockMode.Locked)
                 {
-                    Cursor.lockState = CursorLockMode.Locked;
-                    Cursor.visible = false;
+                    if (CursorStateManager.Instance != null)
+                    {
+                        CursorStateManager.Instance.ForceEvaluateState();
+                    }
+                    else
+                    {
+                        Cursor.lockState = CursorLockMode.Locked;
+                        Cursor.visible = false;
+                    }
                 }
             }
 
@@ -329,6 +369,21 @@ public class NetworkPlayerController : NetworkBehaviour
         }
 
         HandleCrouchHeightTransition();
+    }
+
+    public void SetCursorLocked(bool locked)
+    {
+        Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = !locked;
+
+        if (!locked)
+        {
+            _moveInput = Vector2.zero;
+            _lookInput = Vector2.zero;
+            _isSprinting = false;
+            _isWalkingSlow = false;
+            _jumpRequested = false;
+        }
     }
 
     private void HandleDeathCheck()
@@ -448,7 +503,7 @@ public class NetworkPlayerController : NetworkBehaviour
             (RoundManager.Instance.CurrentPhase.Value == RoundPhase.WaitingForPlayers ||
              RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup);
 
-        if (isLockedPhase)
+        if (isLockedPhase || (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused))
         {
             _moveInput = Vector2.zero;
             return;
@@ -457,7 +512,16 @@ public class NetworkPlayerController : NetworkBehaviour
         _moveInput = value.Get<Vector2>();
     }
 
-    public void OnLook(InputValue value) => _lookInput = value.Get<Vector2>();
+    public void OnLook(InputValue value)
+    {
+        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
+        {
+            _lookInput = Vector2.zero;
+            return;
+        }
+
+        _lookInput = value.Get<Vector2>();
+    }
 
     public void OnJump(InputValue value)
     {
@@ -468,7 +532,7 @@ public class NetworkPlayerController : NetworkBehaviour
         BombInteractor bombInteractor = GetComponent<BombInteractor>();
         bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
 
-        if (isLockedPhase || isInteractingBomb) return;
+        if (isLockedPhase || isInteractingBomb || (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)) return;
 
         if (value.isPressed && IsGrounded && !_isCrouching)
         {
@@ -500,7 +564,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void HandleCameraRotation()
     {
-        if (_cameraRoot == null) return;
+        if (_cameraRoot == null || Cursor.lockState != CursorLockMode.Locked) return;
 
         float mouseYaw = _lookInput.x * _mouseSensitivity;
         transform.Rotate(Vector3.up * mouseYaw);
@@ -603,6 +667,11 @@ public class NetworkPlayerController : NetworkBehaviour
                 float jumpForce = _activeRole != null ? _activeRole.jumpForce : _DEFAULT_JUMP_FORCE;
                 _verticalVelocity = Mathf.Sqrt(jumpForce * -2f * _GRAVITY);
                 _jumpRequested = false;
+
+                if (_playerMovementAudio != null)
+                {
+                    _playerMovementAudio.OnPlayerJumped();
+                }
             }
         }
         else

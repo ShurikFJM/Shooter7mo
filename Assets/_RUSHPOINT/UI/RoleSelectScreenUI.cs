@@ -9,6 +9,8 @@ public class RoleSelectScreenUI : MonoBehaviour
     private const string _ARMOR_PREFIX = "Armor: ";
     private const string _SPEED_PREFIX = "Speed: ";
 
+    public static RoleSelectScreenUI Instance { get; private set; }
+
     [SerializeField] private GameObject _screenRoot;
     [SerializeField] private RoleDatabaseSO _roleDatabase;
     [SerializeField] private TMP_Text _roleNameText;
@@ -38,9 +40,18 @@ public class RoleSelectScreenUI : MonoBehaviour
     private bool _hasLockedIn = false;
 
     public bool HasLockedIn => _hasLockedIn;
+    public bool IsRoleSelectionActive => !_hasLockedIn && _screenRoot != null && _screenRoot.activeSelf;
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+
         BindButtonCallbacks();
 
         if (_tacticalHudRoot != null) _tacticalHudRoot.SetActive(false);

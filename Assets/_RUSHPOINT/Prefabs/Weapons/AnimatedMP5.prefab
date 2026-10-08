@@ -117,7 +117,7 @@ AudioSource:
   m_GameObject: {fileID: 1835366282357566443}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 149552297876152156, guid: 2157669b2e7d95f4ca5cbc4c019a0121, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
@@ -217,7 +217,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ceb845fd9d23ef64293789ad23fdacbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
-  ShowTopMostFoldoutHeaderGroup: 1
   _data: {fileID: 11400000, guid: 111ae2b5472c6d641b7226df2e4dfa3b, type: 2}
   _firePoint: {fileID: 5933987247346305336}
   _playerController: {fileID: 0}

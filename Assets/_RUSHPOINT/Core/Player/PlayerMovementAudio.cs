@@ -7,22 +7,30 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController), typeof(AudioSource))]
 public class PlayerMovementAudio : NetworkBehaviour
 {
-    [Header("Audio Source 3D")]
+    private const float SPATIAL_BLEND_3D = 1f;
+    private const float MIN_AUDIO_DISTANCE = 2f;
+    private const float MAX_AUDIO_DISTANCE = 25f;
+    private const float DEFAULT_FOOTSTEP_VOLUME = 0.7f;
+    private const float DEFAULT_ACTION_VOLUME = 1f;
+    private const float FOOTSTEP_MIN_PITCH = 0.9f;
+    private const float FOOTSTEP_MAX_PITCH = 1.1f;
+    private const float JUMP_MIN_PITCH = 0.95f;
+    private const float JUMP_MAX_PITCH = 1.05f;
+    private const float LAND_MIN_PITCH = 0.9f;
+    private const float LAND_MAX_PITCH = 1.1f;
+    private const float MIN_DISTANCE_DELTA_SQR = 0.00001f;
+
     [SerializeField] private AudioSource _audioSource;
-
-    [Header("Footsteps SFX (Normal movement)")]
     [SerializeField] private AudioClip[] _footstepClips;
-    [SerializeField] private float _stepInterval = 0.45f;
-    [SerializeField] private float _minMoveSpeedThreshold = 1.2f;
-
-    [Header("Jump & Landing SFX (Always audible)")]
+    [SerializeField] private float _stepDistance = 1.4f;
     [SerializeField] private AudioClip[] _jumpClips;
     [SerializeField] private AudioClip[] _landClips;
     [SerializeField] private float _minFallDistanceForLandSound = 0.35f;
 
     private CharacterController _characterController;
     private NetworkPlayerController _playerController;
-    private float _stepTimer;
+    private Vector3 _lastGroundedPosition;
+    private float _accumulatedStepDistance;
     private bool _wasGroundedLastFrame = true;
     private float _highestAirPointY;
 
@@ -38,53 +46,61 @@ public class PlayerMovementAudio : NetworkBehaviour
 
         if (_audioSource != null)
         {
-            _audioSource.spatialBlend = 1f; // 3D Audio
+            _audioSource.spatialBlend = SPATIAL_BLEND_3D;
             _audioSource.rolloffMode = AudioRolloffMode.Linear;
-            _audioSource.minDistance = 2f;
-            _audioSource.maxDistance = 25f;
+            _audioSource.minDistance = MIN_AUDIO_DISTANCE;
+            _audioSource.maxDistance = MAX_AUDIO_DISTANCE;
             _audioSource.playOnAwake = false;
         }
+
+        _lastGroundedPosition = transform.position;
     }
 
     private void Update()
     {
-        // Solo el dueño de la entidad evalúa su movimiento e inputs para disparar la red
-        if (!IsOwner) return;
+        if (!IsOwner)
+        {
+            return;
+        }
+
+        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
+        {
+            _lastGroundedPosition = transform.position;
+            return;
+        }
 
         CheckLandingAndAirState();
-        CheckFootsteps();
+        CheckFootstepsByDistance();
     }
 
-    private void CheckFootsteps()
+    private void CheckFootstepsByDistance()
     {
         if (!_characterController.isGrounded)
         {
-            _stepTimer = _stepInterval;
+            _lastGroundedPosition = transform.position;
             return;
         }
 
-        // Si se presiona Shift (caminar lento) o Ctrl (agacharse), silencio absoluto
+        Vector3 currentPosition = transform.position;
+        Vector3 displacementVector = new Vector3(currentPosition.x - _lastGroundedPosition.x, 0f, currentPosition.z - _lastGroundedPosition.z);
+        float frameDistance = displacementVector.magnitude;
+
+        _lastGroundedPosition = currentPosition;
+
         if (IsStealthKeyPressed())
         {
-            _stepTimer = _stepInterval;
             return;
         }
 
-        // Medir velocidad en el plano horizontal (ignorar eje vertical Y)
-        Vector3 horizontalVelocity = new Vector3(_characterController.velocity.x, 0f, _characterController.velocity.z);
-
-        if (horizontalVelocity.magnitude > _minMoveSpeedThreshold)
+        if (displacementVector.sqrMagnitude > MIN_DISTANCE_DELTA_SQR)
         {
-            _stepTimer -= Time.deltaTime;
-            if (_stepTimer <= 0f)
+            _accumulatedStepDistance += frameDistance;
+
+            if (_accumulatedStepDistance >= _stepDistance)
             {
-                _stepTimer = _stepInterval;
+                _accumulatedStepDistance = 0f;
                 PlayFootstepServerRpc();
             }
-        }
-        else
-        {
-            _stepTimer = _stepInterval;
         }
     }
 
@@ -94,7 +110,6 @@ public class PlayerMovementAudio : NetworkBehaviour
 
         if (!isGrounded)
         {
-            // Registrar el punto más alto mientras está en el aire
             if (transform.position.y > _highestAirPointY)
             {
                 _highestAirPointY = transform.position.y;
@@ -102,7 +117,6 @@ public class PlayerMovementAudio : NetworkBehaviour
         }
         else
         {
-            // Aterrizó este frame viniendo del aire
             if (!_wasGroundedLastFrame)
             {
                 float fallDistance = _highestAirPointY - transform.position.y;
@@ -118,13 +132,13 @@ public class PlayerMovementAudio : NetworkBehaviour
         _wasGroundedLastFrame = isGrounded;
     }
 
-    /// <summary>
-    /// Llamar este método desde tu script de salto (ej. en NetworkPlayerController cuando salta).
-    /// Si o sí suena, ignorando Shift o Ctrl.
-    /// </summary>
     public void OnPlayerJumped()
     {
-        if (!IsOwner) return;
+        if (!IsOwner)
+        {
+            return;
+        }
+
         _highestAirPointY = transform.position.y;
         PlayJumpServerRpc();
     }
@@ -132,11 +146,14 @@ public class PlayerMovementAudio : NetworkBehaviour
     private bool IsStealthKeyPressed()
     {
 #if ENABLE_INPUT_SYSTEM
-        Keyboard keyboard = Keyboard.current;
-        if (keyboard == null) return false;
+        Keyboard currentKeyboard = Keyboard.current;
+        if (currentKeyboard == null)
+        {
+            return false;
+        }
 
-        bool shiftHeld = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
-        bool ctrlHeld = keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed;
+        bool shiftHeld = currentKeyboard.leftShiftKey.isPressed || currentKeyboard.rightShiftKey.isPressed;
+        bool ctrlHeld = currentKeyboard.leftCtrlKey.isPressed || currentKeyboard.rightCtrlKey.isPressed;
         return shiftHeld || ctrlHeld;
 #else
         bool shiftHeld = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
@@ -144,8 +161,6 @@ public class PlayerMovementAudio : NetworkBehaviour
         return shiftHeld || ctrlHeld;
 #endif
     }
-
-    // ------------------------------------------------------------------ Netcode RPCs
 
     [Rpc(SendTo.Server)]
     private void PlayFootstepServerRpc()
@@ -156,7 +171,7 @@ public class PlayerMovementAudio : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void PlayFootstepClientRpc()
     {
-        PlayRandomClip(_footstepClips, 0.7f, 0.9f, 1.1f);
+        PlayRandomClip(_footstepClips, DEFAULT_FOOTSTEP_VOLUME, FOOTSTEP_MIN_PITCH, FOOTSTEP_MAX_PITCH);
     }
 
     [Rpc(SendTo.Server)]
@@ -168,7 +183,7 @@ public class PlayerMovementAudio : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void PlayJumpClientRpc()
     {
-        PlayRandomClip(_jumpClips, 1.0f, 0.95f, 1.05f);
+        PlayRandomClip(_jumpClips, DEFAULT_ACTION_VOLUME, JUMP_MIN_PITCH, JUMP_MAX_PITCH);
     }
 
     [Rpc(SendTo.Server)]
@@ -180,20 +195,23 @@ public class PlayerMovementAudio : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void PlayLandClientRpc()
     {
-        PlayRandomClip(_landClips, 1.0f, 0.9f, 1.1f);
+        PlayRandomClip(_landClips, DEFAULT_ACTION_VOLUME, LAND_MIN_PITCH, LAND_MAX_PITCH);
     }
 
-    private void PlayRandomClip(AudioClip[] clips, float volume, float minPitch, float maxPitch)
+    private void PlayRandomClip(AudioClip[] audioClips, float audioVolume, float minPitchValue, float maxPitchValue)
     {
-        if (clips == null || clips.Length == 0 || _audioSource == null) return;
-
-        int index = Random.Range(0, clips.Length);
-        AudioClip clip = clips[index];
-
-        if (clip != null)
+        if (audioClips == null || audioClips.Length == 0 || _audioSource == null)
         {
-            _audioSource.pitch = Random.Range(minPitch, maxPitch);
-            _audioSource.PlayOneShot(clip, volume);
+            return;
+        }
+
+        int targetIndex = Random.Range(0, audioClips.Length);
+        AudioClip selectedClip = audioClips[targetIndex];
+
+        if (selectedClip != null)
+        {
+            _audioSource.pitch = Random.Range(minPitchValue, maxPitchValue);
+            _audioSource.PlayOneShot(selectedClip, audioVolume);
         }
     }
 }
