@@ -28,15 +28,15 @@ RectTransform:
   m_GameObject: {fileID: 4151347062288253559}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3.082187, y: 2.2565744, z: 2.2565744}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -390, y: -999}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 50, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &264727245196993598
 CanvasRenderer:
@@ -58,16 +58,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b98629b2fff5d7e45ab0b669aa8309bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MinimapPlayerIcon
-  _player: {fileID: 0}
-  _minimapRect: {fileID: 0}
-  _iconImage: {fileID: 0}
-  _minWorldX: -61.5
-  _maxWorldX: 102.64
-  _minWorldZ: 111
-  _maxWorldZ: -6.5
-  _invertX: 0
-  _invertZ: 1
-  _rotationOffset: 0
+  iconImage: {fileID: 0}
 --- !u!114 &8858826131446296666
 MonoBehaviour:
   m_ObjectHideFlags: 0

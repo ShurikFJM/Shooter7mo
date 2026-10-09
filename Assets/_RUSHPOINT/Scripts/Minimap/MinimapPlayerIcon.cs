@@ -3,62 +3,35 @@ using UnityEngine.UI;
 
 public class MinimapPlayerIcon : MonoBehaviour
 {
-    [SerializeField] private Transform _player;
-    [SerializeField] private RectTransform _minimapRect;
-    [SerializeField] private RawImage _iconImage;
-    [SerializeField] private float _minWorldX = -61.5f;
-    [SerializeField] private float _maxWorldX = 102.64f;
-    [SerializeField] private float _minWorldZ = 111f;
-    [SerializeField] private float _maxWorldZ = -6.5f;
-    [SerializeField] private bool _invertX = false;
-    [SerializeField] private bool _invertZ = true;
-    [SerializeField] private float _rotationOffset = 0f;
+    public RawImage iconImage;
 
+    private Transform _targetPlayer;
+    private MinimapManager _manager;
     private RectTransform _iconRect;
     private NetworkHealth _targetHealth;
-
-    public Transform TargetPlayer => _player;
+    private float _rotationOffset;
+    private bool _isTeammate;
 
     private void Awake()
     {
         _iconRect = GetComponent<RectTransform>();
-        if (_iconImage == null)
-        {
-            _iconImage = GetComponent<RawImage>();
-        }
+        if (iconImage == null) iconImage = GetComponent<RawImage>();
     }
 
-    public void Setup(Transform target, RectTransform minimapRect, Color iconColor, float minX, float maxX, float minZ, float maxZ, bool invX, bool invZ, float rotOffset)
+    public void Setup(Transform target, MinimapManager manager, Color color, float rotOffset, bool isTeammate)
     {
-        _player = target;
-        _minimapRect = minimapRect;
-        _minWorldX = minX;
-        _maxWorldX = maxX;
-        _minWorldZ = minZ;
-        _maxWorldZ = maxZ;
-        _invertX = invX;
-        _invertZ = invZ;
+        _targetPlayer = target;
+        _manager = manager;
         _rotationOffset = rotOffset;
+        _isTeammate = isTeammate;
 
-        if (_iconImage == null)
-        {
-            _iconImage = GetComponent<RawImage>();
-        }
-
-        if (_iconImage != null)
-        {
-            _iconImage.color = iconColor;
-        }
-
-        if (_player != null)
-        {
-            _targetHealth = _player.GetComponent<NetworkHealth>();
-        }
+        if (iconImage != null) iconImage.color = color;
+        if (_targetPlayer != null) _targetHealth = _targetPlayer.GetComponent<NetworkHealth>();
     }
 
     private void LateUpdate()
     {
-        if (_player == null)
+        if (_targetPlayer == null || _manager == null)
         {
             Destroy(gameObject);
             return;
@@ -66,44 +39,32 @@ public class MinimapPlayerIcon : MonoBehaviour
 
         if (_targetHealth != null && !_targetHealth.IsAlive.Value)
         {
-            if (gameObject.activeSelf) gameObject.SetActive(false);
+            if (iconImage != null && iconImage.enabled) iconImage.enabled = false;
             return;
         }
-        else if (!gameObject.activeSelf)
+
+        if (_isTeammate && iconImage != null && !iconImage.enabled)
         {
-            gameObject.SetActive(true);
+            iconImage.enabled = true;
         }
 
-        if (_minimapRect == null) return;
-
-        UpdatePlayerPosition();
-        UpdatePlayerRotation();
+        UpdateIconTransform();
     }
 
-    private void UpdatePlayerPosition()
+    private void UpdateIconTransform()
     {
-        float normalizedX = Mathf.InverseLerp(_minWorldX, _maxWorldX, _player.position.x);
-        float normalizedZ = Mathf.InverseLerp(_minWorldZ, _maxWorldZ, _player.position.z);
+        Vector2 newAnchoredPosition = _manager.CalculateMinimapPosition(_targetPlayer.position);
+        _iconRect.anchoredPosition = newAnchoredPosition;
 
-        if (_invertX)
-        {
-            normalizedX = 1f - normalizedX;
-        }
-
-        if (_invertZ)
-        {
-            normalizedZ = 1f - normalizedZ;
-        }
-
-        float mapX = (normalizedX - 0.5f) * _minimapRect.rect.width;
-        float mapY = (normalizedZ - 0.5f) * _minimapRect.rect.height;
-
-        _iconRect.anchoredPosition = new Vector2(mapX, mapY);
-    }
-
-    private void UpdatePlayerRotation()
-    {
-        float rotation = -_player.eulerAngles.y + _rotationOffset;
+        float rotation = -_targetPlayer.eulerAngles.y + _rotationOffset;
         _iconRect.localRotation = Quaternion.Euler(0f, 0f, rotation);
+    }
+
+    public void SetVisibility(bool isVisible)
+    {
+        if (iconImage != null && iconImage.enabled != isVisible)
+        {
+            iconImage.enabled = isVisible;
+        }
     }
 }

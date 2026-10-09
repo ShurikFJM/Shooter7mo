@@ -86,6 +86,27 @@ public class WeaponBase : MonoBehaviour
         _isReloading = false;
         _reloadRemainingTime = 0f;
         _reloadCoroutine = null;
+        _continuousShots = 0;
+        _firingSpreadPenalty = 0f;
+
+        _targetOffsetPosition = Vector3.zero;
+        _targetOffsetRotation = Quaternion.identity;
+
+        if (_weaponModelTransform != null)
+        {
+            _weaponModelTransform.localPosition = _defaultLocalPosition;
+            _weaponModelTransform.localRotation = _defaultLocalRotation;
+        }
+
+        if (_weaponAnimator != null)
+        {
+            _weaponAnimator.ResetTrigger(_reloadTriggerHash);
+            _weaponAnimator.Rebind();
+
+            _weaponAnimator.Play("Idle", 0, 0f);
+
+            _weaponAnimator.Update(0f);
+        }
     }
 
     private void Start()
@@ -277,7 +298,7 @@ public class WeaponBase : MonoBehaviour
         _continuousShots = 0;
         _firingSpreadPenalty = 0f;
 
-        if (_weaponAnimator != null)
+        if (_weaponAnimator != null && gameObject.activeInHierarchy)
         {
             _weaponAnimator.ResetTrigger(_reloadTriggerHash);
             _weaponAnimator.Rebind();
