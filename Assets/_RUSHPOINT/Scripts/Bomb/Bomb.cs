@@ -16,7 +16,7 @@ public enum BombState : byte
 [RequireComponent(typeof(NetworkObject), typeof(AudioSource))]
 public class Bomb : NetworkBehaviour
 {
-    private const ulong UNASSIGNED_CARRIER_ID = 9999;
+    public const ulong UNASSIGNED_CARRIER_ID = 9999;
     private const float MIN_REMAINING_DETONATION_TIME = 0f;
     private const float MIN_NORMALIZED_PROGRESS = 0f;
     private const float MAX_NORMALIZED_PROGRESS = 1f;
@@ -37,28 +37,34 @@ public class Bomb : NetworkBehaviour
     [SerializeField] private GameObject _defuseVfxPrefab;
     [SerializeField] private GameObject _explosionVfxPrefab;
     [SerializeField] private AudioClip _globalPlantedClip;
-    [Range(0f, 1f)][SerializeField] private float _globalPlantedVolume = 0.25f;
+    [SerializeField] private float _globalPlantedVolume = 0.25f;
     [SerializeField] private AudioSource _bombAudioSource;
     [SerializeField] private AudioClip _plantedBeepClip;
-    [Range(0f, 1f)][SerializeField] private float _beepVolume = 0.2f;
+    [SerializeField] private float _beepVolume = 0.2f;
     [SerializeField] private float _initialBeepInterval = 1f;
     [SerializeField] private float _fastestBeepInterval = 0.08f;
     [SerializeField] private float _audioMinDistance = 2f;
     [SerializeField] private float _audioMaxDistance = 35f;
 
-    public NetworkVariable<BombState> State = new NetworkVariable<BombState>(
+    public NetworkVariable<BombState> bombState = new NetworkVariable<BombState>(
         BombState.Dropped,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    public NetworkVariable<ulong> CarrierClientId = new NetworkVariable<ulong>(
+    public NetworkVariable<ulong> carrierClientId = new NetworkVariable<ulong>(
         UNASSIGNED_CARRIER_ID,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    public NetworkVariable<double> PlantedServerTime = new NetworkVariable<double>(
+    public NetworkVariable<ulong> defuserClientId = new NetworkVariable<ulong>(
+        UNASSIGNED_CARRIER_ID,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    public NetworkVariable<double> plantedServerTime = new NetworkVariable<double>(
         0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
@@ -103,10 +109,10 @@ public class Bomb : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        State.OnValueChanged += HandleBombStateChanged;
-        ApplyPhysicsAndVisualState(State.Value);
+        bombState.OnValueChanged += HandleBombStateChanged;
+        ApplyPhysicsAndVisualState(bombState.Value);
 
-        if (State.Value == BombState.Planted && _beepCoroutine == null)
+        if (bombState.Value == BombState.Planted && _beepCoroutine == null)
         {
             _beepCoroutine = StartCoroutine(PlantedBeepLoop());
         }
@@ -114,7 +120,7 @@ public class Bomb : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        State.OnValueChanged -= HandleBombStateChanged;
+        bombState.OnValueChanged -= HandleBombStateChanged;
         StopBeepRoutine();
     }
 
@@ -128,14 +134,13 @@ public class Bomb : NetworkBehaviour
             case BombState.Dropped:
                 StopBeepRoutine();
                 break;
-
             case BombState.Planted:
+            case BombState.Defusing:
                 if (_beepCoroutine == null)
                 {
                     _beepCoroutine = StartCoroutine(PlantedBeepLoop());
                 }
                 break;
-
             case BombState.Defused:
             case BombState.Exploded:
                 StopBeepRoutine();
@@ -184,13 +189,10 @@ public class Bomb : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void RequestPickupServerRpc(ulong requestingClientId)
     {
-        if (State.Value != BombState.Dropped)
-        {
-            return;
-        }
+        if (bombState.Value != BombState.Dropped) return;
 
-        CarrierClientId.Value = requestingClientId;
-        State.Value = BombState.Carried;
+        carrierClientId.Value = requestingClientId;
+        bombState.Value = BombState.Carried;
 
         if (_rigidbody != null)
         {
@@ -216,10 +218,7 @@ public class Bomb : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void RequestDropServerRpc(ulong requestingClientId, Vector3 dropOriginPosition, Vector3 throwDirectionVector)
     {
-        if (State.Value != BombState.Carried || CarrierClientId.Value != requestingClientId)
-        {
-            return;
-        }
+        if (bombState.Value != BombState.Carried || carrierClientId.Value != requestingClientId) return;
 
         if (NetworkObject.IsSpawned && transform.parent != null)
         {
@@ -230,7 +229,7 @@ public class Bomb : NetworkBehaviour
             transform.SetParent(null);
         }
 
-        CarrierClientId.Value = UNASSIGNED_CARRIER_ID;
+        carrierClientId.Value = UNASSIGNED_CARRIER_ID;
 
         Vector3 calculatedDropPosition = dropOriginPosition + throwDirectionVector * DROP_THROW_ORIGIN_FORWARD_OFFSET;
         Vector3 rayOrigin = calculatedDropPosition + Vector3.up * GROUND_CHECK_RAY_ORIGIN_HEIGHT;
@@ -251,7 +250,7 @@ public class Bomb : NetworkBehaviour
             transform.SetPositionAndRotation(calculatedDropPosition, randomizedRotation);
         }
 
-        State.Value = BombState.Dropped;
+        bombState.Value = BombState.Dropped;
 
         if (NetworkManager.Singleton.ConnectedClients.TryGetValue(requestingClientId, out NetworkClient networkClient) && networkClient.PlayerObject != null)
         {
@@ -288,7 +287,16 @@ public class Bomb : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void RequestPlantServerRpc(ulong requestingClientId, NetworkBehaviourReference bombSiteReference, Vector3 targetPlantPosition, Quaternion targetPlantRotation)
     {
-        if (State.Value != BombState.Carried || CarrierClientId.Value != requestingClientId)
+        if (bombState.Value != BombState.Carried || carrierClientId.Value != requestingClientId) return;
+
+        if (bombSiteReference.TryGet(out BombSite site))
+        {
+            if (!site.IsPositionInside(targetPlantPosition))
+            {
+                return;
+            }
+        }
+        else
         {
             return;
         }
@@ -302,7 +310,7 @@ public class Bomb : NetworkBehaviour
             transform.SetParent(null);
         }
 
-        CarrierClientId.Value = UNASSIGNED_CARRIER_ID;
+        carrierClientId.Value = UNASSIGNED_CARRIER_ID;
 
         if (_rigidbody != null)
         {
@@ -320,11 +328,42 @@ public class Bomb : NetworkBehaviour
             transform.SetPositionAndRotation(targetPlantPosition, targetPlantRotation);
         }
 
-        PlantedServerTime.Value = NetworkManager.Singleton.ServerTime.Time;
-        State.Value = BombState.Planted;
+        plantedServerTime.Value = NetworkManager.Singleton.ServerTime.Time;
+        bombState.Value = BombState.Planted;
 
         SynchronizePlantedTransformClientRpc(targetPlantPosition, targetPlantRotation);
         SpawnPlantVfxAndGlobalAudioClientRpc(targetPlantPosition);
+    }
+
+    [Rpc(SendTo.Server)]
+    public void RequestStartDefuseServerRpc(ulong requestingClientId)
+    {
+        if (bombState.Value == BombState.Planted)
+        {
+            bombState.Value = BombState.Defusing;
+            defuserClientId.Value = requestingClientId;
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    public void RequestStopDefuseServerRpc(ulong requestingClientId)
+    {
+        if (bombState.Value == BombState.Defusing && defuserClientId.Value == requestingClientId)
+        {
+            bombState.Value = BombState.Planted;
+            defuserClientId.Value = UNASSIGNED_CARRIER_ID;
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    public void RequestDefuseServerRpc(ulong requestingClientId)
+    {
+        if (bombState.Value == BombState.Defusing && defuserClientId.Value == requestingClientId)
+        {
+            bombState.Value = BombState.Defused;
+            defuserClientId.Value = UNASSIGNED_CARRIER_ID;
+            SpawnDefuseVfxClientRpc(transform.position);
+        }
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -349,34 +388,16 @@ public class Bomb : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.Server)]
-    public void RequestDefuseServerRpc(ulong requestingClientId)
-    {
-        if (State.Value != BombState.Planted && State.Value != BombState.Defusing)
-        {
-            return;
-        }
-
-        State.Value = BombState.Defused;
-        SpawnDefuseVfxClientRpc(transform.position);
-    }
-
     [Rpc(SendTo.ClientsAndHost)]
     private void SpawnDropVfxClientRpc(Vector3 spawnPosition)
     {
-        if (_dropVfxPrefab != null)
-        {
-            Instantiate(_dropVfxPrefab, spawnPosition, Quaternion.identity);
-        }
+        if (_dropVfxPrefab != null) Instantiate(_dropVfxPrefab, spawnPosition, Quaternion.identity);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
     private void SpawnPlantVfxAndGlobalAudioClientRpc(Vector3 spawnPosition)
     {
-        if (_plantVfxPrefab != null)
-        {
-            Instantiate(_plantVfxPrefab, spawnPosition, Quaternion.identity);
-        }
+        if (_plantVfxPrefab != null) Instantiate(_plantVfxPrefab, spawnPosition, Quaternion.identity);
 
         if (_globalPlantedClip != null)
         {
@@ -399,26 +420,23 @@ public class Bomb : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void SpawnDefuseVfxClientRpc(Vector3 spawnPosition)
     {
-        if (_defuseVfxPrefab != null)
-        {
-            Instantiate(_defuseVfxPrefab, spawnPosition, Quaternion.identity);
-        }
+        if (_defuseVfxPrefab != null) Instantiate(_defuseVfxPrefab, spawnPosition, Quaternion.identity);
     }
 
     private IEnumerator PlantedBeepLoop()
     {
-        while (State.Value == BombState.Planted || State.Value == BombState.Defusing)
+        while (bombState.Value == BombState.Planted || bombState.Value == BombState.Defusing)
         {
-            double elapsedServerSeconds = NetworkManager.Singleton.ServerTime.Time - PlantedServerTime.Value;
+            double elapsedServerSeconds = NetworkManager.Singleton.ServerTime.Time - plantedServerTime.Value;
             float remainingDetonationSeconds = _detonationDuration - (float)elapsedServerSeconds;
 
             if (remainingDetonationSeconds <= MIN_REMAINING_DETONATION_TIME)
             {
                 StopBeepRoutine();
 
-                if (IsServer && State.Value != BombState.Defused)
+                if (IsServer && bombState.Value != BombState.Defused)
                 {
-                    State.Value = BombState.Exploded;
+                    bombState.Value = BombState.Exploded;
                     SpawnExplosionVfxClientRpc(transform.position);
                 }
                 yield break;
@@ -442,11 +460,7 @@ public class Bomb : NetworkBehaviour
     private void SpawnExplosionVfxClientRpc(Vector3 spawnPosition)
     {
         UpdateRendererVisibility(false);
-
-        if (_explosionVfxPrefab != null)
-        {
-            Instantiate(_explosionVfxPrefab, spawnPosition, Quaternion.identity);
-        }
+        if (_explosionVfxPrefab != null) Instantiate(_explosionVfxPrefab, spawnPosition, Quaternion.identity);
     }
 
     private void StopBeepRoutine()
@@ -457,18 +471,12 @@ public class Bomb : NetworkBehaviour
             _beepCoroutine = null;
         }
 
-        if (_bombAudioSource != null)
-        {
-            _bombAudioSource.Stop();
-        }
+        if (_bombAudioSource != null) _bombAudioSource.Stop();
     }
 
     public void ServerResetBomb(Vector3 targetResetPosition)
     {
-        if (!IsServer)
-        {
-            return;
-        }
+        if (!IsServer) return;
 
         StopBeepRoutine();
 
@@ -481,8 +489,9 @@ public class Bomb : NetworkBehaviour
             transform.SetParent(null);
         }
 
-        CarrierClientId.Value = UNASSIGNED_CARRIER_ID;
-        PlantedServerTime.Value = 0;
+        carrierClientId.Value = UNASSIGNED_CARRIER_ID;
+        defuserClientId.Value = UNASSIGNED_CARRIER_ID;
+        plantedServerTime.Value = 0;
 
         if (_networkTransform != null)
         {
@@ -493,7 +502,7 @@ public class Bomb : NetworkBehaviour
             transform.position = targetResetPosition;
         }
 
-        State.Value = BombState.Dropped;
+        bombState.Value = BombState.Dropped;
 
         if (_rigidbody != null)
         {

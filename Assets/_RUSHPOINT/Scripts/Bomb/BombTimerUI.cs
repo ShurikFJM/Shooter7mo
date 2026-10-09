@@ -29,13 +29,13 @@ public class BombTimerUI : MonoBehaviour
             }
         }
 
-        if (NetworkManager.Singleton == null || _bomb.State.Value != BombState.Planted)
+        if (NetworkManager.Singleton == null || _bomb.bombState.Value != BombState.Planted)
         {
             HideTimer();
             return;
         }
 
-        double elapsed = NetworkManager.Singleton.ServerTime.Time - _bomb.PlantedServerTime.Value;
+        double elapsed = NetworkManager.Singleton.ServerTime.Time - _bomb.plantedServerTime.Value;
         float remaining = Mathf.Max(0f, _bomb.DetonationTimeDuration - (float)elapsed);
 
         ShowTimer(remaining);
@@ -46,8 +46,8 @@ public class BombTimerUI : MonoBehaviour
         _bomb = FindAnyObjectByType<Bomb>();
         if (_bomb != null)
         {
-            _bomb.State.OnValueChanged += HandleBombStateChanged;
-            if (_bomb.State.Value == BombState.Planted)
+            _bomb.bombState.OnValueChanged += HandleBombStateChanged;
+            if (_bomb.bombState.Value == BombState.Planted)
             {
                 if (_timerRoot != null) _timerRoot.SetActive(true);
             }
@@ -58,7 +58,7 @@ public class BombTimerUI : MonoBehaviour
     {
         if (_bomb != null)
         {
-            _bomb.State.OnValueChanged -= HandleBombStateChanged;
+            _bomb.bombState.OnValueChanged -= HandleBombStateChanged;
         }
     }
 

@@ -24,6 +24,7 @@ public enum Team : byte
 public class RoundManager : NetworkBehaviour
 {
     private const int DEFAULT_ROUNDS_TO_WIN = 13;
+    private const int HALFTIME_ROUND = 12;
     private const float DEFAULT_WARMUP_DURATION = 7f;
     private const float DEFAULT_ROUND_TIME_LIMIT = 115f;
     private const float DEFAULT_ROUND_END_DISPLAY_DURATION = 5f;
@@ -125,7 +126,7 @@ public class RoundManager : NetworkBehaviour
 
             if (_bomb != null)
             {
-                _bomb.State.OnValueChanged += HandleBombStateChanged;
+                _bomb.bombState.OnValueChanged += HandleBombStateChanged;
             }
 
             CurrentPhase.Value = RoundPhase.WaitingForPlayers;
@@ -139,7 +140,7 @@ public class RoundManager : NetworkBehaviour
         {
             if (_bomb != null)
             {
-                _bomb.State.OnValueChanged -= HandleBombStateChanged;
+                _bomb.bombState.OnValueChanged -= HandleBombStateChanged;
             }
 
             if (_roundLoopCoroutine != null)
@@ -217,6 +218,12 @@ public class RoundManager : NetworkBehaviour
         while (RedScore.Value < _roundsToWinMatch && BlueScore.Value < _roundsToWinMatch)
         {
             RoundNumber.Value++;
+
+            if (RoundNumber.Value == HALFTIME_ROUND)
+            {
+                PerformHalftimeSideSwitch();
+            }
+
             yield return StartCoroutine(WarmupRoutine());
             yield return StartCoroutine(InProgressRoutine());
             yield return StartCoroutine(RoundEndRoutine());
@@ -224,6 +231,25 @@ public class RoundManager : NetworkBehaviour
 
         CurrentPhase.Value = RoundPhase.MatchEnd;
         PhaseStartServerTime.Value = NetworkManager.Singleton.ServerTime.Time;
+    }
+
+    private void PerformHalftimeSideSwitch()
+    {
+        if (!IsServer) return;
+
+        foreach (var clientPair in NetworkManager.Singleton.ConnectedClients)
+        {
+            NetworkClient client = clientPair.Value;
+            if (client.PlayerObject == null) continue;
+
+            PlayerTeam teamComp = client.PlayerObject.GetComponent<PlayerTeam>();
+            if (teamComp != null)
+            {
+                Team oldTeam = teamComp.CurrentTeam.Value;
+                Team newTeam = (oldTeam == Team.Red) ? Team.Blue : Team.Red;
+                teamComp.CurrentTeam.Value = newTeam;
+            }
+        }
     }
 
     private IEnumerator WarmupRoutine()
@@ -263,11 +289,11 @@ public class RoundManager : NetworkBehaviour
 
         while (CurrentPhase.Value == RoundPhase.InProgress)
         {
-            if (_bomb != null && _bomb.State.Value == BombState.Planted)
+            if (_bomb != null && _bomb.bombState.Value == BombState.Planted)
             {
-                if (_bomb.PlantedServerTime.Value > 0)
+                if (_bomb.plantedServerTime.Value > 0)
                 {
-                    double elapsedDetonation = NetworkManager.Singleton.ServerTime.Time - _bomb.PlantedServerTime.Value;
+                    double elapsedDetonation = NetworkManager.Singleton.ServerTime.Time - _bomb.plantedServerTime.Value;
                     int bombRemaining = Mathf.CeilToInt(Mathf.Max(_bomb.DetonationTimeDuration - (float)elapsedDetonation, 0f));
 
                     if (bombRemaining != lastSecondReported)

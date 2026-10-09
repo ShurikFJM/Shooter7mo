@@ -65,13 +65,23 @@ MonoBehaviour:
   generalScrollSpeed: 18
   sessions:
   - tracker:
-      mostClicked: []
-      recentlyClicked: []
+      mostClicked:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"PoolManager[0]"}'
+        count: 4
+        gameObjects:
+        - {fileID: 0}
+      recentlyClicked:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"PoolManager[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 12:44 AM (October 9, 2026)
+    lastSaveTimePrint: 03:14 AM (October 9, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -85,28 +95,28 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 64
+    lastValidTabWidth: 98
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 1
+    lastKnownHeight: 0
     tabs:
-    - path: 
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"PoolManager[0]"}'
       paths: []
-      tabWidth: 61
-      name: 
-      icon: {fileID: 0}
-      shortName: New Tab
+      tabWidth: 95
+      name: PoolManager
+      icon: {fileID: 148978298399363526, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: PoolManager
       filterString: 
-      newTab: 1
+      newTab: 0
       scrollPosition: 0
       isSelected: 0
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: New Tab
+        m_Text: PoolManager
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "New Tab\u200B"
+        m_TextWithWhitespace: "PoolManager\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
@@ -145,12 +155,33 @@ MonoBehaviour:
       savePlayModeTransform: 0
       index: 0
       historyPosition: 0
-      componentMaps: []
-      historyPaths: []
+      componentMaps:
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: transform
+        niceComponentName: transform
+      historyPaths:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"PoolManager[0]"}'
+        prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
+    - assetGUIDs:
+      - 184e3ad4d46b7824cb1c4bce6b6773d2
+    - assetGUIDs:
+      - ecd8756e363dd774dad633a9ffbff3c8
+    - assetGUIDs:
+      - 23b3b56b8ea620b4c8e3ef01590d59f3
+    - assetGUIDs:
+      - b013d4e59a7952f45bf28165f85235a4
     - assetGUIDs:
       - ceb845fd9d23ef64293789ad23fdacbc
       - b013d4e59a7952f45bf28165f85235a4
@@ -160,28 +191,16 @@ MonoBehaviour:
     - assetGUIDs:
       - b6dc5f43b3f4c7a4197a352f2fcf1e66
     - assetGUIDs:
-      - 0155401892f92844cb6f08b4897b3810
-      - 6d9aec29deb88c04ba7d6cb37cadc8dc
-      - f381e7cd838fc12408522d9bebf20ba9
-      - 853503548a5c6914d8579d441dad075f
+      - 29032e0b419e88e40b706cf37cd5fde0
     - assetGUIDs:
-      - 0155401892f92844cb6f08b4897b3810
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
     - assetGUIDs:
-      - 853503548a5c6914d8579d441dad075f
+      - c968eb74b182714418bb039def80ee75
     - assetGUIDs:
-      - 23b3b56b8ea620b4c8e3ef01590d59f3
-    - assetGUIDs:
-      - b796642ce49e3c2419746d2010f03e59
-    - assetGUIDs:
-      - a2dfd34ed3c5d440b80d4fb2444c71cb
-    - assetGUIDs:
-      - c000273e43838594b97148ea2cdbee9a
-    - assetGUIDs:
-      - aa5b81ef299e84f4984d05e5f5c08d7f
-      - 92b583773b8aad040be7a5b720d5b569
-    targetObject: {fileID: 0}
+      - 8e58c5f376c03654fb710736a221e8e3
+    targetObject: {fileID: 11500000, guid: 184e3ad4d46b7824cb1c4bce6b6773d2, type: 3}
     targetObjects: []
-    lastSelectedAsset: 
+    lastSelectedAsset: Assets/_RUSHPOINT/Core/Managers/PoolManager.cs
     lastClickedTab: -1
     previousTab: 1
   - tracker:
@@ -203,7 +222,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: 7a241e49bcdcf8a419ef451860429469
     sceneName: MainMenu
-    lastSaveTimePrint: 12:44 AM (October 9, 2026)
+    lastSaveTimePrint: 02:50 AM (October 9, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -219,7 +238,7 @@ MonoBehaviour:
     rawUserHeight: 0
     lastValidTabWidth: 64
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 1
+    lastKnownHeight: 0
     tabs:
     - path: 
       paths: []
@@ -284,6 +303,8 @@ MonoBehaviour:
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
+      - b013d4e59a7952f45bf28165f85235a4
+    - assetGUIDs:
       - ceb845fd9d23ef64293789ad23fdacbc
       - b013d4e59a7952f45bf28165f85235a4
       - b6dc5f43b3f4c7a4197a352f2fcf1e66
@@ -292,28 +313,29 @@ MonoBehaviour:
     - assetGUIDs:
       - b6dc5f43b3f4c7a4197a352f2fcf1e66
     - assetGUIDs:
-      - 0155401892f92844cb6f08b4897b3810
-      - 6d9aec29deb88c04ba7d6cb37cadc8dc
-      - f381e7cd838fc12408522d9bebf20ba9
-      - 853503548a5c6914d8579d441dad075f
+      - 29032e0b419e88e40b706cf37cd5fde0
     - assetGUIDs:
-      - 0155401892f92844cb6f08b4897b3810
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
     - assetGUIDs:
-      - 853503548a5c6914d8579d441dad075f
+      - c968eb74b182714418bb039def80ee75
     - assetGUIDs:
-      - 23b3b56b8ea620b4c8e3ef01590d59f3
+      - 8e58c5f376c03654fb710736a221e8e3
     - assetGUIDs:
-      - b796642ce49e3c2419746d2010f03e59
+      - 40a70974aafb634428d16c0fb09b1a30
+      - 8e58c5f376c03654fb710736a221e8e3
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 29032e0b419e88e40b706cf37cd5fde0
+      - 2da46b308d8957248a88ac3d8e1ecf95
     - assetGUIDs:
-      - a2dfd34ed3c5d440b80d4fb2444c71cb
+      - 40a70974aafb634428d16c0fb09b1a30
+      - 8e58c5f376c03654fb710736a221e8e3
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 29032e0b419e88e40b706cf37cd5fde0
     - assetGUIDs:
-      - c000273e43838594b97148ea2cdbee9a
-    - assetGUIDs:
-      - aa5b81ef299e84f4984d05e5f5c08d7f
-      - 92b583773b8aad040be7a5b720d5b569
-    targetObject: {fileID: 0}
+      - 40a70974aafb634428d16c0fb09b1a30
+    targetObject: {fileID: 11500000, guid: b013d4e59a7952f45bf28165f85235a4, type: 3}
     targetObjects: []
-    lastSelectedAsset: 
+    lastSelectedAsset: Assets/_RUSHPOINT/Gameplay/Weapons/WeaponData.cs
     lastClickedTab: -1
     previousTab: 1
   - tracker:
@@ -484,6 +506,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Graybox_Test.unity/RUSPOINT.unity
     lastClickedTab: -1
     previousTab: 1
-  tipsShown: 01000000010000000100000001000000010000000100000001000000000000000100000001000000000000000100000000000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000000000000000000010000000100000001000000000000000100000001000000010000000000000001000000000000000100000001000000010000000000000001000000
+  tipsShown: 01000000000000000100000001000000010000000100000001000000010000000100000001000000010000000000000001000000000000000000000001000000010000000100000001000000010000000100000001000000010000000000000001000000010000000000000001000000000000000100000000000000010000000000000001000000010000000000000001000000010000000100000001000000010000000100000001000000010000000100000000000000
   playModeStartScene: {}
   enteringPlayMode: 0

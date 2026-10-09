@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -253,13 +254,29 @@ public class PauseMenuManager : MonoBehaviour
 
     public void ReturnToMainMenu()
     {
-        if (NetworkManager.Singleton != null)
-        {
-            NetworkManager.Singleton.Shutdown();
-        }
+        StartCoroutine(DisconnectAndLoadMenuRoutine());
+    }
 
+    private IEnumerator DisconnectAndLoadMenuRoutine()
+    {
+        Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        if (NetworkManager.Singleton != null)
+        {
+            if (NetworkManager.Singleton.IsListening)
+            {
+                NetworkManager.Singleton.Shutdown();
+            }
+
+            while (NetworkManager.Singleton.ShutdownInProgress)
+            {
+                yield return null;
+            }
+
+            Destroy(NetworkManager.Singleton.gameObject);
+        }
 
         SceneManager.LoadScene(_MAIN_MENU_SCENE_NAME);
     }

@@ -31,7 +31,7 @@ public class RoundTimerUI : MonoBehaviour
         {
             ShowCountdown(_warmupLabel, RoundManager.Instance.WarmupDuration);
         }
-        else if (phase == RoundPhase.InProgress && (_bomb == null || _bomb.State.Value != BombState.Planted))
+        else if (phase == RoundPhase.InProgress && (_bomb == null || _bomb.bombState.Value != BombState.Planted))
         {
             ShowCountdown(_inProgressLabel, RoundManager.Instance.RoundTimeLimit);
         }

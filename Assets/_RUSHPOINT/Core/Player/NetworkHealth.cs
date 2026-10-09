@@ -3,33 +3,33 @@ using UnityEngine;
 
 public class NetworkHealth : NetworkBehaviour
 {
-    private const float _DEFAULT_MAX_HEALTH = 100f;
-    private const float _DEFAULT_MAX_ARMOR = 50f;
+    private const float DEFAULT_MAX_HEALTH = 100f;
+    private const float DEFAULT_MAX_ARMOR = 50f;
 
     [SerializeField]
     private NetworkVariable<float> _currentHealth = new NetworkVariable<float>(
-        _DEFAULT_MAX_HEALTH,
+        DEFAULT_MAX_HEALTH,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
     [SerializeField]
     private NetworkVariable<float> _currentArmor = new NetworkVariable<float>(
-        _DEFAULT_MAX_ARMOR,
+        DEFAULT_MAX_ARMOR,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
     [SerializeField]
     private NetworkVariable<float> _maxHealth = new NetworkVariable<float>(
-        _DEFAULT_MAX_HEALTH,
+        DEFAULT_MAX_HEALTH,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
     [SerializeField]
     private NetworkVariable<float> _maxArmor = new NetworkVariable<float>(
-        _DEFAULT_MAX_ARMOR,
+        DEFAULT_MAX_ARMOR,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
@@ -90,16 +90,19 @@ public class NetworkHealth : NetworkBehaviour
         }
 
         CharacterController characterController = GetComponent<CharacterController>();
-        if (characterController != null)
-        {
-            characterController.enabled = true;
-        }
+        if (characterController != null) characterController.enabled = true;
+
+        Transform tpModel = transform.Find("ThirdPersonModel");
+        if (tpModel != null && !IsOwner) tpModel.gameObject.SetActive(true);
+
+        Transform hitboxes = transform.Find("Hitboxes");
+        if (hitboxes != null) hitboxes.gameObject.SetActive(true);
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    public void TakeDamageServerRpc(float damage, HitboxType hitboxType, ulong attackerClientId)
+    // NUEVO: Solo el servidor puede llamar a esto. Ya no es un RPC público.
+    public void ApplyDamageServer(float damage, HitboxType hitboxType, ulong attackerClientId)
     {
-        if (!_isAlive.Value) return;
+        if (!IsServer || !_isAlive.Value) return;
 
         float remainingDamage = damage;
 
@@ -129,11 +132,6 @@ public class NetworkHealth : NetworkBehaviour
         }
     }
 
-    public void TakeDamage(float damage, HitboxType hitboxType, ulong attackerClientId)
-    {
-        TakeDamageServerRpc(damage, hitboxType, attackerClientId);
-    }
-
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void HealServerRpc(float healAmount)
     {
@@ -149,5 +147,14 @@ public class NetworkHealth : NetworkBehaviour
         {
             colliders[i].enabled = false;
         }
+
+        CharacterController cc = GetComponent<CharacterController>();
+        if (cc != null) cc.enabled = false;
+
+        Transform tpModel = transform.Find("ThirdPersonModel");
+        if (tpModel != null) tpModel.gameObject.SetActive(false);
+
+        Transform hitboxes = transform.Find("Hitboxes");
+        if (hitboxes != null) hitboxes.gameObject.SetActive(false);
     }
 }

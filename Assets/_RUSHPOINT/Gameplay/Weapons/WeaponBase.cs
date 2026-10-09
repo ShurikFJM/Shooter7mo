@@ -5,17 +5,17 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class WeaponBase : MonoBehaviour
 {
-    private const float _SPREAD_RECOVERY_SPEED = 14f;
-    private const float _BURST_SPREAD_START = 0.015f;
-    private const float _MAX_FIRING_PENALTY = 0.07f;
-    private const float _MAX_TOTAL_SPREAD = 0.1f;
-    private const float _RESET_COOLDOWN_PADDING = 0.12f;
-    private const float _MUZZLE_FLASH_DURATION = 0.05f;
-    private const float _IMPACT_LIFETIME = 10f;
-    private const float _TRACER_DURATION = 0.04f;
-    private const float _TRACER_DESTROY_DELAY = 0.05f;
-    private const float _DEFAULT_DAMAGE = 25f;
-    private const float _DEFAULT_RELOAD_TIME = 2f;
+    private const float SPREAD_RECOVERY_SPEED = 14f;
+    private const float BURST_SPREAD_START = 0.015f;
+    private const float MAX_FIRING_PENALTY = 0.07f;
+    private const float MAX_TOTAL_SPREAD = 0.1f;
+    private const float RESET_COOLDOWN_PADDING = 0.12f;
+    private const float MUZZLE_FLASH_DURATION = 0.05f;
+    private const float IMPACT_LIFETIME = 10f;
+    private const float TRACER_DURATION = 0.04f;
+    private const float TRACER_DESTROY_DELAY = 0.05f;
+    private const float DEFAULT_DAMAGE = 25f;
+    private const float DEFAULT_RELOAD_TIME = 2f;
 
     [SerializeField] protected WeaponData _data;
     [SerializeField] private Material _tracerMaterial;
@@ -24,11 +24,9 @@ public class WeaponBase : MonoBehaviour
     [SerializeField] private ParticleSystem _muzzleFlash;
     [SerializeField] private Animator _weaponAnimator;
     [SerializeField] private string _reloadAnimationTrigger = "Reload";
-
     [SerializeField] private Vector3 _kickbackOffset = new Vector3(0f, 0f, -0.03f);
     [SerializeField] private Vector3 _kickbackRotation = new Vector3(-1.5f, 0f, 0f);
     [SerializeField] private float _returnSpeed = 12f;
-
     [SerializeField] private int _currentAmmo;
     [SerializeField] private int _reserveAmmo;
     [SerializeField] private bool _isReloading;
@@ -55,7 +53,7 @@ public class WeaponBase : MonoBehaviour
     public int MaxReserveAmmo => _data != null ? _data.maxAmmo * _data.maxReserveMagazines : 90;
     public int MaxAmmo => _data != null ? _data.maxAmmo : 30;
     public bool IsReloading => _isReloading;
-    public float ReloadDuration => _data != null ? _data.reloadTime : _DEFAULT_RELOAD_TIME;
+    public float ReloadDuration => _data != null ? _data.reloadTime : DEFAULT_RELOAD_TIME;
     public float ReloadProgressNormalized => ReloadDuration > 0f ? Mathf.Clamp01(1f - (_reloadRemainingTime / ReloadDuration)) : 0f;
 
     private void Awake()
@@ -67,15 +65,8 @@ public class WeaponBase : MonoBehaviour
             _audioSource.playOnAwake = false;
         }
 
-        if (_playerController == null)
-        {
-            _playerController = GetComponentInParent<NetworkPlayerController>();
-        }
-
-        if (_weaponModelTransform == null)
-        {
-            _weaponModelTransform = transform;
-        }
+        if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
+        if (_weaponModelTransform == null) _weaponModelTransform = transform;
 
         _defaultLocalPosition = _weaponModelTransform.localPosition;
         _defaultLocalRotation = _weaponModelTransform.localRotation;
@@ -86,11 +77,7 @@ public class WeaponBase : MonoBehaviour
 
     private void OnEnable()
     {
-        if (_playerController == null)
-        {
-            _playerController = GetComponentInParent<NetworkPlayerController>();
-        }
-
+        if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
         if (_firePoint == null && _playerController != null && _playerController.PlayerCamera != null)
         {
             _firePoint = _playerController.PlayerCamera.transform;
@@ -114,7 +101,6 @@ public class WeaponBase : MonoBehaviour
         CancelReload();
     }
 
-
     private void InitializeAmmoFromData()
     {
         if (_data != null)
@@ -126,21 +112,11 @@ public class WeaponBase : MonoBehaviour
 
     private void Update()
     {
-        if (_playerController != null && !_playerController.IsOwner)
-        {
-            return;
-        }
-
-        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
-        {
-            return;
-        }
+        if (_playerController != null && !_playerController.IsOwner) return;
+        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused) return;
 
         BombInteractor bombInteractor = GetComponentInParent<BombInteractor>();
-        if (bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing))
-        {
-            return;
-        }
+        if (bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing)) return;
 
         _targetOffsetPosition = Vector3.Lerp(_targetOffsetPosition, Vector3.zero, Time.deltaTime * _returnSpeed);
         _targetOffsetRotation = Quaternion.Slerp(_targetOffsetRotation, Quaternion.identity, Time.deltaTime * _returnSpeed);
@@ -152,16 +128,13 @@ public class WeaponBase : MonoBehaviour
         _weaponModelTransform.localRotation = Quaternion.Slerp(_weaponModelTransform.localRotation, desiredRotation, Time.deltaTime * _returnSpeed * 2f);
 
         float currentFireRate = _data != null && _data.fireRate > 0f ? _data.fireRate : 0.15f;
-        if (Time.time - _lastShotTime > (currentFireRate + _RESET_COOLDOWN_PADDING))
+        if (Time.time - _lastShotTime > (currentFireRate + RESET_COOLDOWN_PADDING))
         {
             _continuousShots = 0;
-            _firingSpreadPenalty = Mathf.MoveTowards(_firingSpreadPenalty, 0f, Time.deltaTime * _SPREAD_RECOVERY_SPEED);
+            _firingSpreadPenalty = Mathf.MoveTowards(_firingSpreadPenalty, 0f, Time.deltaTime * SPREAD_RECOVERY_SPEED);
         }
 
-        if (_isReloading)
-        {
-            _reloadRemainingTime -= Time.deltaTime;
-        }
+        if (_isReloading) _reloadRemainingTime -= Time.deltaTime;
     }
 
     public virtual float GetCurrentSpread()
@@ -169,29 +142,17 @@ public class WeaponBase : MonoBehaviour
         bool isMoving = _playerController != null && _playerController.IsMoving;
         bool isGrounded = _playerController != null && _playerController.IsGrounded;
 
-        if (!isMoving && isGrounded && _continuousShots == 0)
-        {
-            return 0f;
-        }
+        if (!isMoving && isGrounded && _continuousShots == 0) return 0f;
 
         float movementSpread = 0f;
-        if (!isGrounded && _data != null)
-        {
-            movementSpread = (_data.baseSpread + 0.02f) * _data.airSpreadMultiplier;
-        }
-        else if (isMoving && _data != null)
-        {
-            movementSpread = (_data.baseSpread + 0.01f) * _data.movementSpreadMultiplier;
-        }
-        else if (_data != null)
-        {
-            movementSpread = _data.baseSpread;
-        }
+        if (!isGrounded && _data != null) movementSpread = (_data.baseSpread + 0.02f) * _data.airSpreadMultiplier;
+        else if (isMoving && _data != null) movementSpread = (_data.baseSpread + 0.01f) * _data.movementSpreadMultiplier;
+        else if (_data != null) movementSpread = _data.baseSpread;
 
-        float burstSpread = _continuousShots > 0 ? (_BURST_SPREAD_START + _firingSpreadPenalty) : 0f;
+        float burstSpread = _continuousShots > 0 ? (BURST_SPREAD_START + _firingSpreadPenalty) : 0f;
         float totalSpread = movementSpread + burstSpread;
 
-        return Mathf.Clamp(totalSpread, 0f, _MAX_TOTAL_SPREAD);
+        return Mathf.Clamp(totalSpread, 0f, MAX_TOTAL_SPREAD);
     }
 
     public virtual bool CanFire()
@@ -201,11 +162,7 @@ public class WeaponBase : MonoBehaviour
 
     public virtual void Fire()
     {
-        if (!CanFire())
-        {
-            return;
-        }
-
+        if (!CanFire()) return;
         Shoot();
     }
 
@@ -218,6 +175,7 @@ public class WeaponBase : MonoBehaviour
 
         PlayRandomShootSound();
 
+        WeaponInventory inventory = GetComponentInParent<WeaponInventory>();
         Camera playerCam = _playerController != null ? _playerController.PlayerCamera : null;
         Transform camTransform = playerCam != null ? playerCam.transform : transform;
 
@@ -233,10 +191,7 @@ public class WeaponBase : MonoBehaviour
         }
 
         _continuousShots++;
-        if (_data != null)
-        {
-            _firingSpreadPenalty = Mathf.Min(_firingSpreadPenalty + _data.spreadPerShot, _MAX_FIRING_PENALTY);
-        }
+        if (_data != null) _firingSpreadPenalty = Mathf.Min(_firingSpreadPenalty + _data.spreadPerShot, MAX_FIRING_PENALTY);
 
         float maxRange = _data != null ? _data.range : 100f;
         Vector3 targetPoint = rayOrigin + (rayDirection * maxRange);
@@ -249,41 +204,29 @@ public class WeaponBase : MonoBehaviour
         for (int i = 0; i < hits.Length; i++)
         {
             RaycastHit hit = hits[i];
-
-           
-            if (hit.transform.IsChildOf(myShooterTransform) || hit.transform == myShooterTransform)
-            {
-                continue;
-            }
+            if (hit.transform.IsChildOf(myShooterTransform) || hit.transform == myShooterTransform) continue;
 
             targetPoint = hit.point;
-            ulong attackerId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
 
-            
             Hitbox hitTarget = hit.collider.GetComponent<Hitbox>();
-            if (hitTarget == null)
-            {
-                hitTarget = hit.collider.GetComponentInParent<Hitbox>();
-            }
+            if (hitTarget == null) hitTarget = hit.collider.GetComponentInParent<Hitbox>();
 
-            if (hitTarget != null)
+            if (hitTarget != null && hitTarget.TargetHealth != null)
             {
-                float baseDamage = _data != null ? _data.damage : _DEFAULT_DAMAGE;
-                hitTarget.ReceiveHit(baseDamage, attackerId);
+                NetworkObject victimNetObj = hitTarget.TargetHealth.GetComponent<NetworkObject>();
+                if (victimNetObj != null && inventory != null) inventory.RequestDealDamageServerRpc(victimNetObj, hitTarget.Type);
+                CreateImpactVisual(hit);
                 break;
             }
 
-           
             NetworkHealth targetHealth = hit.collider.GetComponentInParent<NetworkHealth>();
-            if (targetHealth == null)
-            {
-                targetHealth = hit.collider.GetComponentInChildren<NetworkHealth>();
-            }
+            if (targetHealth == null) targetHealth = hit.collider.GetComponentInChildren<NetworkHealth>();
 
             if (targetHealth != null && targetHealth.IsAlive.Value)
             {
-                float baseDamage = _data != null ? _data.damage : _DEFAULT_DAMAGE;
-                targetHealth.TakeDamageServerRpc(baseDamage, HitboxType.Chest, attackerId);
+                NetworkObject victimNetObj = targetHealth.GetComponent<NetworkObject>();
+                if (victimNetObj != null && inventory != null) inventory.RequestDealDamageServerRpc(victimNetObj, HitboxType.Chest);
+                CreateImpactVisual(hit);
                 break;
             }
 
@@ -298,6 +241,8 @@ public class WeaponBase : MonoBehaviour
 
         Vector3 tracerStart = _firePoint != null ? _firePoint.position : rayOrigin;
         StartCoroutine(RenderTracer(tracerStart, targetPoint));
+
+        if (inventory != null) inventory.BroadcastShootServerRpc(targetPoint);
     }
 
     private void PlayRandomShootSound()
@@ -306,30 +251,16 @@ public class WeaponBase : MonoBehaviour
         {
             int randomIndex = Random.Range(0, _data.shootSounds.Length);
             AudioClip clip = _data.shootSounds[randomIndex];
-            if (clip != null)
-            {
-                _audioSource.PlayOneShot(clip);
-            }
+            if (clip != null) _audioSource.PlayOneShot(clip);
         }
     }
 
     public virtual void Reload()
     {
-        if (_isReloading || _data == null)
-        {
-            return;
-        }
+        if (_isReloading || _data == null) return;
+        if (_currentAmmo >= _data.maxAmmo || _reserveAmmo <= 0) return;
 
-        if (_currentAmmo >= _data.maxAmmo || _reserveAmmo <= 0)
-        {
-            return;
-        }
-
-        if (_reloadCoroutine != null)
-        {
-            StopCoroutine(_reloadCoroutine);
-        }
-
+        if (_reloadCoroutine != null) StopCoroutine(_reloadCoroutine);
         _reloadCoroutine = StartCoroutine(ReloadCoroutine());
     }
 
@@ -357,14 +288,10 @@ public class WeaponBase : MonoBehaviour
     private IEnumerator ReloadCoroutine()
     {
         _isReloading = true;
-        float waitTime = _data != null ? _data.reloadTime : _DEFAULT_RELOAD_TIME;
+        float waitTime = _data != null ? _data.reloadTime : DEFAULT_RELOAD_TIME;
         _reloadRemainingTime = waitTime;
 
-        if (_data != null && _data.reloadSound != null && _audioSource != null)
-        {
-            _audioSource.PlayOneShot(_data.reloadSound);
-        }
-
+        if (_data != null && _data.reloadSound != null && _audioSource != null) _audioSource.PlayOneShot(_data.reloadSound);
         if (_weaponAnimator != null)
         {
             _weaponAnimator.ResetTrigger(_reloadTriggerHash);
@@ -388,16 +315,8 @@ public class WeaponBase : MonoBehaviour
 
     private void TriggerMuzzleFlash()
     {
-        if (_muzzleFlash == null)
-        {
-            return;
-        }
-
-        if (_muzzleFlashCoroutine != null)
-        {
-            StopCoroutine(_muzzleFlashCoroutine);
-        }
-
+        if (_muzzleFlash == null) return;
+        if (_muzzleFlashCoroutine != null) StopCoroutine(_muzzleFlashCoroutine);
         _muzzleFlashCoroutine = StartCoroutine(MuzzleFlashRoutine());
     }
 
@@ -406,16 +325,14 @@ public class WeaponBase : MonoBehaviour
         _muzzleFlash.gameObject.SetActive(true);
         _muzzleFlash.Clear();
         _muzzleFlash.Play();
-
-        yield return new WaitForSeconds(_MUZZLE_FLASH_DURATION);
-
+        yield return new WaitForSeconds(MUZZLE_FLASH_DURATION);
         _muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         _muzzleFlash.gameObject.SetActive(false);
     }
 
     private void CreateImpactVisual(RaycastHit hit)
     {
-        if (_data != null && _data.impactPrefabs != null && _data.impactPrefabs.Length > 0)
+        if (_data != null && _data.impactPrefabs != null && _data.impactPrefabs.Length > 0 && PoolManager.Instance != null)
         {
             int randomIndex = Random.Range(0, _data.impactPrefabs.Length);
             GameObject selectedPrefab = _data.impactPrefabs[randomIndex];
@@ -423,43 +340,42 @@ public class WeaponBase : MonoBehaviour
             if (selectedPrefab != null)
             {
                 Quaternion impactRotation = Quaternion.LookRotation(hit.normal) * Quaternion.Euler(0f, 180f, 0f);
-                GameObject impact = Instantiate(selectedPrefab, hit.point + (hit.normal * 0.01f), impactRotation);
-                Destroy(impact, _IMPACT_LIFETIME);
+                PoolManager.Instance.SpawnImpact(selectedPrefab, hit.point + (hit.normal * 0.01f), impactRotation, IMPACT_LIFETIME);
             }
         }
     }
 
     private IEnumerator RenderTracer(Vector3 start, Vector3 end)
     {
-        GameObject tracerObj = new GameObject("BulletTracer");
-        LineRenderer line = tracerObj.AddComponent<LineRenderer>();
+        if (PoolManager.Instance == null) yield break;
 
-        line.startWidth = 0.02f;
-        line.endWidth = 0.005f;
-        line.material = _tracerMaterial != null ? _tracerMaterial : new Material(Shader.Find("Sprites/Default"));
-        line.startColor = Color.yellow;
-        line.endColor = new Color(1f, 0.4f, 0f, 0f);
-
+        LineRenderer line = PoolManager.Instance.GetTracer(_tracerMaterial);
         line.SetPosition(0, start);
         line.SetPosition(1, start);
 
         float elapsedTime = 0f;
-
-        while (elapsedTime < _TRACER_DURATION)
+        while (elapsedTime < TRACER_DURATION)
         {
             elapsedTime += Time.deltaTime;
-            Vector3 currentPos = Vector3.Lerp(start, end, elapsedTime / _TRACER_DURATION);
+            Vector3 currentPos = Vector3.Lerp(start, end, elapsedTime / TRACER_DURATION);
             line.SetPosition(1, currentPos);
             yield return null;
         }
 
         line.SetPosition(1, end);
-        Destroy(tracerObj, _TRACER_DESTROY_DELAY);
+        yield return new WaitForSeconds(TRACER_DESTROY_DELAY);
+        PoolManager.Instance.ReturnTracer(line);
     }
 
     public void ResetAmmo()
     {
         CancelReload();
         InitializeAmmoFromData();
+    }
+
+    public void UpdateDefaultTransform(Vector3 newLocalPos, Quaternion newLocalRot)
+    {
+        _defaultLocalPosition = newLocalPos;
+        _defaultLocalRotation = newLocalRot;
     }
 }
