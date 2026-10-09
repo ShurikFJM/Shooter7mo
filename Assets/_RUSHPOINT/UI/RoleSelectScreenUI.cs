@@ -8,6 +8,7 @@ public class RoleSelectScreenUI : MonoBehaviour
     private const string _HEALTH_PREFIX = "Health: ";
     private const string _ARMOR_PREFIX = "Armor: ";
     private const string _SPEED_PREFIX = "Speed: ";
+    private const string _ROOM_CODE_PREFIX = "ROOM CODE: ";
 
     public static RoleSelectScreenUI Instance { get; private set; }
 
@@ -18,6 +19,8 @@ public class RoleSelectScreenUI : MonoBehaviour
     [SerializeField] private TMP_Text _roleHealthText;
     [SerializeField] private TMP_Text _roleArmorText;
     [SerializeField] private TMP_Text _roleSpeedText;
+    [SerializeField] private TMP_Text _roomCodeText;
+    [SerializeField] private Button _copyCodeButton;
     [SerializeField] private Button _lockInButton;
     [SerializeField] private Button _selectTerroristButton;
     [SerializeField] private Button _selectCounterTerroristButton;
@@ -38,6 +41,7 @@ public class RoleSelectScreenUI : MonoBehaviour
     private Team _selectedTeam = Team.Blue;
     private PlayerRoleType _selectedRole = PlayerRoleType.Assault;
     private bool _hasLockedIn = false;
+    private string _currentJoinCode = string.Empty;
 
     public bool HasLockedIn => _hasLockedIn;
     public bool IsRoleSelectionActive => !_hasLockedIn && _screenRoot != null && _screenRoot.activeSelf;
@@ -100,6 +104,24 @@ public class RoleSelectScreenUI : MonoBehaviour
         }
     }
 
+    public void SetRoomCode(string code)
+    {
+        _currentJoinCode = code;
+
+        if (_roomCodeText != null)
+        {
+            _roomCodeText.text = string.Concat(_ROOM_CODE_PREFIX, code);
+        }
+    }
+
+    public void CopyRoomCodeToClipboard()
+    {
+        if (!string.IsNullOrEmpty(_currentJoinCode))
+        {
+            GUIUtility.systemCopyBuffer = _currentJoinCode;
+        }
+    }
+
     private void HandlePhaseChanged(RoundPhase previousPhase, RoundPhase currentPhase)
     {
         if (_hasLockedIn && (currentPhase == RoundPhase.Warmup || currentPhase == RoundPhase.InProgress))
@@ -120,6 +142,7 @@ public class RoleSelectScreenUI : MonoBehaviour
         if (_selectTankButton != null) _selectTankButton.onClick.AddListener(() => SelectRolePreview(PlayerRoleType.Tank));
         if (_confirmButton != null) _confirmButton.onClick.AddListener(ConfirmSelection);
         if (_lockInButton != null) _lockInButton.onClick.AddListener(ConfirmSelection);
+        if (_copyCodeButton != null) _copyCodeButton.onClick.AddListener(CopyRoomCodeToClipboard);
     }
 
     public void SelectTeam(Team team)
@@ -207,6 +230,11 @@ public class RoleSelectScreenUI : MonoBehaviour
 
         UpdateTeamFeedbackUI();
         SelectRolePreview(_selectedRole);
+
+        if (!string.IsNullOrEmpty(_currentJoinCode) && _roomCodeText != null)
+        {
+            _roomCodeText.text = string.Concat(_ROOM_CODE_PREFIX, _currentJoinCode);
+        }
     }
 
     public void CloseRoleScreen()

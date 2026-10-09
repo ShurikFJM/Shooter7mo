@@ -19,4 +19,8 @@ MonoBehaviour:
   maxArmor: 30
   walkSpeed: 5.6
   sprintSpeed: 8.6
-  jumpForce: 5.4
+  jumpForce: 3
+  primaryWeaponPrefab: {fileID: 0}
+  secondaryWeaponPrefab: {fileID: 0}
+  tpPrimaryWeaponPrefab: {fileID: 0}
+  tpSecondaryWeaponPrefab: {fileID: 0}

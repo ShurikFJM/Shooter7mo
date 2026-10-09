@@ -80,19 +80,22 @@ public class WeaponInventory : NetworkBehaviour
         EnsureHolders();
         ClearAllWeapons();
 
-        if (primaryPrefab != null)
+        if (IsOwner)
         {
-            InstantiateWeaponSlot(0, primaryPrefab);
-        }
+            if (primaryPrefab != null)
+            {
+                InstantiateWeaponSlot(0, primaryPrefab);
+            }
 
-        if (secondaryPrefab != null)
-        {
-            InstantiateWeaponSlot(1, secondaryPrefab);
-        }
+            if (secondaryPrefab != null)
+            {
+                InstantiateWeaponSlot(1, secondaryPrefab);
+            }
 
-        if (_defaultMeleePrefab != null)
-        {
-            InstantiateWeaponSlot(2, _defaultMeleePrefab);
+            if (_defaultMeleePrefab != null)
+            {
+                InstantiateWeaponSlot(2, _defaultMeleePrefab);
+            }
         }
 
         if (tpPrimaryPrefab != null && _tpPrimaryHolder != null)
@@ -114,20 +117,23 @@ public class WeaponInventory : NetworkBehaviour
         _hasEquippedLoadout = true;
         _currentSlotIndex = 1;
 
-        for (int i = 0; i < _weaponInstances.Length; i++)
+        if (IsOwner)
         {
-            if (_weaponInstances[i] != null)
+            for (int i = 0; i < _weaponInstances.Length; i++)
             {
-                _weaponInstances[i].SetActive(i == 0);
+                if (_weaponInstances[i] != null)
+                {
+                    _weaponInstances[i].SetActive(i == 0);
+                }
+            }
+
+            if (IsSpawned)
+            {
+                ActiveSlotNetworked.Value = 1;
             }
         }
 
-        if (IsSpawned && IsOwner)
-        {
-            ActiveSlotNetworked.Value = 1;
-        }
-
-        UpdateThirdPersonWeaponVisibility(1);
+        UpdateThirdPersonWeaponVisibility(ActiveSlotNetworked.Value);
     }
 
     private void InstantiateWeaponSlot(int slotArrayIndex, GameObject weaponPrefab)
@@ -136,7 +142,6 @@ public class WeaponInventory : NetworkBehaviour
 
         GameObject weaponObj = Instantiate(weaponPrefab, _firstPersonWeaponHolder);
 
-     
         weaponObj.transform.localPosition = weaponPrefab.transform.localPosition;
         weaponObj.transform.localRotation = weaponPrefab.transform.localRotation;
         weaponObj.transform.localScale = weaponPrefab.transform.localScale;
@@ -235,22 +240,32 @@ public class WeaponInventory : NetworkBehaviour
 
     private void HandleActiveSlotChanged(int previousSlot, int currentSlot)
     {
-        if (!IsOwner)
-        {
-            UpdateThirdPersonWeaponVisibility(currentSlot);
-        }
+        UpdateThirdPersonWeaponVisibility(currentSlot);
     }
 
     private void UpdateThirdPersonWeaponVisibility(int activeSlot)
     {
+        bool showTp = !IsOwner;
+
         if (_currentTpPrimary != null)
         {
-            _currentTpPrimary.SetActive(activeSlot == 1);
+            _currentTpPrimary.SetActive(showTp && activeSlot == 1);
         }
 
         if (_currentTpSecondary != null)
         {
-            _currentTpSecondary.SetActive(activeSlot == 2);
+            _currentTpSecondary.SetActive(showTp && activeSlot == 2);
+        }
+    }
+
+    public void ResetAllWeaponsAmmo()
+    {
+        for (int i = 0; i < _equippedWeapons.Length; i++)
+        {
+            if (_equippedWeapons[i] != null)
+            {
+                _equippedWeapons[i].ResetAmmo();
+            }
         }
     }
 }

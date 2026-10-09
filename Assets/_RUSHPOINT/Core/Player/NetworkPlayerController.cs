@@ -309,22 +309,19 @@ public class NetworkPlayerController : NetworkBehaviour
             }
         }
 
-        if (IsOwner)
+        if (_weaponInventory == null)
         {
-            if (_weaponInventory == null)
-            {
-                _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
-            }
+            _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
+        }
 
-            if (_weaponInventory != null)
-            {
-                _weaponInventory.SetupLoadoutForRole(
-                    _activeRole.primaryWeaponPrefab,
-                    _activeRole.secondaryWeaponPrefab,
-                    _activeRole.tpPrimaryWeaponPrefab,
-                    _activeRole.tpSecondaryWeaponPrefab
-                );
-            }
+        if (_weaponInventory != null)
+        {
+            _weaponInventory.SetupLoadoutForRole(
+                _activeRole.primaryWeaponPrefab,
+                _activeRole.secondaryWeaponPrefab,
+                _activeRole.tpPrimaryWeaponPrefab,
+                _activeRole.tpSecondaryWeaponPrefab
+            );
         }
     }
 
@@ -747,5 +744,56 @@ public class NetworkPlayerController : NetworkBehaviour
 
         Vector3 finalVelocity = (moveDirection * currentSpeed) + (Vector3.up * _verticalVelocity);
         _characterController.Move(finalVelocity * Time.deltaTime);
+    }
+
+    public void RespawnPlayer(Vector3 spawnPosition, Quaternion spawnRotation)
+    {
+        if (_characterController != null)
+        {
+            _characterController.enabled = false;
+        }
+
+        transform.SetPositionAndRotation(spawnPosition, spawnRotation);
+
+        if (_cameraRoot != null)
+        {
+            _cameraRoot.localPosition = new Vector3(0f, _defaultCameraLocalY, 0f);
+            _cameraRoot.localRotation = Quaternion.identity;
+        }
+
+        _cameraPitch = 0f;
+        _verticalVelocity = 0f;
+        _moveInput = Vector2.zero;
+        _hasInitiatedSpectate = false;
+
+        if (IsOwner)
+        {
+            if (SpectatorManager.Instance != null)
+            {
+                SpectatorManager.Instance.StopSpectating();
+            }
+
+            if (_firstPersonRoot != null)
+            {
+                _firstPersonRoot.SetActive(true);
+            }
+
+            if (_playerCamera != null)
+            {
+                _playerCamera.gameObject.SetActive(true);
+            }
+
+            if (_characterController != null)
+            {
+                _characterController.enabled = true;
+            }
+        }
+        else
+        {
+            if (_thirdPersonRoot != null)
+            {
+                _thirdPersonRoot.SetActive(true);
+            }
+        }
     }
 }

@@ -416,19 +416,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkHealth
   ShowTopMostFoldoutHeaderGroup: 1
-  _maxHealth: 100
-  _maxArmor: 50
-  CurrentHealth:
+  _currentHealth:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 100
-  CurrentArmor:
+  _currentArmor:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 50
-  IsAlive:
+  _maxHealth:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 100
+  _maxArmor:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 50
+  _isAlive:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
@@ -729,7 +737,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -747,8 +755,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0155401892f92844cb6f08b4897b3810, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Hitbox
-  _type: 0
   _targetHealth: {fileID: 2836447743696831566}
+  _hitboxType: 0
+  _damageMultiplier: 3
 --- !u!1 &6480712545348936617
 GameObject:
   m_ObjectHideFlags: 0
@@ -856,7 +865,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -876,8 +885,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0155401892f92844cb6f08b4897b3810, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Hitbox
-  _type: 1
   _targetHealth: {fileID: 2836447743696831566}
+  _hitboxType: 1
+  _damageMultiplier: 1
 --- !u!1 &7028284685831521249
 GameObject:
   m_ObjectHideFlags: 0

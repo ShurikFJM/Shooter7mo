@@ -5,9 +5,11 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class WeaponBase : MonoBehaviour
 {
-    private const float _SPREAD_RECOVERY_SPEED = 16f;
-    private const float _MAX_FIRING_PENALTY = 0.06f;
-    private const float _MAX_TOTAL_SPREAD = 0.09f;
+    private const float _SPREAD_RECOVERY_SPEED = 14f;
+    private const float _BURST_SPREAD_START = 0.015f;
+    private const float _MAX_FIRING_PENALTY = 0.07f;
+    private const float _MAX_TOTAL_SPREAD = 0.1f;
+    private const float _RESET_COOLDOWN_PADDING = 0.12f;
     private const float _MUZZLE_FLASH_DURATION = 0.05f;
     private const float _IMPACT_LIFETIME = 10f;
     private const float _TRACER_DURATION = 0.04f;
@@ -42,6 +44,8 @@ public class WeaponBase : MonoBehaviour
     private Coroutine _reloadCoroutine;
     private float _nextTimeToFire;
     private float _firingSpreadPenalty;
+    private float _lastShotTime;
+    private int _continuousShots;
     private int _reloadTriggerHash;
 
     public WeaponData WeaponData => _data;
@@ -92,24 +96,24 @@ public class WeaponBase : MonoBehaviour
             _firePoint = _playerController.PlayerCamera.transform;
         }
 
-        if (_currentAmmo <= 0 && !_isReloading)
-        {
-            InitializeAmmoFromData();
-        }
+        _isReloading = false;
+        _reloadRemainingTime = 0f;
+        _reloadCoroutine = null;
     }
 
     private void Start()
     {
-        if (_currentAmmo <= 0)
-        {
-            InitializeAmmoFromData();
-        }
-
         if (_firePoint == null && _playerController != null && _playerController.PlayerCamera != null)
         {
             _firePoint = _playerController.PlayerCamera.transform;
         }
     }
+
+    private void OnDisable()
+    {
+        CancelReload();
+    }
+
 
     private void InitializeAmmoFromData()
     {
@@ -147,8 +151,10 @@ public class WeaponBase : MonoBehaviour
         _weaponModelTransform.localPosition = Vector3.Lerp(_weaponModelTransform.localPosition, desiredPosition, Time.deltaTime * _returnSpeed * 2f);
         _weaponModelTransform.localRotation = Quaternion.Slerp(_weaponModelTransform.localRotation, desiredRotation, Time.deltaTime * _returnSpeed * 2f);
 
-        if (_firingSpreadPenalty > 0f)
+        float currentFireRate = _data != null && _data.fireRate > 0f ? _data.fireRate : 0.15f;
+        if (Time.time - _lastShotTime > (currentFireRate + _RESET_COOLDOWN_PADDING))
         {
+            _continuousShots = 0;
             _firingSpreadPenalty = Mathf.MoveTowards(_firingSpreadPenalty, 0f, Time.deltaTime * _SPREAD_RECOVERY_SPEED);
         }
 
@@ -163,27 +169,27 @@ public class WeaponBase : MonoBehaviour
         bool isMoving = _playerController != null && _playerController.IsMoving;
         bool isGrounded = _playerController != null && _playerController.IsGrounded;
 
-        float baseSpread = 0f;
-
-        if (!isGrounded && _data != null)
-        {
-            baseSpread = _data.baseSpread * _data.airSpreadMultiplier;
-        }
-        else if (isMoving && _data != null)
-        {
-            baseSpread = _data.baseSpread * _data.movementSpreadMultiplier;
-        }
-        else if (_data != null)
-        {
-            baseSpread = _data.baseSpread;
-        }
-
-        float totalSpread = baseSpread + _firingSpreadPenalty;
-
-        if (!isMoving && isGrounded && _firingSpreadPenalty <= 0.0001f)
+        if (!isMoving && isGrounded && _continuousShots == 0)
         {
             return 0f;
         }
+
+        float movementSpread = 0f;
+        if (!isGrounded && _data != null)
+        {
+            movementSpread = (_data.baseSpread + 0.02f) * _data.airSpreadMultiplier;
+        }
+        else if (isMoving && _data != null)
+        {
+            movementSpread = (_data.baseSpread + 0.01f) * _data.movementSpreadMultiplier;
+        }
+        else if (_data != null)
+        {
+            movementSpread = _data.baseSpread;
+        }
+
+        float burstSpread = _continuousShots > 0 ? (_BURST_SPREAD_START + _firingSpreadPenalty) : 0f;
+        float totalSpread = movementSpread + burstSpread;
 
         return Mathf.Clamp(totalSpread, 0f, _MAX_TOTAL_SPREAD);
     }
@@ -208,6 +214,7 @@ public class WeaponBase : MonoBehaviour
         _currentAmmo--;
         float fireRate = _data != null && _data.fireRate > 0f ? _data.fireRate : 0.15f;
         _nextTimeToFire = Time.time + fireRate;
+        _lastShotTime = Time.time;
 
         PlayRandomShootSound();
 
@@ -225,6 +232,7 @@ public class WeaponBase : MonoBehaviour
             rayDirection.Normalize();
         }
 
+        _continuousShots++;
         if (_data != null)
         {
             _firingSpreadPenalty = Mathf.Min(_firingSpreadPenalty + _data.spreadPerShot, _MAX_FIRING_PENALTY);
@@ -236,30 +244,50 @@ public class WeaponBase : MonoBehaviour
         RaycastHit[] hits = Physics.RaycastAll(rayOrigin, rayDirection, maxRange, ~0, QueryTriggerInteraction.Ignore);
         System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
-        Transform myRootTransform = _playerController != null ? _playerController.transform : transform.root;
+        Transform myShooterTransform = _playerController != null ? _playerController.transform : transform;
 
         for (int i = 0; i < hits.Length; i++)
         {
             RaycastHit hit = hits[i];
-            if (hit.transform.IsChildOf(myRootTransform))
+
+           
+            if (hit.transform.IsChildOf(myShooterTransform) || hit.transform == myShooterTransform)
             {
                 continue;
             }
 
             targetPoint = hit.point;
+            ulong attackerId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
 
+            
             Hitbox hitTarget = hit.collider.GetComponent<Hitbox>();
+            if (hitTarget == null)
+            {
+                hitTarget = hit.collider.GetComponentInParent<Hitbox>();
+            }
+
             if (hitTarget != null)
             {
                 float baseDamage = _data != null ? _data.damage : _DEFAULT_DAMAGE;
-                ulong attackerId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
                 hitTarget.ReceiveHit(baseDamage, attackerId);
-            }
-            else
-            {
-                CreateImpactVisual(hit);
+                break;
             }
 
+           
+            NetworkHealth targetHealth = hit.collider.GetComponentInParent<NetworkHealth>();
+            if (targetHealth == null)
+            {
+                targetHealth = hit.collider.GetComponentInChildren<NetworkHealth>();
+            }
+
+            if (targetHealth != null && targetHealth.IsAlive.Value)
+            {
+                float baseDamage = _data != null ? _data.damage : _DEFAULT_DAMAGE;
+                targetHealth.TakeDamageServerRpc(baseDamage, HitboxType.Chest, attackerId);
+                break;
+            }
+
+            CreateImpactVisual(hit);
             break;
         }
 
@@ -315,6 +343,8 @@ public class WeaponBase : MonoBehaviour
 
         _isReloading = false;
         _reloadRemainingTime = 0f;
+        _continuousShots = 0;
+        _firingSpreadPenalty = 0f;
 
         if (_weaponAnimator != null)
         {
@@ -352,6 +382,7 @@ public class WeaponBase : MonoBehaviour
         _isReloading = false;
         _reloadRemainingTime = 0f;
         _reloadCoroutine = null;
+        _continuousShots = 0;
         _firingSpreadPenalty = 0f;
     }
 

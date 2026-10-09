@@ -424,6 +424,14 @@ public class RoundManager : NetworkBehaviour
             NetworkClient client = clientPair.Value;
             if (client.PlayerObject == null) continue;
 
+            NetworkHealth health = client.PlayerObject.GetComponent<NetworkHealth>();
+            if (health != null)
+            {
+                health.ResetHealthServer();
+            }
+
+            ResetPlayerWeaponsClientRpc(client.ClientId);
+
             PlayerTeam playerTeamComp = client.PlayerObject.GetComponent<PlayerTeam>();
             if (playerTeamComp == null) continue;
 
@@ -437,28 +445,13 @@ public class RoundManager : NetworkBehaviour
                 Vector3 targetPosition = targetSpawn.position;
                 Quaternion targetRotation = targetSpawn.rotation;
 
-                CharacterController characterController = client.PlayerObject.GetComponent<CharacterController>();
-                if (characterController != null) characterController.enabled = false;
-
-                NetworkTransform networkTransform = client.PlayerObject.GetComponent<NetworkTransform>();
-                if (networkTransform != null)
+                NetworkPlayerController playerController = client.PlayerObject.GetComponent<NetworkPlayerController>();
+                if (playerController != null)
                 {
-                    networkTransform.Teleport(targetPosition, targetRotation, client.PlayerObject.transform.localScale);
-                }
-                else
-                {
-                    client.PlayerObject.transform.SetPositionAndRotation(targetPosition, targetRotation);
+                    playerController.RespawnPlayer(targetPosition, targetRotation);
                 }
 
-                if (characterController != null) characterController.enabled = true;
-
-                TeleportPlayerClientRpc(targetPosition, targetRotation, playerTeamComp.OwnerClientId);
-            }
-
-            NetworkHealth health = client.PlayerObject.GetComponent<NetworkHealth>();
-            if (health != null)
-            {
-                health.ResetHealthServer();
+                TeleportPlayerClientRpc(targetPosition, targetRotation, client.ClientId);
             }
         }
 
@@ -475,28 +468,37 @@ public class RoundManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.ClientsAndHost)]
+    private void ResetPlayerWeaponsClientRpc(ulong targetClientId)
+    {
+        if (NetworkManager.Singleton == null) return;
+        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(targetClientId, out NetworkClient client)) return;
+        if (client.PlayerObject == null) return;
+
+        WeaponInventory inventory = client.PlayerObject.GetComponentInChildren<WeaponInventory>(true);
+        if (inventory != null)
+        {
+            inventory.ResetAllWeaponsAmmo();
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
     private void TeleportPlayerClientRpc(Vector3 targetPosition, Quaternion targetRotation, ulong targetClientId)
     {
         if (NetworkManager.Singleton.SpawnManager == null) return;
         if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(targetClientId, out NetworkClient client)) return;
         if (client.PlayerObject == null) return;
 
-        GameObject playerObj = client.PlayerObject.gameObject;
-        CharacterController characterController = playerObj.GetComponent<CharacterController>();
+        NetworkPlayerController playerController = client.PlayerObject.GetComponent<NetworkPlayerController>();
+        if (playerController != null)
+        {
+            playerController.RespawnPlayer(targetPosition, targetRotation);
+        }
 
-        if (characterController != null) characterController.enabled = false;
-
-        NetworkTransform networkTransform = playerObj.GetComponent<NetworkTransform>();
+        NetworkTransform networkTransform = client.PlayerObject.GetComponent<NetworkTransform>();
         if (networkTransform != null)
         {
-            networkTransform.Teleport(targetPosition, targetRotation, playerObj.transform.localScale);
+            networkTransform.Teleport(targetPosition, targetRotation, client.PlayerObject.transform.localScale);
         }
-        else
-        {
-            playerObj.transform.SetPositionAndRotation(targetPosition, targetRotation);
-        }
-
-        if (characterController != null) characterController.enabled = true;
     }
 
     private double GetPhaseElapsed()

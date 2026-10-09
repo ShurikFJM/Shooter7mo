@@ -654,7 +654,7 @@ MonoBehaviour:
   _weaponModelTransform: {fileID: 1170741331068106864}
   _firePoint: {fileID: 231782551315511889}
   _muzzleFlash: {fileID: 0}
-  _weaponAnimator: {fileID: 5622735202235127978}
+  _weaponAnimator: {fileID: 0}
   _reloadAnimationTrigger: Reload
   _kickbackOffset: {x: 0, y: 0, z: -0.05}
   _kickbackRotation: {x: -3, y: 0, z: 0}

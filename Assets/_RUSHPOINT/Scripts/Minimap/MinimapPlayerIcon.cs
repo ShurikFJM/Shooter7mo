@@ -1,48 +1,83 @@
-using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MinimapPlayerIcon : MonoBehaviour
 {
     [SerializeField] private Transform _player;
     [SerializeField] private RectTransform _minimapRect;
-    [SerializeField] private float _minWorldX = -50f;
-    [SerializeField] private float _maxWorldX = 50f;
-    [SerializeField] private float _minWorldZ = -50f;
-    [SerializeField] private float _maxWorldZ = 50f;
+    [SerializeField] private RawImage _iconImage;
+    [SerializeField] private float _minWorldX = -61.5f;
+    [SerializeField] private float _maxWorldX = 102.64f;
+    [SerializeField] private float _minWorldZ = 111f;
+    [SerializeField] private float _maxWorldZ = -6.5f;
     [SerializeField] private bool _invertX = false;
     [SerializeField] private bool _invertZ = true;
     [SerializeField] private float _rotationOffset = 0f;
 
     private RectTransform _iconRect;
+    private NetworkHealth _targetHealth;
+
+    public Transform TargetPlayer => _player;
 
     private void Awake()
     {
         _iconRect = GetComponent<RectTransform>();
+        if (_iconImage == null)
+        {
+            _iconImage = GetComponent<RawImage>();
+        }
+    }
+
+    public void Setup(Transform target, RectTransform minimapRect, Color iconColor, float minX, float maxX, float minZ, float maxZ, bool invX, bool invZ, float rotOffset)
+    {
+        _player = target;
+        _minimapRect = minimapRect;
+        _minWorldX = minX;
+        _maxWorldX = maxX;
+        _minWorldZ = minZ;
+        _maxWorldZ = maxZ;
+        _invertX = invX;
+        _invertZ = invZ;
+        _rotationOffset = rotOffset;
+
+        if (_iconImage == null)
+        {
+            _iconImage = GetComponent<RawImage>();
+        }
+
+        if (_iconImage != null)
+        {
+            _iconImage.color = iconColor;
+        }
+
+        if (_player != null)
+        {
+            _targetHealth = _player.GetComponent<NetworkHealth>();
+        }
     }
 
     private void LateUpdate()
     {
         if (_player == null)
         {
-            ResolveLocalPlayer();
-            if (_player == null) return;
+            Destroy(gameObject);
+            return;
+        }
+
+        if (_targetHealth != null && !_targetHealth.IsAlive.Value)
+        {
+            if (gameObject.activeSelf) gameObject.SetActive(false);
+            return;
+        }
+        else if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
         }
 
         if (_minimapRect == null) return;
 
         UpdatePlayerPosition();
         UpdatePlayerRotation();
-    }
-
-    private void ResolveLocalPlayer()
-    {
-        if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null) return;
-
-        NetworkObject localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
-        if (localPlayer != null)
-        {
-            _player = localPlayer.transform;
-        }
     }
 
     private void UpdatePlayerPosition()
