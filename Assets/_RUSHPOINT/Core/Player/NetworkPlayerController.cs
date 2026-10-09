@@ -234,7 +234,7 @@ public class NetworkPlayerController : NetworkBehaviour
         if (IsOwner)
         {
             HandleDeathCheck();
-            if (SpectatorManager.Instance != null && SpectatorManager.Instance.IsSpectating) return;
+            if (SpectatorManager.Instance != null && SpectatorManager.Instance.isSpectating) return;
 
             if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
             {

@@ -162,7 +162,7 @@ public class PauseMenuManager : MonoBehaviour
 
     private bool ShouldKeepCursorUnlocked()
     {
-        if (RoleSelectScreenUI.Instance != null && RoleSelectScreenUI.Instance.IsRoleSelectionActive)
+        if (RoleSelectScreenUI.instance != null && RoleSelectScreenUI.instance.isRoleSelectionActive)
         {
             return true;
         }

@@ -65,7 +65,7 @@ public class CursorStateManager : MonoBehaviour
             return true;
         }
 
-        if (RoleSelectScreenUI.Instance != null && RoleSelectScreenUI.Instance.IsRoleSelectionActive)
+        if (RoleSelectScreenUI.instance != null && RoleSelectScreenUI.instance.isRoleSelectionActive)
         {
             return true;
         }

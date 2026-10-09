@@ -13371,7 +13371,7 @@ MonoBehaviour:
   teammateIconPrefab: {fileID: 2800600311372955775, guid: 6a45d399cc7968d43af8db5f56c3f8b0, type: 3}
   enemyIconPrefab: {fileID: 2800600311372955775, guid: 6a45d399cc7968d43af8db5f56c3f8b0, type: 3}
   bombIconRect: {fileID: 386603528}
-  terroristTeam: 2
+  terroristTeam: 1
   worldCenter: {x: 25, y: 60}
   worldSize: {x: 205, y: 130}
   teammateColor: {r: 0.2, g: 0.8, b: 1, a: 1}

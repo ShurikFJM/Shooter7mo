@@ -7,8 +7,7 @@ public class SpectatorManager : MonoBehaviour
 {
     public static SpectatorManager Instance { get; private set; }
 
-    [SerializeField] private Vector3 _spectatorOffset = new Vector3(0f, 1.8f, -2.5f);
-    [SerializeField] private float _followSpeed = 15f;
+    private const float BACKUP_HEAD_HEIGHT = 1.6f;
 
     private readonly List<NetworkPlayerController> _spectatableTeammates = new List<NetworkPlayerController>();
     private NetworkPlayerController _currentSpectatedPlayer;
@@ -19,8 +18,8 @@ public class SpectatorManager : MonoBehaviour
     private bool _isSpectating = false;
     private Team _localTeam = Team.Neutral;
 
-    public bool IsSpectating => _isSpectating;
-    public NetworkPlayerController CurrentSpectatedPlayer => _currentSpectatedPlayer;
+    public bool isSpectating => _isSpectating;
+    public NetworkPlayerController currentSpectatedPlayer => _currentSpectatedPlayer;
 
     private void Awake()
     {
@@ -98,16 +97,21 @@ public class SpectatorManager : MonoBehaviour
     {
         _spectatableTeammates.Clear();
 
-        NetworkPlayerController[] allPlayers = FindObjectsByType<NetworkPlayerController>(FindObjectsInactive.Exclude);
-        for (int i = 0; i < allPlayers.Length; i++)
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsClient) return;
+
+        IReadOnlyList<NetworkClient> clients = NetworkManager.Singleton.ConnectedClientsList;
+
+        for (int i = 0; i < clients.Count; i++)
         {
-            NetworkPlayerController candidate = allPlayers[i];
-            if (candidate.IsOwner) continue;
+            NetworkClient client = clients[i];
+            if (client.PlayerObject == null) continue;
+            if (client.ClientId == NetworkManager.Singleton.LocalClientId) continue;
 
-            PlayerTeam candidateTeam = candidate.GetComponent<PlayerTeam>();
-            NetworkHealth candidateHealth = candidate.GetComponent<NetworkHealth>();
+            NetworkPlayerController candidate = client.PlayerObject.GetComponent<NetworkPlayerController>();
+            PlayerTeam candidateTeam = client.PlayerObject.GetComponent<PlayerTeam>();
+            NetworkHealth candidateHealth = client.PlayerObject.GetComponent<NetworkHealth>();
 
-            if (candidateTeam == null || candidateHealth == null) continue;
+            if (candidate == null || candidateTeam == null || candidateHealth == null) continue;
             if (candidateTeam.CurrentTeam.Value != _localTeam) continue;
             if (!candidateHealth.IsAlive.Value || candidateHealth.CurrentHealth.Value <= 0f) continue;
 
@@ -151,12 +155,18 @@ public class SpectatorManager : MonoBehaviour
 
         if (_localCamera != null)
         {
-            Transform targetTransform = _currentSpectatedPlayer.transform;
-            Vector3 targetPosition = targetTransform.position + (targetTransform.rotation * _spectatorOffset);
-            Quaternion targetRotation = Quaternion.LookRotation(targetTransform.position + Vector3.up * 1.5f - targetPosition);
+            Camera targetCam = _currentSpectatedPlayer.GetComponentInChildren<Camera>();
 
-            _localCamera.transform.position = Vector3.Lerp(_localCamera.transform.position, targetPosition, Time.deltaTime * _followSpeed);
-            _localCamera.transform.rotation = Quaternion.Slerp(_localCamera.transform.rotation, targetRotation, Time.deltaTime * _followSpeed);
+            if (targetCam != null)
+            {
+                _localCamera.transform.position = targetCam.transform.position;
+                _localCamera.transform.rotation = targetCam.transform.rotation;
+            }
+            else
+            {
+                _localCamera.transform.position = _currentSpectatedPlayer.transform.position + Vector3.up * BACKUP_HEAD_HEIGHT;
+                _localCamera.transform.rotation = _currentSpectatedPlayer.transform.rotation;
+            }
         }
     }
 }

@@ -5,12 +5,12 @@ using Unity.Netcode;
 
 public class RoleSelectScreenUI : MonoBehaviour
 {
-    private const string _HEALTH_PREFIX = "Health: ";
-    private const string _ARMOR_PREFIX = "Armor: ";
-    private const string _SPEED_PREFIX = "Speed: ";
-    private const string _ROOM_CODE_PREFIX = "ROOM CODE: ";
+    private const string HEALTH_PREFIX = "Health: ";
+    private const string ARMOR_PREFIX = "Armor: ";
+    private const string SPEED_PREFIX = "Speed: ";
+    private const string ROOM_CODE_PREFIX = "ROOM CODE: ";
 
-    public static RoleSelectScreenUI Instance { get; private set; }
+    public static RoleSelectScreenUI instance { get; private set; }
 
     [SerializeField] private GameObject _screenRoot;
     [SerializeField] private RoleDatabaseSO _roleDatabase;
@@ -43,18 +43,18 @@ public class RoleSelectScreenUI : MonoBehaviour
     private bool _hasLockedIn = false;
     private string _currentJoinCode = string.Empty;
 
-    public bool HasLockedIn => _hasLockedIn;
-    public bool IsRoleSelectionActive => !_hasLockedIn && _screenRoot != null && _screenRoot.activeSelf;
+    public bool hasLockedIn => _hasLockedIn;
+    public bool isRoleSelectionActive => !_hasLockedIn && _screenRoot != null && _screenRoot.activeSelf;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
         }
 
-        Instance = this;
+        instance = this;
 
         BindButtonCallbacks();
 
@@ -110,7 +110,7 @@ public class RoleSelectScreenUI : MonoBehaviour
 
         if (_roomCodeText != null)
         {
-            _roomCodeText.text = string.Concat(_ROOM_CODE_PREFIX, code);
+            _roomCodeText.text = string.Concat(ROOM_CODE_PREFIX, code);
         }
     }
 
@@ -179,9 +179,9 @@ public class RoleSelectScreenUI : MonoBehaviour
 
         if (_roleNameText != null) _roleNameText.text = roleData.roleName;
         if (_roleDescriptionText != null) _roleDescriptionText.text = roleData.roleDescription;
-        if (_roleHealthText != null) _roleHealthText.text = string.Concat(_HEALTH_PREFIX, roleData.maxHealth);
-        if (_roleArmorText != null) _roleArmorText.text = string.Concat(_ARMOR_PREFIX, roleData.maxArmor);
-        if (_roleSpeedText != null) _roleSpeedText.text = string.Concat(_SPEED_PREFIX, roleData.walkSpeed.ToString("F1"));
+        if (_roleHealthText != null) _roleHealthText.text = string.Concat(HEALTH_PREFIX, roleData.maxHealth);
+        if (_roleArmorText != null) _roleArmorText.text = string.Concat(ARMOR_PREFIX, roleData.maxArmor);
+        if (_roleSpeedText != null) _roleSpeedText.text = string.Concat(SPEED_PREFIX, roleData.walkSpeed.ToString("F1"));
     }
 
     public void ConfirmSelection()
@@ -233,7 +233,7 @@ public class RoleSelectScreenUI : MonoBehaviour
 
         if (!string.IsNullOrEmpty(_currentJoinCode) && _roomCodeText != null)
         {
-            _roomCodeText.text = string.Concat(_ROOM_CODE_PREFIX, _currentJoinCode);
+            _roomCodeText.text = string.Concat(ROOM_CODE_PREFIX, _currentJoinCode);
         }
     }
 

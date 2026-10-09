@@ -68,7 +68,7 @@ MonoBehaviour:
       mostClicked:
       - paths:
         - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"MinimapManager[0]"}'
-        count: 34
+        count: 38
         gameObjects:
         - {fileID: 0}
       - paths:
@@ -112,6 +112,11 @@ MonoBehaviour:
         gameObjects:
         - {fileID: 0}
       recentlyClicked:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"MinimapManager[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
       - paths: []
         count: 1
         gameObjects: []
@@ -132,11 +137,6 @@ MonoBehaviour:
       - paths: []
         count: 1
         gameObjects: []
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"MinimapManager[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
       - paths: []
         count: 1
         gameObjects: []
@@ -154,7 +154,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 04:42 PM (October 9, 2026)
+    lastSaveTimePrint: 05:06 PM (October 9, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -168,16 +168,16 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 82
+    lastValidTabWidth: 120
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 1
+    lastKnownHeight: 0
     tabs:
-    - path: '{"sceneGUID":"d862c7961e433f341bf7e31c0c920788","path":"AK_Oficial[0]"}'
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"MinimapManager[0]"}'
       paths: []
-      tabWidth: 79
-      name: AK_Oficial
-      icon: {fileID: -5093997336329155648, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: AK_Oficial
+      tabWidth: 117
+      name: MinimapManager
+      icon: {fileID: 148978298399363526, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: MinimapManager
       filterString: 
       newTab: 0
       scrollPosition: 0
@@ -186,17 +186,17 @@ MonoBehaviour:
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: AK_Oficial
+        m_Text: MinimapManager
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "AK_Oficial\u200B"
+        m_TextWithWhitespace: "MinimapManager\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
       previewHeight: 150
       debug: 0
       filtering: 0
-      prefab: 1
+      prefab: 0
       multiFoldout: 1
       target: {fileID: 0}
       targets: []
@@ -247,46 +247,26 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: animator
-        niceComponentName: animator
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: audiosource
-        niceComponentName: audio source
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: networkobject
-        niceComponentName: network object
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: weaponbase
-        niceComponentName: weapon base
+        componentName: minimapmanager
+        niceComponentName: minimap manager
       historyPaths:
       - paths:
-        - '{"sceneGUID":"d862c7961e433f341bf7e31c0c920788","path":"AK_Oficial[0]"}'
-        prefab: 1
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"MinimapManager[0]"}'
+        prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
+    - assetGUIDs:
+      - 7da830452a469fd49afd5c1469468480
+    - assetGUIDs:
+      - bdaa81a7b8c4dce4f8449dbc5b6c75ac
+    - assetGUIDs:
+      - 1592a4a8038279542a245c83615fa5fa
+    - assetGUIDs:
+      - 8b4ef7bedec2a2a44b4d6bc98bf55c23
+    - assetGUIDs:
+      - b2b691b9bf54e074ea544fb911929835
     - assetGUIDs:
       - a0f7beadf1740184cbb9c48db3526548
     - assetGUIDs:
@@ -299,21 +279,9 @@ MonoBehaviour:
       - dfce630ca84aa7048a92667cf8b40d40
     - assetGUIDs:
       - a0982b8a9f90a78478897f35cd35095b
-    - assetGUIDs:
-      - 79c4a63f5ead07645b1744cb3c03b7fe
-      - 23d9e60c71fdcf7428814f0119a08027
-      - db8883596f9ceb44884909b4829e9e63
-    - assetGUIDs:
-      - 79c4a63f5ead07645b1744cb3c03b7fe
-      - 23d9e60c71fdcf7428814f0119a08027
-    - assetGUIDs:
-      - 79c4a63f5ead07645b1744cb3c03b7fe
-    - assetGUIDs:
-      - 23d9e60c71fdcf7428814f0119a08027
-      - db8883596f9ceb44884909b4829e9e63
-    targetObject: {fileID: -8086927522284877020, guid: a0f7beadf1740184cbb9c48db3526548, type: 2}
+    targetObject: {fileID: 11500000, guid: 7da830452a469fd49afd5c1469468480, type: 3}
     targetObjects: []
-    lastSelectedAsset: "Assets/Julio\xB4s Things/Weapons/weapon-ak-47/source/ak.controller"
+    lastSelectedAsset: Assets/_RUSHPOINT/UI/PingWheelUI.cs
     lastClickedTab: -1
     previousTab: 0
   - tracker:
@@ -613,6 +581,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Graybox_Test.unity/RUSPOINT.unity
     lastClickedTab: -1
     previousTab: 1
-  tipsShown: 01000000010000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000010000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000100000000000000
+  tipsShown: 01000000010000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000010000000100000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000100000000000000
   playModeStartScene: {}
   enteringPlayMode: 0
