@@ -2,37 +2,54 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
+[RequireComponent(typeof(AudioSource))]
 public class WeaponBase : NetworkBehaviour
 {
-    public WeaponDataSO weaponData;
+    private const float _SPREAD_RECOVERY_SPEED = 14f;
+    private const float _BURST_SPREAD_START = 0.015f;
+    private const float _MAX_FIRING_PENALTY = 0.07f;
+    private const float _MAX_TOTAL_SPREAD = 0.1f;
+    private const float _RESET_COOLDOWN_PADDING = 0.12f;
+    private const float _MUZZLE_FLASH_DURATION = 0.05f;
+    private const float _IMPACT_LIFETIME = 8f;
+    private const float _TRACER_DURATION = 0.04f;
+
+    public WeaponData weaponData;
+    public WeaponData WeaponData => weaponData;
     public GameObject muzzleFlashPrefab;
     public GameObject bulletTracerPrefab;
-    public Transform hitParticlesPrefab;
 
-    [SerializeField] private Animator _weaponAnimator;
-    [SerializeField] private Transform _weaponModelTransform;
-    [SerializeField] private Transform _firePoint;
-    [SerializeField] private LayerMask _hitLayers;
+    [SerializeField] protected Transform _firePoint;
+    [SerializeField] protected Transform _weaponModelTransform;
+    [SerializeField] protected Animator _weaponAnimator;
+    [SerializeField] protected LayerMask _hitLayers;
+    [SerializeField] protected float _returnSpeed = 10f;
 
-    private NetworkPlayerController _playerController;
-    private Vector3 _defaultLocalPosition;
-    private Quaternion _defaultLocalRotation;
-    private Vector3 _targetOffsetPosition;
-    private Quaternion _targetOffsetRotation;
+    protected NetworkPlayerController _playerController;
+    protected AudioSource _audioSource;
 
-    private int _reloadTriggerHash = Animator.StringToHash("Reload");
-    private int _shootTriggerHash = Animator.StringToHash("Shoot");
+    protected int _currentAmmo;
+    protected int _reserveAmmo;
+    protected bool _isReloading;
+    protected float _reloadRemainingTime;
+    protected Coroutine _reloadCoroutine;
+    protected float _nextTimeToFire;
+    protected float _firingSpreadPenalty;
+    protected float _lastShotTime;
+    protected int _continuousShots;
+    protected int _reloadTriggerHash = Animator.StringToHash("Reload");
+    protected int _shootTriggerHash = Animator.StringToHash("Shoot");
+    protected Vector3 _defaultLocalPosition;
+    protected Quaternion _defaultLocalRotation;
 
-    private bool _isReloading;
-    private float _reloadRemainingTime;
-    private Coroutine _reloadCoroutine;
-    private int _continuousShots;
-    private float _firingSpreadPenalty;
-    private float _nextFireTime;
-    private int _currentAmmo;
+    public int CurrentAmmo => _currentAmmo;
+    public int ReserveAmmo => _reserveAmmo;
+    public bool IsReloading => _isReloading;
+    public float ReloadProgressNormalized => weaponData != null && weaponData.reloadTime > 0 ? 1f - (_reloadRemainingTime / weaponData.reloadTime) : 0f;
 
-    private void Awake()
+    protected virtual void Awake()
     {
+        _audioSource = GetComponent<AudioSource>();
         if (_weaponModelTransform != null)
         {
             _defaultLocalPosition = _weaponModelTransform.localPosition;
@@ -49,34 +66,110 @@ public class WeaponBase : NetworkBehaviour
             _firePoint = _playerController.PlayerCamera.transform;
         }
 
+        if (_currentAmmo <= 0 && !_isReloading)
+        {
+            ResetAmmo();
+        }
         _isReloading = false;
         _reloadRemainingTime = 0f;
         _reloadCoroutine = null;
-        _continuousShots = 0;
-        _firingSpreadPenalty = 0f;
-
-        _targetOffsetPosition = Vector3.zero;
-        _targetOffsetRotation = Quaternion.identity;
 
         if (_weaponModelTransform != null)
         {
             _weaponModelTransform.localPosition = _defaultLocalPosition;
             _weaponModelTransform.localRotation = _defaultLocalRotation;
         }
+    }
 
-        if (_weaponAnimator != null)
+    private void Start()
+    {
+        if (_currentAmmo <= 0)
         {
-            _weaponAnimator.ResetTrigger(_reloadTriggerHash);
-            _weaponAnimator.Rebind();
-            _weaponAnimator.Play("Idle", 0, 0f);
-            _weaponAnimator.Update(0f);
+            ResetAmmo();
         }
+
+        if (_firePoint == null && _playerController != null && _playerController.PlayerCamera != null)
+        {
+            _firePoint = _playerController.PlayerCamera.transform;
+        }
+    }
+
+    private void OnDisable()
+    {
+        CancelReload();
+    }
+
+    public void UpdateDefaultTransform(Vector3 pos, Quaternion rot)
+    {
+        _defaultLocalPosition = pos;
+        _defaultLocalRotation = rot;
+    }
+
+    public void ResetAmmo()
+    {
+        if (weaponData != null)
+        {
+            _currentAmmo = weaponData.maxAmmo;
+            _reserveAmmo = weaponData.maxReserveMagazines * weaponData.maxAmmo;
+        }
+    }
+
+    private void Update()
+    {
+        if (_firingSpreadPenalty > 0f)
+        {
+            float currentFireRate = weaponData != null && weaponData.fireRate > 0f ? weaponData.fireRate : 0.15f;
+            if (Time.time - _lastShotTime > (currentFireRate + _RESET_COOLDOWN_PADDING))
+            {
+                _continuousShots = 0;
+                _firingSpreadPenalty = Mathf.MoveTowards(_firingSpreadPenalty, 0f, Time.deltaTime * _SPREAD_RECOVERY_SPEED);
+            }
+        }
+    }
+
+    public virtual float GetCurrentSpread()
+    {
+        bool isMoving = _playerController != null && _playerController.IsMoving;
+        bool isGrounded = _playerController != null && _playerController.IsGrounded;
+
+        float baseSpread = 0f;
+        if (!isMoving && isGrounded && _continuousShots == 0)
+        {
+            return 0f;
+        }
+
+        float movementSpread = 0f;
+        if (!isGrounded && weaponData != null)
+        {
+            baseSpread = weaponData.baseSpread * weaponData.airSpreadMultiplier;
+            movementSpread = (weaponData.baseSpread + 0.02f) * weaponData.airSpreadMultiplier;
+        }
+        else if (isMoving && weaponData != null)
+        {
+            baseSpread = weaponData.baseSpread * weaponData.movementSpreadMultiplier;
+            movementSpread = (weaponData.baseSpread + 0.01f) * weaponData.movementSpreadMultiplier;
+        }
+        else if (weaponData != null)
+        {
+            baseSpread = weaponData.baseSpread;
+            movementSpread = weaponData.baseSpread;
+        }
+
+        if (!isMoving && isGrounded && _firingSpreadPenalty <= 0.0001f)
+        {
+            return 0f;
+        }
+
+        float burstSpread = _continuousShots > 0 ? (_BURST_SPREAD_START + _firingSpreadPenalty) : 0f;
+        float totalSpread = movementSpread + burstSpread;
+
+        return Mathf.Clamp(totalSpread, 0f, _MAX_TOTAL_SPREAD);
     }
 
     public bool CanFire()
     {
-        if (_isReloading) return false;
-        if (Time.time < _nextFireTime) return false;
+        if (_isReloading || weaponData == null) return false;
+        if (Time.time < _nextTimeToFire) return false;
         if (_currentAmmo <= 0) return false;
         return true;
     }
@@ -84,63 +177,163 @@ public class WeaponBase : NetworkBehaviour
     public virtual void Fire()
     {
         if (!CanFire()) return;
+        Shoot();
+    }
 
-        _nextFireTime = Time.time + (1f / weaponData.fireRate);
+    protected virtual void Shoot()
+    {
         _currentAmmo--;
-        _continuousShots++;
+        float fireRate = weaponData != null && weaponData.fireRate > 0f ? weaponData.fireRate : 0.15f;
+        _nextTimeToFire = Time.time + fireRate;
+        _lastShotTime = Time.time;
+
+        PlayRandomShootSound();
 
         if (_weaponAnimator != null)
         {
             _weaponAnimator.SetTrigger(_shootTriggerHash);
         }
 
-        if (muzzleFlashPrefab != null && _firePoint != null)
+        Vector3 rayOrigin = transform.position;
+        Vector3 rayDirection = transform.forward;
+        Transform alignTransform = transform;
+
+        if (_playerController != null && _playerController.PlayerCamera != null)
         {
-            Instantiate(muzzleFlashPrefab, _firePoint.position, _firePoint.rotation, _firePoint);
+            rayOrigin = _playerController.PlayerCamera.transform.position;
+            rayDirection = _playerController.PlayerCamera.transform.forward;
+            alignTransform = _playerController.PlayerCamera.transform;
         }
 
-        ExecuteRaycast();
-    }
-
-    private void ExecuteRaycast()
-    {
-        if (_playerController == null || _playerController.PlayerCamera == null) return;
-
-        Transform cameraTransform = _playerController.PlayerCamera.transform;
-        Vector3 rayOrigin = cameraTransform.position;
-        Vector3 rayDirection = cameraTransform.forward;
-        Vector3 targetPoint;
-
-        if (Physics.Raycast(rayOrigin, rayDirection, out RaycastHit hit, weaponData.maxRange, _hitLayers))
+        float currentSpread = GetCurrentSpread();
+        if (currentSpread > 0f)
         {
+            rayDirection += alignTransform.right * UnityEngine.Random.Range(-currentSpread, currentSpread);
+            rayDirection += alignTransform.up * UnityEngine.Random.Range(-currentSpread, currentSpread);
+            rayDirection.Normalize();
+        }
+
+        _continuousShots++;
+        if (weaponData != null)
+        {
+            _firingSpreadPenalty = Mathf.Min(_firingSpreadPenalty + weaponData.spreadPerShot, _MAX_FIRING_PENALTY);
+        }
+
+        float maxRange = weaponData != null ? weaponData.range : 100f;
+        Vector3 targetPoint = rayOrigin + (rayDirection * maxRange);
+
+        WeaponInventory inventory = _playerController != null ? _playerController.GetComponentInChildren<WeaponInventory>() : null;
+
+        LayerMask maskToUse = _hitLayers != 0 ? _hitLayers : (LayerMask)~0;
+        RaycastHit[] hits = Physics.RaycastAll(rayOrigin, rayDirection, maxRange, maskToUse, QueryTriggerInteraction.Ignore);
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        Transform myRootTransform = _playerController != null ? _playerController.transform : transform.root;
+        Transform myShooterTransform = _playerController != null ? _playerController.transform : transform;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            RaycastHit hit = hits[i];
+
+            if (hit.transform.IsChildOf(myShooterTransform) || hit.transform == myShooterTransform || hit.transform.IsChildOf(myRootTransform))
+            {
+                continue;
+            }
+
             targetPoint = hit.point;
 
-            NetworkHealth targetHealth = hit.collider.GetComponent<NetworkHealth>();
-            if (targetHealth != null && IsOwner)
+            NetworkObject victimObj = hit.collider.GetComponentInParent<NetworkObject>();
+            if (victimObj != null)
             {
-                targetHealth.TakeDamageServerRpc(weaponData.baseDamage);
+                if (IsOwner && inventory != null)
+                {
+                    inventory.RequestDealDamageServerRpc(victimObj, default);
+                }
+                break;
             }
-
-            if (hitParticlesPrefab != null)
+            else
             {
-                Instantiate(hitParticlesPrefab, hit.point, Quaternion.LookRotation(hit.normal));
+                CreateImpactVisual(hit);
+                break;
             }
         }
-        else
+
+        if (IsOwner && inventory != null)
         {
-            targetPoint = rayOrigin + (rayDirection * weaponData.maxRange);
+            inventory.BroadcastShootServerRpc(targetPoint);
         }
 
-        if (bulletTracerPrefab != null && _firePoint != null)
+        CreateTracerVisual(targetPoint);
+    }
+
+    protected virtual void PlayRandomShootSound()
+    {
+        if (weaponData != null && weaponData.shootSounds != null && weaponData.shootSounds.Length > 0 && _audioSource != null)
         {
-            GameObject tracer = Instantiate(bulletTracerPrefab, _firePoint.position, Quaternion.identity);
-            tracer.transform.LookAt(targetPoint);
+            AudioClip clip = weaponData.shootSounds[Random.Range(0, weaponData.shootSounds.Length)];
+            _audioSource.PlayOneShot(clip);
         }
+    }
+
+    protected virtual void CreateImpactVisual(RaycastHit hit)
+    {
+        if (weaponData != null && weaponData.impactPrefabs != null && weaponData.impactPrefabs.Length > 0 && PoolManager.Instance != null)
+        {
+            GameObject randomImpact = weaponData.impactPrefabs[Random.Range(0, weaponData.impactPrefabs.Length)];
+
+            
+            
+            Quaternion impactRotation = Quaternion.LookRotation(-hit.normal) * Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
+
+            
+            Vector3 impactPosition = hit.point + (hit.normal * 0.01f);
+
+            PoolManager.Instance.SpawnImpact(randomImpact, impactPosition, impactRotation, _IMPACT_LIFETIME);
+        }
+    }
+    protected virtual void CreateTracerVisual(Vector3 targetPoint)
+    {
+        if (muzzleFlashPrefab != null && _firePoint != null && PoolManager.Instance != null)
+        {
+            PoolManager.Instance.SpawnImpact(muzzleFlashPrefab, _firePoint.position, _firePoint.rotation, _MUZZLE_FLASH_DURATION);
+        }
+
+        if (_firePoint != null)
+        {
+            StartCoroutine(RenderTracerRoutine(_firePoint.position, targetPoint));
+        }
+    }
+
+    private IEnumerator RenderTracerRoutine(Vector3 start, Vector3 end)
+    {
+        if (PoolManager.Instance == null) yield break;
+
+        LineRenderer tracer = PoolManager.Instance.GetTracer(null);
+        if (tracer == null) yield break;
+
+        tracer.SetPosition(0, start);
+        tracer.SetPosition(1, start);
+
+        float distance = Vector3.Distance(start, end);
+        float duration = _TRACER_DURATION;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            Vector3 currentPos = Vector3.Lerp(start, end, elapsedTime / duration);
+            tracer.SetPosition(1, currentPos);
+            yield return null;
+        }
+
+        tracer.SetPosition(1, end);
+        yield return new WaitForSeconds(0.05f);
+        PoolManager.Instance.ReturnTracer(tracer);
     }
 
     public void Reload()
     {
-        if (_isReloading || _currentAmmo == weaponData.magazineSize) return;
+        if (_isReloading || weaponData == null || _currentAmmo == weaponData.maxAmmo || _reserveAmmo <= 0) return;
 
         _isReloading = true;
 
@@ -149,12 +342,17 @@ public class WeaponBase : NetworkBehaviour
             _weaponAnimator.SetTrigger(_reloadTriggerHash);
         }
 
-        _reloadCoroutine = StartCoroutine(ReloadRoutine());
+        if (weaponData.reloadSound != null && _audioSource != null)
+        {
+            _audioSource.PlayOneShot(weaponData.reloadSound);
+        }
+
+        _reloadCoroutine = StartCoroutine(ReloadCoroutine());
     }
 
-    private IEnumerator ReloadRoutine()
+    private IEnumerator ReloadCoroutine()
     {
-        _reloadRemainingTime = weaponData.reloadTime;
+        _reloadRemainingTime = weaponData != null ? weaponData.reloadTime : 1.5f;
 
         while (_reloadRemainingTime > 0)
         {
@@ -162,8 +360,18 @@ public class WeaponBase : NetworkBehaviour
             yield return null;
         }
 
-        _currentAmmo = weaponData.magazineSize;
+        if (weaponData != null)
+        {
+            int ammoNeeded = weaponData.maxAmmo - _currentAmmo;
+            int ammoToReload = Mathf.Min(ammoNeeded, _reserveAmmo);
+
+            _currentAmmo += ammoToReload;
+            _reserveAmmo -= ammoToReload;
+        }
+
         _isReloading = false;
+        _reloadRemainingTime = 0f;
+        _reloadCoroutine = null;
         _continuousShots = 0;
         _firingSpreadPenalty = 0f;
     }
@@ -173,7 +381,6 @@ public class WeaponBase : NetworkBehaviour
         if (_reloadCoroutine != null)
         {
             StopCoroutine(_reloadCoroutine);
-            _reloadCoroutine = null;
         }
 
         _isReloading = false;
@@ -181,11 +388,9 @@ public class WeaponBase : NetworkBehaviour
         _continuousShots = 0;
         _firingSpreadPenalty = 0f;
 
-        if (_weaponAnimator != null && gameObject.activeInHierarchy)
+        if (_weaponAnimator != null)
         {
             _weaponAnimator.ResetTrigger(_reloadTriggerHash);
-            _weaponAnimator.Rebind();
-            _weaponAnimator.Update(0f);
         }
     }
 }

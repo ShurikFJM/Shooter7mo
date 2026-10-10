@@ -466,17 +466,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ceb845fd9d23ef64293789ad23fdacbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
-  _data: {fileID: 11400000, guid: 7cfe7f91b1b9ec34d9ae422b379a66c7, type: 2}
-  _tracerMaterial: {fileID: 2100000, guid: 51ed506a1326a3744a1d207a5f084f05, type: 2}
+  ShowTopMostFoldoutHeaderGroup: 1
+  weaponData: {fileID: 11400000, guid: 7cfe7f91b1b9ec34d9ae422b379a66c7, type: 2}
+  muzzleFlashPrefab: {fileID: 8098634566084394360, guid: d71da6e706e6d3c438c573d5de8aa969, type: 3}
+  bulletTracerPrefab: {fileID: 7680071452175567256, guid: 5f905e88f05ce4547811846a4c8ac8cb, type: 3}
+  hitParticlesPrefab: {fileID: 2766617808642064096, guid: 7f344191bfd226543ad11976c26ebd9f, type: 3}
+  _weaponAnimator: {fileID: 481511074118910174}
   _weaponModelTransform: {fileID: 6332633925144325434}
   _firePoint: {fileID: 7104995611434977514}
-  _muzzleFlash: {fileID: 0}
-  _weaponAnimator: {fileID: 481511074118910174}
-  _reloadAnimationTrigger: Reload
-  _kickbackOffset: {x: 0, y: 0, z: -0.05}
-  _kickbackRotation: {x: -3, y: 0, z: 0}
-  _returnSpeed: 10
-  _currentAmmo: 0
-  _reserveAmmo: 0
-  _isReloading: 0
-  _reloadRemainingTime: 0
+  _hitLayers:
+    serializedVersion: 2
+    m_Bits: 2049
