@@ -10,7 +10,6 @@ public class BombInteractor : NetworkBehaviour
     private const int MAX_BUFFER_HITS = 8;
     private const float MIN_PLANT_HOLD_TIME = 4f;
     private const float MIN_DEFUSE_HOLD_TIME = 5f;
-    private const float DROP_CAMERA_FORWARD_OFFSET = 0.6f;
 
     [SerializeField] private Transform _interactOrigin;
     [SerializeField] private float _interactRange = 3.5f;
@@ -355,14 +354,7 @@ public class BombInteractor : NetworkBehaviour
     {
         if (_carriedBomb == null) return;
 
-        Vector3 dropOrigin = _interactOrigin != null
-            ? _interactOrigin.position + (_interactOrigin.forward * DROP_CAMERA_FORWARD_OFFSET)
-            : transform.position + (Vector3.up * 1.2f) + (transform.forward * DROP_CAMERA_FORWARD_OFFSET);
-
-        Vector3 throwDirection = _interactOrigin != null ? _interactOrigin.forward : transform.forward;
-
-        _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId, dropOrigin, throwDirection);
-
+        _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId);
         _carriedBomb = null;
         StopPlantingProcess();
     }

@@ -28,7 +28,7 @@ public class RoundManager : NetworkBehaviour
     private const float DEFAULT_WARMUP_DURATION = 7f;
     private const float DEFAULT_ROUND_TIME_LIMIT = 115f;
     private const float DEFAULT_ROUND_END_DISPLAY_DURATION = 5f;
-    private const float BOMB_SPAWN_GROUND_OFFSET_Y = 0.3f;
+    private const float BOMB_SPAWN_GROUND_OFFSET_Y = 0.2f;
 
     public static RoundManager Instance { get; private set; }
 
@@ -492,12 +492,17 @@ public class RoundManager : NetworkBehaviour
             }
         }
 
+        if (_bomb == null)
+        {
+            _bomb = FindAnyObjectByType<Bomb>();
+        }
+
         if (_bomb != null)
         {
             Vector3 bombPosition = (_defaultBombSpawn != null)
                 ? _defaultBombSpawn.position
                 : (_terroristSpawnPoints != null && _terroristSpawnPoints.Length > 0
-                    ? _terroristSpawnPoints[0].position + Vector3.up * BOMB_SPAWN_GROUND_OFFSET_Y
+                    ? _terroristSpawnPoints[0].position + (Vector3.up * BOMB_SPAWN_GROUND_OFFSET_Y)
                     : Vector3.up * BOMB_SPAWN_GROUND_OFFSET_Y);
 
             _bomb.ServerResetBomb(bombPosition);
