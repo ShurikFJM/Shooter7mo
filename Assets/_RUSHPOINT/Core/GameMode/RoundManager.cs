@@ -243,6 +243,7 @@ public class RoundManager : NetworkBehaviour
             if (client.PlayerObject == null) continue;
 
             PlayerTeam teamComp = client.PlayerObject.GetComponent<PlayerTeam>();
+            if (teamComp == null) teamComp = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
             if (teamComp != null)
             {
                 Team oldTeam = teamComp.CurrentTeam.Value;
@@ -289,7 +290,9 @@ public class RoundManager : NetworkBehaviour
 
         while (CurrentPhase.Value == RoundPhase.InProgress)
         {
-            if (_bomb != null && _bomb.bombState.Value == BombState.Planted)
+            bool isBombActive = _bomb != null && (_bomb.bombState.Value == BombState.Planted || _bomb.bombState.Value == BombState.Defusing);
+
+            if (isBombActive)
             {
                 if (_bomb.plantedServerTime.Value > 0)
                 {
@@ -371,7 +374,10 @@ public class RoundManager : NetworkBehaviour
             if (client.PlayerObject == null) continue;
 
             PlayerTeam teamComp = client.PlayerObject.GetComponent<PlayerTeam>();
+            if (teamComp == null) teamComp = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
+
             NetworkHealth healthComp = client.PlayerObject.GetComponent<NetworkHealth>();
+            if (healthComp == null) healthComp = client.PlayerObject.GetComponentInChildren<NetworkHealth>();
 
             if (teamComp == null || healthComp == null) continue;
 
@@ -411,7 +417,10 @@ public class RoundManager : NetworkBehaviour
             if (client.PlayerObject == null) continue;
 
             PlayerTeam teamComp = client.PlayerObject.GetComponent<PlayerTeam>();
+            if (teamComp == null) teamComp = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
+
             NetworkHealth healthComp = client.PlayerObject.GetComponent<NetworkHealth>();
+            if (healthComp == null) healthComp = client.PlayerObject.GetComponentInChildren<NetworkHealth>();
 
             if (teamComp == null || healthComp == null) continue;
 
@@ -451,6 +460,7 @@ public class RoundManager : NetworkBehaviour
             if (client.PlayerObject == null) continue;
 
             NetworkHealth health = client.PlayerObject.GetComponent<NetworkHealth>();
+            if (health == null) health = client.PlayerObject.GetComponentInChildren<NetworkHealth>();
             if (health != null)
             {
                 health.ResetHealthServer();
@@ -459,6 +469,7 @@ public class RoundManager : NetworkBehaviour
             ResetPlayerWeaponsClientRpc(client.ClientId);
 
             PlayerTeam playerTeamComp = client.PlayerObject.GetComponent<PlayerTeam>();
+            if (playerTeamComp == null) playerTeamComp = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
             if (playerTeamComp == null) continue;
 
             Team team = playerTeamComp.CurrentTeam.Value;
@@ -496,11 +507,11 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void ResetPlayerWeaponsClientRpc(ulong targetClientId)
     {
-        if (NetworkManager.Singleton == null) return;
-        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(targetClientId, out NetworkClient client)) return;
-        if (client.PlayerObject == null) return;
+        if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null) return;
+        NetworkObject playerObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(targetClientId);
+        if (playerObject == null) return;
 
-        WeaponInventory inventory = client.PlayerObject.GetComponentInChildren<WeaponInventory>(true);
+        WeaponInventory inventory = playerObject.GetComponentInChildren<WeaponInventory>(true);
         if (inventory != null)
         {
             inventory.ResetAllWeaponsAmmo();
@@ -510,20 +521,20 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void TeleportPlayerClientRpc(Vector3 targetPosition, Quaternion targetRotation, ulong targetClientId)
     {
-        if (NetworkManager.Singleton.SpawnManager == null) return;
-        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(targetClientId, out NetworkClient client)) return;
-        if (client.PlayerObject == null) return;
+        if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null) return;
+        NetworkObject playerObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(targetClientId);
+        if (playerObject == null) return;
 
-        NetworkPlayerController playerController = client.PlayerObject.GetComponent<NetworkPlayerController>();
+        NetworkPlayerController playerController = playerObject.GetComponent<NetworkPlayerController>();
         if (playerController != null)
         {
             playerController.RespawnPlayer(targetPosition, targetRotation);
         }
 
-        NetworkTransform networkTransform = client.PlayerObject.GetComponent<NetworkTransform>();
+        NetworkTransform networkTransform = playerObject.GetComponent<NetworkTransform>();
         if (networkTransform != null)
         {
-            networkTransform.Teleport(targetPosition, targetRotation, client.PlayerObject.transform.localScale);
+            networkTransform.Teleport(targetPosition, targetRotation, playerObject.transform.localScale);
         }
     }
 

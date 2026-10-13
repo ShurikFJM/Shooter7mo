@@ -8,6 +8,9 @@ public class BombInteractor : NetworkBehaviour
     private const float GROUND_CHECK_DISTANCE = 2f;
     private const float SITE_DETECTION_RADIUS = 0.5f;
     private const int MAX_BUFFER_HITS = 8;
+    private const float MIN_PLANT_HOLD_TIME = 4f;
+    private const float MIN_DEFUSE_HOLD_TIME = 5f;
+    private const float DROP_CAMERA_FORWARD_OFFSET = 0.6f;
 
     [SerializeField] private Transform _interactOrigin;
     [SerializeField] private float _interactRange = 3.5f;
@@ -38,12 +41,15 @@ public class BombInteractor : NetworkBehaviour
                                   _carriedBomb.carrierClientId.Value == NetworkManager.Singleton.LocalClientId;
 
     public bool IsPlanting => _isPlanting;
-    public float PlantProgressNormalized => _plantHoldTime > 0f ? _plantProgress / _plantHoldTime : 0f;
+    public float PlantProgressNormalized => EffectivePlantHoldTime > 0f ? _plantProgress / EffectivePlantHoldTime : 0f;
     public bool IsDefusing => _isDefusing;
-    public float DefuseProgressNormalized => _defuseHoldTime > 0f ? _defuseProgress / _defuseHoldTime : 0f;
+    public float DefuseProgressNormalized => EffectiveDefuseHoldTime > 0f ? _defuseProgress / EffectiveDefuseHoldTime : 0f;
     public bool HasNearbyBomb => _nearbyBomb != null;
     public bool HasNearbyPlantedBomb => _nearbyPlantedBomb != null;
     public bool IsInSite => _currentSite != null;
+
+    private float EffectivePlantHoldTime => Mathf.Max(MIN_PLANT_HOLD_TIME, _plantHoldTime);
+    private float EffectiveDefuseHoldTime => Mathf.Max(MIN_DEFUSE_HOLD_TIME, _defuseHoldTime);
 
     private void Awake()
     {
@@ -235,7 +241,7 @@ public class BombInteractor : NetworkBehaviour
         }
 
         _plantProgress += Time.deltaTime;
-        if (_plantProgress >= _plantHoldTime)
+        if (_plantProgress >= EffectivePlantHoldTime)
         {
             CompletePlantingProcess();
             StopPlantingProcess();
@@ -260,7 +266,7 @@ public class BombInteractor : NetworkBehaviour
         }
 
         _defuseProgress += Time.deltaTime;
-        if (_defuseProgress >= _defuseHoldTime)
+        if (_defuseProgress >= EffectiveDefuseHoldTime)
         {
             CompleteDefusingProcess();
             StopDefusingProcess();
@@ -313,7 +319,7 @@ public class BombInteractor : NetworkBehaviour
         if (_carriedBomb == null || _currentSite == null || !IsCarryingBomb) return;
 
         Vector3 groundPlantPosition = transform.position;
-        Vector3 raycastOrigin = transform.position + Vector3.up * RAYCAST_ORIGIN_OFFSET;
+        Vector3 raycastOrigin = transform.position + (Vector3.up * RAYCAST_ORIGIN_OFFSET);
 
         if (Physics.Raycast(raycastOrigin, Vector3.down, out RaycastHit groundHit, GROUND_CHECK_DISTANCE))
         {
@@ -349,10 +355,11 @@ public class BombInteractor : NetworkBehaviour
     {
         if (_carriedBomb == null) return;
 
-        Vector3 dropOrigin = _interactOrigin != null ? _interactOrigin.position : (transform.position + Vector3.up * 1.2f);
-        Vector3 throwDirection = transform.forward;
-        throwDirection.y = 0f;
-        throwDirection = throwDirection.sqrMagnitude > 0.001f ? throwDirection.normalized : transform.forward;
+        Vector3 dropOrigin = _interactOrigin != null
+            ? _interactOrigin.position + (_interactOrigin.forward * DROP_CAMERA_FORWARD_OFFSET)
+            : transform.position + (Vector3.up * 1.2f) + (transform.forward * DROP_CAMERA_FORWARD_OFFSET);
+
+        Vector3 throwDirection = _interactOrigin != null ? _interactOrigin.forward : transform.forward;
 
         _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId, dropOrigin, throwDirection);
 

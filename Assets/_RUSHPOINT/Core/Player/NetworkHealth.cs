@@ -89,14 +89,19 @@ public class NetworkHealth : NetworkBehaviour
             colliders[i].enabled = true;
         }
 
+        Hitbox[] hitboxes = GetComponentsInChildren<Hitbox>(true);
+        for (int i = 0; i < hitboxes.Length; i++)
+        {
+            hitboxes[i].gameObject.SetActive(true);
+            Collider hitboxCollider = hitboxes[i].GetComponent<Collider>();
+            if (hitboxCollider != null) hitboxCollider.enabled = true;
+        }
+
         CharacterController characterController = GetComponent<CharacterController>();
         if (characterController != null) characterController.enabled = true;
 
         Transform tpModel = transform.Find("ThirdPersonModel");
         if (tpModel != null && !IsOwner) tpModel.gameObject.SetActive(true);
-
-        Transform hitboxes = transform.Find("Hitboxes");
-        if (hitboxes != null) hitboxes.gameObject.SetActive(true);
     }
 
     public void ApplyDamageServer(float damage, HitboxType hitboxType, ulong attackerClientId)
@@ -147,13 +152,16 @@ public class NetworkHealth : NetworkBehaviour
             colliders[i].enabled = false;
         }
 
+        Hitbox[] hitboxes = GetComponentsInChildren<Hitbox>(true);
+        for (int i = 0; i < hitboxes.Length; i++)
+        {
+            hitboxes[i].gameObject.SetActive(false);
+        }
+
         CharacterController cc = GetComponent<CharacterController>();
         if (cc != null) cc.enabled = false;
 
         Transform tpModel = transform.Find("ThirdPersonModel");
         if (tpModel != null) tpModel.gameObject.SetActive(false);
-
-        Transform hitboxes = transform.Find("Hitboxes");
-        if (hitboxes != null) hitboxes.gameObject.SetActive(false);
     }
 }

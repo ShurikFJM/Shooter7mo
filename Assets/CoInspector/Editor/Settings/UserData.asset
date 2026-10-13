@@ -71,7 +71,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 04:33 AM (October 13, 2026)
+    lastSaveTimePrint: 05:25 AM (October 13, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -152,6 +152,19 @@ MonoBehaviour:
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 40a70974aafb634428d16c0fb09b1a30
+    - assetGUIDs:
+      - 40a70974aafb634428d16c0fb09b1a30
+    - assetGUIDs:
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 40a70974aafb634428d16c0fb09b1a30
+      - 8e58c5f376c03654fb710736a221e8e3
+    - assetGUIDs:
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+    - assetGUIDs:
+      - 29032e0b419e88e40b706cf37cd5fde0
+    - assetGUIDs:
       - 27d34e20eb7d60345ad8224a6be120d9
     - assetGUIDs:
       - b2b691b9bf54e074ea544fb911929835
@@ -163,18 +176,10 @@ MonoBehaviour:
       - d862c7961e433f341bf7e31c0c920788
     - assetGUIDs:
       - 23b3b56b8ea620b4c8e3ef01590d59f3
-    - assetGUIDs:
-      - b6dc5f43b3f4c7a4197a352f2fcf1e66
-    - assetGUIDs:
-      - 7cfe7f91b1b9ec34d9ae422b379a66c7
-    - assetGUIDs:
-      - dd6c2a02f622d5d41878f02256b8a19f
-    - assetGUIDs:
-      - 7a5714e6cf4eb5344a9d53426a244f35
-    - assetGUIDs:
-      - 7f344191bfd226543ad11976c26ebd9f
     targetObject: {fileID: 0}
-    targetObjects: []
+    targetObjects:
+    - {fileID: 11500000, guid: 9e3d3bc612095f04e97fcbfa9b4929ce, type: 3}
+    - {fileID: 11500000, guid: 40a70974aafb634428d16c0fb09b1a30, type: 3}
     lastSelectedAsset: 
     lastClickedTab: -1
     previousTab: 0
@@ -197,7 +202,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: 7a241e49bcdcf8a419ef451860429469
     sceneName: MainMenu
-    lastSaveTimePrint: 04:29 AM (October 13, 2026)
+    lastSaveTimePrint: 04:51 AM (October 13, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -213,11 +218,11 @@ MonoBehaviour:
     rawUserHeight: 0
     lastValidTabWidth: 64
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 1
+    lastKnownHeight: 0
     tabs:
     - path: 
       paths: []
-      tabWidth: 61
+      tabWidth: 0
       name: 
       icon: {fileID: 0}
       shortName: New Tab
@@ -229,10 +234,10 @@ MonoBehaviour:
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: New Tab
+        m_Text: 
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "New Tab\u200B"
+        m_TextWithWhitespace: 
       multiEditMode: 0
       locked: 0
       hasPreview: 0
@@ -278,6 +283,19 @@ MonoBehaviour:
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 40a70974aafb634428d16c0fb09b1a30
+    - assetGUIDs:
+      - 40a70974aafb634428d16c0fb09b1a30
+    - assetGUIDs:
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+      - 40a70974aafb634428d16c0fb09b1a30
+      - 8e58c5f376c03654fb710736a221e8e3
+    - assetGUIDs:
+      - 9e3d3bc612095f04e97fcbfa9b4929ce
+    - assetGUIDs:
+      - 29032e0b419e88e40b706cf37cd5fde0
+    - assetGUIDs:
       - 27d34e20eb7d60345ad8224a6be120d9
     - assetGUIDs:
       - b2b691b9bf54e074ea544fb911929835
@@ -289,18 +307,10 @@ MonoBehaviour:
       - d862c7961e433f341bf7e31c0c920788
     - assetGUIDs:
       - 23b3b56b8ea620b4c8e3ef01590d59f3
-    - assetGUIDs:
-      - b6dc5f43b3f4c7a4197a352f2fcf1e66
-    - assetGUIDs:
-      - 7cfe7f91b1b9ec34d9ae422b379a66c7
-    - assetGUIDs:
-      - dd6c2a02f622d5d41878f02256b8a19f
-    - assetGUIDs:
-      - 7a5714e6cf4eb5344a9d53426a244f35
-    - assetGUIDs:
-      - 7f344191bfd226543ad11976c26ebd9f
     targetObject: {fileID: 0}
-    targetObjects: []
+    targetObjects:
+    - {fileID: 11500000, guid: 9e3d3bc612095f04e97fcbfa9b4929ce, type: 3}
+    - {fileID: 11500000, guid: 40a70974aafb634428d16c0fb09b1a30, type: 3}
     lastSelectedAsset: 
     lastClickedTab: -1
     previousTab: 0
@@ -472,6 +482,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Graybox_Test.unity/RUSPOINT.unity
     lastClickedTab: -1
     previousTab: 1
-  tipsShown: 01000000010000000000000000000000000000000100000001000000000000000000000000000000010000000000000000000000000000000000000000000000010000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000010000000100000001000000000000000000000001000000
+  tipsShown: 01000000010000000000000000000000010000000100000001000000000000000000000000000000010000000100000000000000000000000000000000000000010000000000000000000000010000000000000001000000000000000000000000000000010000000000000000000000000000000000000001000000000000000000000001000000010000000100000001000000010000000100000000000000010000000100000001000000000000000000000001000000
   playModeStartScene: {}
   enteringPlayMode: 0

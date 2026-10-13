@@ -22,29 +22,33 @@ public class Bomb : NetworkBehaviour
     private const float MAX_NORMALIZED_PROGRESS = 1f;
     private const float GROUND_CHECK_RAY_ORIGIN_HEIGHT = 0.5f;
     private const float GROUND_CHECK_RAY_DISTANCE = 3.5f;
-    private const float GROUND_OFFSET_Y = 0.2f;
-    private const float THROW_FORWARD_FORCE = 4f;
-    private const float THROW_UPWARD_FORCE = 2f;
+    private const float GROUND_OFFSET_Y = 0.25f;
+    private const float THROW_FORWARD_FORCE = 3.5f;
+    private const float THROW_UPWARD_FORCE = 1.8f;
     private const float TEMPORARY_COLLISION_IGNORE_DURATION = 0.4f;
-    private const float DROP_THROW_ORIGIN_FORWARD_OFFSET = 0.9f;
+    private const float DROP_THROW_ORIGIN_FORWARD_OFFSET = 0.6f;
     private const float AUDIO_CLEANUP_EXTRA_DELAY = 0.1f;
+    private const float DEFUSE_TOLERANCE_MARGIN = 0.25f;
+    private const float CARRIER_OFFSET_Y = 0.9f;
+    private const float CARRIER_OFFSET_Z = -0.28f;
 
     [SerializeField] private Team _bombCarrierTeam = Team.Red;
     [SerializeField] private Team _defuseTeam = Team.Blue;
     [SerializeField] private float _detonationDuration = 45f;
+    [SerializeField] private float _defuseDuration = 5f;
     [SerializeField] private GameObject _dropVfxPrefab;
     [SerializeField] private GameObject _plantVfxPrefab;
     [SerializeField] private GameObject _defuseVfxPrefab;
     [SerializeField] private GameObject _explosionVfxPrefab;
     [SerializeField] private AudioClip _globalPlantedClip;
-    [SerializeField] private float _globalPlantedVolume = 0.25f;
+    [SerializeField] private float _globalPlantedVolume = 0.6f;
     [SerializeField] private AudioSource _bombAudioSource;
     [SerializeField] private AudioClip _plantedBeepClip;
-    [SerializeField] private float _beepVolume = 0.2f;
+    [SerializeField] private float _beepVolume = 1f;
     [SerializeField] private float _initialBeepInterval = 1f;
     [SerializeField] private float _fastestBeepInterval = 0.08f;
-    [SerializeField] private float _audioMinDistance = 2f;
-    [SerializeField] private float _audioMaxDistance = 35f;
+    [SerializeField] private float _audioMinDistance = 8f;
+    [SerializeField] private float _audioMaxDistance = 50f;
 
     public NetworkVariable<BombState> bombState = new NetworkVariable<BombState>(
         BombState.Dropped,
@@ -73,12 +77,14 @@ public class Bomb : NetworkBehaviour
     public Team BombCarrierTeam => _bombCarrierTeam;
     public Team DefuseTeam => _defuseTeam;
     public float DetonationTimeDuration => _detonationDuration;
+    public float DefuseDuration => _defuseDuration;
 
     private Coroutine _beepCoroutine;
     private Collider _bombCollider;
     private Rigidbody _rigidbody;
     private Renderer[] _renderers;
     private NetworkTransform _networkTransform;
+    private double _defuseStartTime;
 
     private void Awake()
     {
@@ -86,6 +92,11 @@ public class Bomb : NetworkBehaviour
         _rigidbody = GetComponent<Rigidbody>();
         _renderers = GetComponentsInChildren<Renderer>(true);
         _networkTransform = GetComponent<NetworkTransform>();
+
+        if (_rigidbody != null)
+        {
+            _rigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        }
 
         InitializeAudioSourceConfiguration();
     }
@@ -100,7 +111,7 @@ public class Bomb : NetworkBehaviour
         if (_bombAudioSource != null)
         {
             _bombAudioSource.spatialBlend = 1f;
-            _bombAudioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+            _bombAudioSource.rolloffMode = AudioRolloffMode.Linear;
             _bombAudioSource.minDistance = _audioMinDistance;
             _bombAudioSource.maxDistance = _audioMaxDistance;
             _bombAudioSource.playOnAwake = false;
@@ -115,6 +126,10 @@ public class Bomb : NetworkBehaviour
         if (bombState.Value == BombState.Planted && _beepCoroutine == null)
         {
             _beepCoroutine = StartCoroutine(PlantedBeepLoop());
+        }
+        else if (bombState.Value == BombState.Carried)
+        {
+            TryAttachToCarrier(carrierClientId.Value);
         }
     }
 
@@ -131,11 +146,16 @@ public class Bomb : NetworkBehaviour
         switch (currentState)
         {
             case BombState.Carried:
+                StopBeepRoutine();
+                TryAttachToCarrier(carrierClientId.Value);
+                break;
             case BombState.Dropped:
                 StopBeepRoutine();
+                DetachFromCarrier();
                 break;
             case BombState.Planted:
             case BombState.Defusing:
+                DetachFromCarrier();
                 if (_beepCoroutine == null)
                 {
                     _beepCoroutine = StartCoroutine(PlantedBeepLoop());
@@ -150,20 +170,18 @@ public class Bomb : NetworkBehaviour
 
     private void ApplyPhysicsAndVisualState(BombState currentState)
     {
-        bool isDropped = currentState == BombState.Dropped;
-        bool isPlanted = currentState == BombState.Planted || currentState == BombState.Defusing;
-
-        UpdateRendererVisibility(isDropped || isPlanted);
+        bool isVisible = currentState != BombState.Exploded;
+        UpdateRendererVisibility(isVisible);
 
         if (_rigidbody != null)
         {
-            if (currentState == BombState.Carried || isPlanted)
+            if (currentState == BombState.Carried || currentState == BombState.Planted || currentState == BombState.Defusing)
             {
                 _rigidbody.isKinematic = true;
                 _rigidbody.linearVelocity = Vector3.zero;
                 _rigidbody.angularVelocity = Vector3.zero;
             }
-            else if (isDropped && IsServer)
+            else if (currentState == BombState.Dropped && IsServer)
             {
                 _rigidbody.isKinematic = false;
             }
@@ -171,7 +189,7 @@ public class Bomb : NetworkBehaviour
 
         if (_bombCollider != null)
         {
-            _bombCollider.enabled = isDropped || isPlanted;
+            _bombCollider.enabled = currentState == BombState.Dropped || currentState == BombState.Planted || currentState == BombState.Defusing;
         }
     }
 
@@ -186,13 +204,17 @@ public class Bomb : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.Server)]
-    public void RequestPickupServerRpc(ulong requestingClientId)
+    private void TryAttachToCarrier(ulong targetCarrierId)
     {
-        if (bombState.Value != BombState.Dropped) return;
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(targetCarrierId, out NetworkClient client) && client.PlayerObject != null)
+        {
+            AttachToCarrier(client.PlayerObject.transform);
+        }
+    }
 
-        carrierClientId.Value = requestingClientId;
-        bombState.Value = BombState.Carried;
+    private void AttachToCarrier(Transform carrierTransform)
+    {
+        if (_networkTransform != null) _networkTransform.enabled = false;
 
         if (_rigidbody != null)
         {
@@ -201,18 +223,49 @@ public class Bomb : NetworkBehaviour
             _rigidbody.angularVelocity = Vector3.zero;
         }
 
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(requestingClientId, out NetworkClient networkClient) && networkClient.PlayerObject != null)
+        if (_bombCollider != null)
         {
-            transform.position = networkClient.PlayerObject.transform.position;
-            if (NetworkObject.IsSpawned)
-            {
-                NetworkObject.TrySetParent(networkClient.PlayerObject.transform);
-            }
-            else
-            {
-                transform.SetParent(networkClient.PlayerObject.transform);
-            }
+            _bombCollider.enabled = false;
         }
+
+        transform.SetParent(carrierTransform);
+        transform.localPosition = new Vector3(0f, CARRIER_OFFSET_Y, CARRIER_OFFSET_Z);
+        transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+
+        UpdateRendererVisibility(true);
+    }
+
+    private void DetachFromCarrier()
+    {
+        transform.SetParent(null);
+
+        if (_bombCollider != null)
+        {
+            _bombCollider.enabled = true;
+        }
+
+        if (_networkTransform != null)
+        {
+            _networkTransform.enabled = true;
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    public void RequestPickupServerRpc(ulong requestingClientId)
+    {
+        if (bombState.Value != BombState.Dropped) return;
+
+        carrierClientId.Value = requestingClientId;
+        bombState.Value = BombState.Carried;
+
+        TryAttachToCarrier(requestingClientId);
+        AttachToCarrierClientRpc(requestingClientId);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void AttachToCarrierClientRpc(ulong requestingClientId)
+    {
+        TryAttachToCarrier(requestingClientId);
     }
 
     [Rpc(SendTo.Server)]
@@ -220,39 +273,47 @@ public class Bomb : NetworkBehaviour
     {
         if (bombState.Value != BombState.Carried || carrierClientId.Value != requestingClientId) return;
 
-        if (NetworkObject.IsSpawned && transform.parent != null)
+        NetworkClient networkClient = null;
+        Transform playerTransform = null;
+
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(requestingClientId, out networkClient) && networkClient.PlayerObject != null)
         {
-            NetworkObject.TryRemoveParent();
+            playerTransform = networkClient.PlayerObject.transform;
         }
-        else
+
+        Vector3 spawnPosition = dropOriginPosition;
+        if (playerTransform != null && Vector3.Distance(spawnPosition, playerTransform.position) > 3f)
         {
-            transform.SetParent(null);
+            spawnPosition = playerTransform.position + (Vector3.up * 1.2f) + (playerTransform.forward * DROP_THROW_ORIGIN_FORWARD_OFFSET);
         }
 
-        carrierClientId.Value = UNASSIGNED_CARRIER_ID;
-
-        Vector3 calculatedDropPosition = dropOriginPosition + throwDirectionVector * DROP_THROW_ORIGIN_FORWARD_OFFSET;
-        Vector3 rayOrigin = calculatedDropPosition + Vector3.up * GROUND_CHECK_RAY_ORIGIN_HEIGHT;
-
+        Vector3 rayOrigin = spawnPosition + (Vector3.up * GROUND_CHECK_RAY_ORIGIN_HEIGHT);
         if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit groundHit, GROUND_CHECK_RAY_DISTANCE, ~0, QueryTriggerInteraction.Ignore))
         {
-            calculatedDropPosition.y = Mathf.Max(calculatedDropPosition.y, groundHit.point.y + GROUND_OFFSET_Y);
+            if (spawnPosition.y < groundHit.point.y + GROUND_OFFSET_Y)
+            {
+                spawnPosition.y = groundHit.point.y + GROUND_OFFSET_Y;
+            }
         }
+
+        DetachFromCarrier();
+
+        carrierClientId.Value = UNASSIGNED_CARRIER_ID;
+        bombState.Value = BombState.Dropped;
 
         Quaternion randomizedRotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
 
         if (_networkTransform != null)
         {
-            _networkTransform.Teleport(calculatedDropPosition, randomizedRotation, transform.localScale);
+            _networkTransform.enabled = true;
+            _networkTransform.Teleport(spawnPosition, randomizedRotation, transform.localScale);
         }
         else
         {
-            transform.SetPositionAndRotation(calculatedDropPosition, randomizedRotation);
+            transform.SetPositionAndRotation(spawnPosition, randomizedRotation);
         }
 
-        bombState.Value = BombState.Dropped;
-
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(requestingClientId, out NetworkClient networkClient) && networkClient.PlayerObject != null)
+        if (networkClient != null && networkClient.PlayerObject != null)
         {
             Collider playerCollider = networkClient.PlayerObject.GetComponent<Collider>();
             if (playerCollider != null && _bombCollider != null)
@@ -267,11 +328,30 @@ public class Bomb : NetworkBehaviour
             _rigidbody.linearVelocity = Vector3.zero;
             _rigidbody.angularVelocity = Vector3.zero;
 
-            Vector3 appliedForce = (throwDirectionVector * THROW_FORWARD_FORCE) + (Vector3.up * THROW_UPWARD_FORCE);
+            Vector3 appliedForce = (throwDirectionVector.normalized * THROW_FORWARD_FORCE) + (Vector3.up * THROW_UPWARD_FORCE);
             _rigidbody.AddForce(appliedForce, ForceMode.Impulse);
         }
 
-        SpawnDropVfxClientRpc(calculatedDropPosition);
+        SynchronizeDropClientRpc(spawnPosition, randomizedRotation);
+        SpawnDropVfxClientRpc(spawnPosition);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void SynchronizeDropClientRpc(Vector3 synchronizedPosition, Quaternion synchronizedRotation)
+    {
+        DetachFromCarrier();
+
+        if (_networkTransform != null)
+        {
+            _networkTransform.enabled = true;
+            _networkTransform.Teleport(synchronizedPosition, synchronizedRotation, transform.localScale);
+        }
+        else
+        {
+            transform.SetPositionAndRotation(synchronizedPosition, synchronizedRotation);
+        }
+
+        ApplyPhysicsAndVisualState(BombState.Dropped);
     }
 
     private IEnumerator TemporarilyDisablePlayerCollision(Collider playerCollider, Collider bombColliderInstance)
@@ -301,14 +381,7 @@ public class Bomb : NetworkBehaviour
             return;
         }
 
-        if (NetworkObject.IsSpawned && transform.parent != null)
-        {
-            NetworkObject.TryRemoveParent();
-        }
-        else
-        {
-            transform.SetParent(null);
-        }
+        DetachFromCarrier();
 
         carrierClientId.Value = UNASSIGNED_CARRIER_ID;
 
@@ -321,6 +394,7 @@ public class Bomb : NetworkBehaviour
 
         if (_networkTransform != null)
         {
+            _networkTransform.enabled = true;
             _networkTransform.Teleport(targetPlantPosition, targetPlantRotation, transform.localScale);
         }
         else
@@ -342,6 +416,7 @@ public class Bomb : NetworkBehaviour
         {
             bombState.Value = BombState.Defusing;
             defuserClientId.Value = requestingClientId;
+            _defuseStartTime = NetworkManager.Singleton.ServerTime.Time;
         }
     }
 
@@ -352,6 +427,7 @@ public class Bomb : NetworkBehaviour
         {
             bombState.Value = BombState.Planted;
             defuserClientId.Value = UNASSIGNED_CARRIER_ID;
+            _defuseStartTime = 0;
         }
     }
 
@@ -360,6 +436,12 @@ public class Bomb : NetworkBehaviour
     {
         if (bombState.Value == BombState.Defusing && defuserClientId.Value == requestingClientId)
         {
+            double elapsedDefuse = NetworkManager.Singleton.ServerTime.Time - _defuseStartTime;
+            if (elapsedDefuse < (_defuseDuration - DEFUSE_TOLERANCE_MARGIN))
+            {
+                return;
+            }
+
             bombState.Value = BombState.Defused;
             defuserClientId.Value = UNASSIGNED_CARRIER_ID;
             SpawnDefuseVfxClientRpc(transform.position);
@@ -369,10 +451,11 @@ public class Bomb : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void SynchronizePlantedTransformClientRpc(Vector3 synchronizedPosition, Quaternion synchronizedRotation)
     {
-        transform.SetParent(null);
+        DetachFromCarrier();
 
         if (_networkTransform != null)
         {
+            _networkTransform.enabled = true;
             _networkTransform.Teleport(synchronizedPosition, synchronizedRotation, transform.localScale);
         }
         else
@@ -386,6 +469,8 @@ public class Bomb : NetworkBehaviour
             _rigidbody.linearVelocity = Vector3.zero;
             _rigidbody.angularVelocity = Vector3.zero;
         }
+
+        ApplyPhysicsAndVisualState(BombState.Planted);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -479,22 +564,16 @@ public class Bomb : NetworkBehaviour
         if (!IsServer) return;
 
         StopBeepRoutine();
-
-        if (NetworkObject.IsSpawned && transform.parent != null)
-        {
-            NetworkObject.TryRemoveParent();
-        }
-        else
-        {
-            transform.SetParent(null);
-        }
+        DetachFromCarrier();
 
         carrierClientId.Value = UNASSIGNED_CARRIER_ID;
         defuserClientId.Value = UNASSIGNED_CARRIER_ID;
         plantedServerTime.Value = 0;
+        _defuseStartTime = 0;
 
         if (_networkTransform != null)
         {
+            _networkTransform.enabled = true;
             _networkTransform.Teleport(targetResetPosition, Quaternion.identity, transform.localScale);
         }
         else
@@ -510,5 +589,27 @@ public class Bomb : NetworkBehaviour
             _rigidbody.linearVelocity = Vector3.zero;
             _rigidbody.angularVelocity = Vector3.zero;
         }
+
+        ResetBombClientRpc(targetResetPosition);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void ResetBombClientRpc(Vector3 targetResetPosition)
+    {
+        DetachFromCarrier();
+        StopBeepRoutine();
+
+        if (_networkTransform != null)
+        {
+            _networkTransform.enabled = true;
+            _networkTransform.Teleport(targetResetPosition, Quaternion.identity, transform.localScale);
+        }
+        else
+        {
+            transform.position = targetResetPosition;
+            transform.rotation = Quaternion.identity;
+        }
+
+        ApplyPhysicsAndVisualState(BombState.Dropped);
     }
 }
