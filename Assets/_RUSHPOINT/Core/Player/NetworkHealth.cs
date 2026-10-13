@@ -99,7 +99,6 @@ public class NetworkHealth : NetworkBehaviour
         if (hitboxes != null) hitboxes.gameObject.SetActive(true);
     }
 
-    // NUEVO: Solo el servidor puede llamar a esto. Ya no es un RPC público.
     public void ApplyDamageServer(float damage, HitboxType hitboxType, ulong attackerClientId)
     {
         if (!IsServer || !_isAlive.Value) return;

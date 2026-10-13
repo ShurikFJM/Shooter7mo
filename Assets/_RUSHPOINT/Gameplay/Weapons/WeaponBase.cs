@@ -5,14 +5,14 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class WeaponBase : NetworkBehaviour
 {
-    private const float _SPREAD_RECOVERY_SPEED = 14f;
-    private const float _BURST_SPREAD_START = 0.015f;
-    private const float _MAX_FIRING_PENALTY = 0.07f;
-    private const float _MAX_TOTAL_SPREAD = 0.1f;
-    private const float _RESET_COOLDOWN_PADDING = 0.12f;
-    private const float _MUZZLE_FLASH_DURATION = 0.05f;
-    private const float _IMPACT_LIFETIME = 8f;
-    private const float _TRACER_DURATION = 0.04f;
+    private const float SPREAD_RECOVERY_SPEED = 14f;
+    private const float BURST_SPREAD_START = 0.015f;
+    private const float MAX_FIRING_PENALTY = 0.07f;
+    private const float MAX_TOTAL_SPREAD = 0.1f;
+    private const float RESET_COOLDOWN_PADDING = 0.12f;
+    private const float MUZZLE_FLASH_DURATION = 0.05f;
+    private const float IMPACT_LIFETIME = 8f;
+    private const float TRACER_DURATION = 0.04f;
 
     public WeaponData weaponData;
     public WeaponData WeaponData => weaponData;
@@ -119,10 +119,10 @@ public class WeaponBase : NetworkBehaviour
         if (_firingSpreadPenalty > 0f)
         {
             float currentFireRate = weaponData != null && weaponData.fireRate > 0f ? weaponData.fireRate : 0.15f;
-            if (Time.time - _lastShotTime > (currentFireRate + _RESET_COOLDOWN_PADDING))
+            if (Time.time - _lastShotTime > (currentFireRate + RESET_COOLDOWN_PADDING))
             {
                 _continuousShots = 0;
-                _firingSpreadPenalty = Mathf.MoveTowards(_firingSpreadPenalty, 0f, Time.deltaTime * _SPREAD_RECOVERY_SPEED);
+                _firingSpreadPenalty = Mathf.MoveTowards(_firingSpreadPenalty, 0f, Time.deltaTime * SPREAD_RECOVERY_SPEED);
             }
         }
     }
@@ -160,10 +160,10 @@ public class WeaponBase : NetworkBehaviour
             return 0f;
         }
 
-        float burstSpread = _continuousShots > 0 ? (_BURST_SPREAD_START + _firingSpreadPenalty) : 0f;
+        float burstSpread = _continuousShots > 0 ? (BURST_SPREAD_START + _firingSpreadPenalty) : 0f;
         float totalSpread = movementSpread + burstSpread;
 
-        return Mathf.Clamp(totalSpread, 0f, _MAX_TOTAL_SPREAD);
+        return Mathf.Clamp(totalSpread, 0f, MAX_TOTAL_SPREAD);
     }
 
     public bool CanFire()
@@ -216,7 +216,7 @@ public class WeaponBase : NetworkBehaviour
         _continuousShots++;
         if (weaponData != null)
         {
-            _firingSpreadPenalty = Mathf.Min(_firingSpreadPenalty + weaponData.spreadPerShot, _MAX_FIRING_PENALTY);
+            _firingSpreadPenalty = Mathf.Min(_firingSpreadPenalty + weaponData.spreadPerShot, MAX_FIRING_PENALTY);
         }
 
         float maxRange = weaponData != null ? weaponData.range : 100f;
@@ -225,7 +225,7 @@ public class WeaponBase : NetworkBehaviour
         WeaponInventory inventory = _playerController != null ? _playerController.GetComponentInChildren<WeaponInventory>() : null;
 
         LayerMask maskToUse = _hitLayers != 0 ? _hitLayers : (LayerMask)~0;
-        RaycastHit[] hits = Physics.RaycastAll(rayOrigin, rayDirection, maxRange, maskToUse, QueryTriggerInteraction.Ignore);
+        RaycastHit[] hits = Physics.RaycastAll(rayOrigin, rayDirection, maxRange, maskToUse, QueryTriggerInteraction.Collide);
         System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
         Transform myRootTransform = _playerController != null ? _playerController.transform : transform.root;
@@ -245,9 +245,11 @@ public class WeaponBase : NetworkBehaviour
             NetworkObject victimObj = hit.collider.GetComponentInParent<NetworkObject>();
             if (victimObj != null)
             {
-                if (IsOwner && inventory != null)
+                if (inventory != null && inventory.IsOwner)
                 {
-                    inventory.RequestDealDamageServerRpc(victimObj, default);
+                    Hitbox hitbox = hit.collider.GetComponent<Hitbox>();
+                    HitboxType hitboxType = hitbox != null ? hitbox.Type : HitboxType.Chest;
+                    inventory.RequestDealDamageServerRpc(victimObj, hitboxType);
                 }
                 break;
             }
@@ -258,7 +260,7 @@ public class WeaponBase : NetworkBehaviour
             }
         }
 
-        if (IsOwner && inventory != null)
+        if (inventory != null && inventory.IsOwner)
         {
             inventory.BroadcastShootServerRpc(targetPoint);
         }
@@ -280,22 +282,18 @@ public class WeaponBase : NetworkBehaviour
         if (weaponData != null && weaponData.impactPrefabs != null && weaponData.impactPrefabs.Length > 0 && PoolManager.Instance != null)
         {
             GameObject randomImpact = weaponData.impactPrefabs[Random.Range(0, weaponData.impactPrefabs.Length)];
-
-            
-            
             Quaternion impactRotation = Quaternion.LookRotation(-hit.normal) * Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
-
-            
             Vector3 impactPosition = hit.point + (hit.normal * 0.01f);
 
-            PoolManager.Instance.SpawnImpact(randomImpact, impactPosition, impactRotation, _IMPACT_LIFETIME);
+            PoolManager.Instance.SpawnImpact(randomImpact, impactPosition, impactRotation, IMPACT_LIFETIME);
         }
     }
+
     protected virtual void CreateTracerVisual(Vector3 targetPoint)
     {
         if (muzzleFlashPrefab != null && _firePoint != null && PoolManager.Instance != null)
         {
-            PoolManager.Instance.SpawnImpact(muzzleFlashPrefab, _firePoint.position, _firePoint.rotation, _MUZZLE_FLASH_DURATION);
+            PoolManager.Instance.SpawnImpact(muzzleFlashPrefab, _firePoint.position, _firePoint.rotation, MUZZLE_FLASH_DURATION);
         }
 
         if (_firePoint != null)
@@ -315,7 +313,7 @@ public class WeaponBase : NetworkBehaviour
         tracer.SetPosition(1, start);
 
         float distance = Vector3.Distance(start, end);
-        float duration = _TRACER_DURATION;
+        float duration = TRACER_DURATION;
         float elapsedTime = 0f;
 
         while (elapsedTime < duration)

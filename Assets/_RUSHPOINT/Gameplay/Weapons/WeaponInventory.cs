@@ -230,6 +230,7 @@ public class WeaponInventory : NetworkBehaviour
     private WeaponData GetActiveWeaponDataSynced()
     {
         NetworkPlayerController npc = GetComponent<NetworkPlayerController>();
+        if (npc == null) npc = GetComponentInParent<NetworkPlayerController>();
         if (npc == null || npc.ActiveRole == null) return null;
 
         int slot = activeSlotNetworked.Value;
@@ -242,8 +243,10 @@ public class WeaponInventory : NetworkBehaviour
         if (prefab != null)
         {
             WeaponBase wb = prefab.GetComponent<WeaponBase>();
+            if (wb == null) wb = prefab.GetComponentInChildren<WeaponBase>(true);
             if (wb != null) return wb.WeaponData;
         }
+
         return null;
     }
 
@@ -253,12 +256,22 @@ public class WeaponInventory : NetworkBehaviour
         if (!victimRef.TryGet(out NetworkObject victimObj)) return;
 
         NetworkHealth victimHealth = victimObj.GetComponent<NetworkHealth>();
+        if (victimHealth == null) victimHealth = victimObj.GetComponentInChildren<NetworkHealth>();
+        if (victimHealth == null) victimHealth = victimObj.GetComponentInParent<NetworkHealth>();
         if (victimHealth == null) return;
 
         WeaponData activeData = GetActiveWeaponDataSynced();
-        if (activeData == null) return;
+        float baseDamage = 25f;
 
-        float baseDamage = activeData.damage;
+        if (activeData != null)
+        {
+            baseDamage = activeData.damage;
+        }
+        else if (ActiveWeapon != null && ActiveWeapon.WeaponData != null)
+        {
+            baseDamage = ActiveWeapon.WeaponData.damage;
+        }
+
         float finalDamage = baseDamage;
 
         if (hitboxType == HitboxType.Head) finalDamage *= 2.0f;
@@ -279,6 +292,7 @@ public class WeaponInventory : NetworkBehaviour
         if (IsOwner) return;
 
         WeaponData activeData = GetActiveWeaponDataSynced();
+        if (activeData == null && ActiveWeapon != null) activeData = ActiveWeapon.WeaponData;
         if (activeData == null) return;
 
         AudioClip[] sounds = activeData.shootSounds;
@@ -309,6 +323,8 @@ public class WeaponInventory : NetworkBehaviour
         if (PoolManager.Instance == null) yield break;
 
         LineRenderer line = PoolManager.Instance.GetTracer(null);
+        if (line == null) yield break;
+
         line.SetPosition(0, start);
         line.SetPosition(1, start);
 
