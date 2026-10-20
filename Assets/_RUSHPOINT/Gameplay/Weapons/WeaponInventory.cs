@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 public class WeaponInventory : NetworkBehaviour
 {
     private const int TOTAL_SLOTS = 3;
+    private const float IMPACT_PARTICLE_LIFETIME = 0.6f;
 
     [SerializeField] private Transform _firstPersonWeaponHolder;
     [SerializeField] private Transform _tpPrimaryHolder;
@@ -125,6 +126,7 @@ public class WeaponInventory : NetworkBehaviour
         if (weaponBase != null)
         {
             weaponBase.UpdateDefaultTransform(weaponPrefab.transform.localPosition, weaponPrefab.transform.localRotation);
+            weaponBase.ResetAmmo();
         }
 
         _weaponInstances[slotArrayIndex] = weaponObj;
@@ -283,11 +285,17 @@ public class WeaponInventory : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void BroadcastShootServerRpc(Vector3 hitPoint)
     {
-        BroadcastShootClientRpc(hitPoint);
+        BroadcastShootClientRpc(hitPoint, Vector3.up, (byte)SurfaceImpactType.None);
+    }
+
+    [Rpc(SendTo.Server)]
+    public void BroadcastShootServerRpc(Vector3 hitPoint, Vector3 hitNormal, byte impactType)
+    {
+        BroadcastShootClientRpc(hitPoint, hitNormal, impactType);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void BroadcastShootClientRpc(Vector3 hitPoint)
+    private void BroadcastShootClientRpc(Vector3 hitPoint, Vector3 hitNormal, byte impactType)
     {
         if (IsOwner) return;
 
@@ -308,6 +316,24 @@ public class WeaponInventory : NetworkBehaviour
             src.clip = clip;
             src.Play();
             Destroy(soundObj, clip.length + 0.1f);
+        }
+
+        SurfaceImpactType surface = (SurfaceImpactType)impactType;
+        if (surface == SurfaceImpactType.Wall)
+        {
+            if (activeData.wallImpactVfxPrefab != null && PoolManager.Instance != null)
+            {
+                Quaternion rot = hitNormal.sqrMagnitude > 0.001f ? Quaternion.LookRotation(hitNormal) : Quaternion.identity;
+                PoolManager.Instance.SpawnImpact(activeData.wallImpactVfxPrefab, hitPoint + (hitNormal * 0.02f), rot, IMPACT_PARTICLE_LIFETIME);
+            }
+        }
+        else if (surface == SurfaceImpactType.Player)
+        {
+            if (activeData.playerImpactVfxPrefab != null && PoolManager.Instance != null)
+            {
+                Quaternion rot = hitNormal.sqrMagnitude > 0.001f ? Quaternion.LookRotation(hitNormal) : Quaternion.identity;
+                PoolManager.Instance.SpawnImpact(activeData.playerImpactVfxPrefab, hitPoint, rot, IMPACT_PARTICLE_LIFETIME);
+            }
         }
 
         int slot = activeSlotNetworked.Value;

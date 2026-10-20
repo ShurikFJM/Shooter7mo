@@ -468,12 +468,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
   ShowTopMostFoldoutHeaderGroup: 1
   weaponData: {fileID: 11400000, guid: 7cfe7f91b1b9ec34d9ae422b379a66c7, type: 2}
-  muzzleFlashPrefab: {fileID: 8098634566084394360, guid: d71da6e706e6d3c438c573d5de8aa969, type: 3}
+  muzzleFlashPrefab: {fileID: 8145397067916315718, guid: 7d4bc57696068d8409901c49cca44d94, type: 3}
   bulletTracerPrefab: {fileID: 7680071452175567256, guid: 5f905e88f05ce4547811846a4c8ac8cb, type: 3}
-  hitParticlesPrefab: {fileID: 2766617808642064096, guid: 7f344191bfd226543ad11976c26ebd9f, type: 3}
-  _weaponAnimator: {fileID: 481511074118910174}
-  _weaponModelTransform: {fileID: 6332633925144325434}
   _firePoint: {fileID: 7104995611434977514}
+  _weaponModelTransform: {fileID: 6332633925144325434}
+  _weaponAnimator: {fileID: 481511074118910174}
   _hitLayers:
     serializedVersion: 2
     m_Bits: 2049
+  _returnSpeed: 10

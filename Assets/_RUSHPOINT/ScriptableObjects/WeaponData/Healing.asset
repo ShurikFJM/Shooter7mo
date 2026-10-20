@@ -34,4 +34,22 @@ MonoBehaviour:
   shootSounds:
   - {fileID: 8300000, guid: 399ca0411e304314f82dd4202f69163c, type: 3}
   reloadSound: {fileID: 8300000, guid: cb24f34e24150324abad44e994ce5ea4, type: 3}
+  wallImpactSounds:
+  - {fileID: 8300000, guid: ffc54045bdc8f3845a69b671711cc798, type: 3}
+  - {fileID: 8300000, guid: 90fc507105298094a8c82502154a92a4, type: 3}
+  - {fileID: 8300000, guid: 8a29a15e18f9d66459be67c7368105e1, type: 3}
+  - {fileID: 8300000, guid: 717e067b3c182544696183b9454411b8, type: 3}
+  - {fileID: 8300000, guid: a65fb1c592ae7c2419ceac0c8615fba9, type: 3}
+  - {fileID: 8300000, guid: d88c33f50bb8cd2498b5f943b7c4dccb, type: 3}
+  - {fileID: 8300000, guid: e59fce3ea46d7ef47b4a22d8cb51a5ba, type: 3}
+  - {fileID: 8300000, guid: 8225cf62be123364a832f3e3e49feafb, type: 3}
+  - {fileID: 8300000, guid: c54786afdfd077b43afaa4b5e0cbe1a3, type: 3}
+  - {fileID: 8300000, guid: da27864c80a04d04d973a8b788819c26, type: 3}
+  playerImpactSounds: []
   impactPrefabs: []
+  muzzleFlashVfxPrefab: {fileID: 3554205152219781041, guid: 1528b682d16df25418a61fb0294bdf33, type: 3}
+  wallImpactVfxPrefab: {fileID: 5113593326121056917, guid: cfa97543cda1746489b3070b6a724fb4, type: 3}
+  playerImpactVfxPrefab: {fileID: 7062303250838829273, guid: 0139df9099920674e9a7648cabb4ad5b, type: 3}
+  muzzleFlashAddressKey: VFX_MuzzleFlash
+  wallImpactAddressKey: VFX_Impact_Concrete
+  playerImpactAddressKey: VFX_Impact_Blood

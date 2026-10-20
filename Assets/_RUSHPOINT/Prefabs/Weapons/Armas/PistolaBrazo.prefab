@@ -651,7 +651,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
   ShowTopMostFoldoutHeaderGroup: 1
   weaponData: {fileID: 11400000, guid: 1562786dfff06f94790af949b3c096ae, type: 2}
-  muzzleFlashPrefab: {fileID: 8098634566084394360, guid: d71da6e706e6d3c438c573d5de8aa969, type: 3}
+  muzzleFlashPrefab: {fileID: 8145397067916315718, guid: 7d4bc57696068d8409901c49cca44d94, type: 3}
   bulletTracerPrefab: {fileID: 7680071452175567256, guid: 5f905e88f05ce4547811846a4c8ac8cb, type: 3}
   _firePoint: {fileID: 231782551315511889}
   _weaponModelTransform: {fileID: 1170741331068106864}
