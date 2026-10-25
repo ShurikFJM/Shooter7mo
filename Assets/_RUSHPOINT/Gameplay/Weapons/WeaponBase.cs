@@ -1,18 +1,34 @@
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
+public enum SurfaceImpactType : byte
+{
+    None = 0,
+    Wall = 1,
+    Player = 2
+}
 
 [RequireComponent(typeof(AudioSource))]
 public class WeaponBase : NetworkBehaviour
 {
-    private const float SPREAD_RECOVERY_SPEED = 14f;
-    private const float BURST_SPREAD_START = 0.015f;
-    private const float MAX_FIRING_PENALTY = 0.07f;
-    private const float MAX_TOTAL_SPREAD = 0.1f;
-    private const float RESET_COOLDOWN_PADDING = 0.12f;
-    private const float MUZZLE_FLASH_DURATION = 0.05f;
+    private const float SPREAD_RECOVERY_SPEED = 18f;
+    private const float BURST_SPREAD_START = 0.0012f;
+    private const float MAX_SPREAD_PER_SHOT_STEP = 0.004f;
+    private const float MAX_FIRING_PENALTY = 0.028f;
+    private const float MAX_TOTAL_SPREAD = 0.048f;
+    private const int CONTROLLED_BURST_SHOT_COUNT = 4;
+    private const float MOVEMENT_BASE_SPREAD_OFFSET = 0.004f;
+    private const float AIR_BASE_SPREAD_OFFSET = 0.012f;
+    private const float RESET_COOLDOWN_PADDING = 0.1f;
+    private const float MUZZLE_FLASH_DURATION = 0.08f;
     private const float IMPACT_LIFETIME = 8f;
+    private const float PARTICLE_IMPACT_LIFETIME = 0.6f;
     private const float TRACER_DURATION = 0.04f;
+    private const float IMPACT_AUDIO_MIN_DISTANCE = 3f;
+    private const float IMPACT_AUDIO_MAX_DISTANCE = 35f;
 
     public WeaponData weaponData;
     public WeaponData WeaponData => weaponData;
@@ -24,12 +40,17 @@ public class WeaponBase : NetworkBehaviour
     [SerializeField] protected Animator _weaponAnimator;
     [SerializeField] protected LayerMask _hitLayers;
     [SerializeField] protected float _returnSpeed = 10f;
+    [SerializeField] protected GameObject _wallImpactParticlePrefab;
+    [SerializeField] protected GameObject _playerImpactParticlePrefab;
+    [SerializeField] protected AudioClip _wallHitFallbackSound;
+    [SerializeField] protected AudioClip _playerHitFallbackSound;
 
     protected NetworkPlayerController _playerController;
     protected AudioSource _audioSource;
 
     protected int _currentAmmo;
     protected int _reserveAmmo;
+    protected bool _isAmmoInitialized;
     protected bool _isReloading;
     protected float _reloadRemainingTime;
     protected Coroutine _reloadCoroutine;
@@ -41,6 +62,13 @@ public class WeaponBase : NetworkBehaviour
     protected int _shootTriggerHash = Animator.StringToHash("Shoot");
     protected Vector3 _defaultLocalPosition;
     protected Quaternion _defaultLocalRotation;
+
+    private GameObject _loadedMuzzleVfx;
+    private GameObject _loadedWallVfx;
+    private GameObject _loadedPlayerVfx;
+    private AsyncOperationHandle<GameObject> _muzzleHandle;
+    private AsyncOperationHandle<GameObject> _wallHandle;
+    private AsyncOperationHandle<GameObject> _playerHandle;
 
     public int CurrentAmmo => _currentAmmo;
     public int ReserveAmmo => _reserveAmmo;
@@ -55,6 +83,8 @@ public class WeaponBase : NetworkBehaviour
             _defaultLocalPosition = _weaponModelTransform.localPosition;
             _defaultLocalRotation = _weaponModelTransform.localRotation;
         }
+
+        PreloadAddressableVfx();
     }
 
     private void OnEnable()
@@ -66,10 +96,11 @@ public class WeaponBase : NetworkBehaviour
             _firePoint = _playerController.PlayerCamera.transform;
         }
 
-        if (_currentAmmo <= 0 && !_isReloading)
+        if (!_isAmmoInitialized)
         {
             ResetAmmo();
         }
+
         _isReloading = false;
         _reloadRemainingTime = 0f;
         _reloadCoroutine = null;
@@ -83,7 +114,7 @@ public class WeaponBase : NetworkBehaviour
 
     private void Start()
     {
-        if (_currentAmmo <= 0)
+        if (!_isAmmoInitialized)
         {
             ResetAmmo();
         }
@@ -99,6 +130,46 @@ public class WeaponBase : NetworkBehaviour
         CancelReload();
     }
 
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+        if (_muzzleHandle.IsValid()) Addressables.Release(_muzzleHandle);
+        if (_wallHandle.IsValid()) Addressables.Release(_wallHandle);
+        if (_playerHandle.IsValid()) Addressables.Release(_playerHandle);
+    }
+
+    private void PreloadAddressableVfx()
+    {
+        if (weaponData == null) return;
+
+        if (muzzleFlashPrefab == null && weaponData.muzzleFlashVfxPrefab == null && !string.IsNullOrEmpty(weaponData.muzzleFlashAddressKey))
+        {
+            _muzzleHandle = Addressables.LoadAssetAsync<GameObject>(weaponData.muzzleFlashAddressKey);
+            _muzzleHandle.Completed += op =>
+            {
+                if (op.Status == AsyncOperationStatus.Succeeded) _loadedMuzzleVfx = op.Result;
+            };
+        }
+
+        if (_wallImpactParticlePrefab == null && weaponData.wallImpactVfxPrefab == null && !string.IsNullOrEmpty(weaponData.wallImpactAddressKey))
+        {
+            _wallHandle = Addressables.LoadAssetAsync<GameObject>(weaponData.wallImpactAddressKey);
+            _wallHandle.Completed += op =>
+            {
+                if (op.Status == AsyncOperationStatus.Succeeded) _loadedWallVfx = op.Result;
+            };
+        }
+
+        if (_playerImpactParticlePrefab == null && weaponData.playerImpactVfxPrefab == null && !string.IsNullOrEmpty(weaponData.playerImpactAddressKey))
+        {
+            _playerHandle = Addressables.LoadAssetAsync<GameObject>(weaponData.playerImpactAddressKey);
+            _playerHandle.Completed += op =>
+            {
+                if (op.Status == AsyncOperationStatus.Succeeded) _loadedPlayerVfx = op.Result;
+            };
+        }
+    }
+
     public void UpdateDefaultTransform(Vector3 pos, Quaternion rot)
     {
         _defaultLocalPosition = pos;
@@ -111,18 +182,23 @@ public class WeaponBase : NetworkBehaviour
         {
             _currentAmmo = weaponData.maxAmmo;
             _reserveAmmo = weaponData.maxReserveMagazines * weaponData.maxAmmo;
+            _isAmmoInitialized = true;
         }
     }
 
     private void Update()
     {
-        if (_firingSpreadPenalty > 0f)
+        if (_firingSpreadPenalty > 0f || _continuousShots > 0)
         {
             float currentFireRate = weaponData != null && weaponData.fireRate > 0f ? weaponData.fireRate : 0.15f;
             if (Time.time - _lastShotTime > (currentFireRate + RESET_COOLDOWN_PADDING))
             {
-                _continuousShots = 0;
                 _firingSpreadPenalty = Mathf.MoveTowards(_firingSpreadPenalty, 0f, Time.deltaTime * SPREAD_RECOVERY_SPEED);
+                if (_firingSpreadPenalty <= 0.0001f)
+                {
+                    _firingSpreadPenalty = 0f;
+                    _continuousShots = 0;
+                }
             }
         }
     }
@@ -132,7 +208,6 @@ public class WeaponBase : NetworkBehaviour
         bool isMoving = _playerController != null && _playerController.IsMoving;
         bool isGrounded = _playerController != null && _playerController.IsGrounded;
 
-        float baseSpread = 0f;
         if (!isMoving && isGrounded && _continuousShots == 0)
         {
             return 0f;
@@ -141,17 +216,16 @@ public class WeaponBase : NetworkBehaviour
         float movementSpread = 0f;
         if (!isGrounded && weaponData != null)
         {
-            baseSpread = weaponData.baseSpread * weaponData.airSpreadMultiplier;
-            movementSpread = (weaponData.baseSpread + 0.02f) * weaponData.airSpreadMultiplier;
+            float clampedAirMult = Mathf.Min(weaponData.airSpreadMultiplier, 4.5f);
+            movementSpread = (weaponData.baseSpread + AIR_BASE_SPREAD_OFFSET) * clampedAirMult;
         }
         else if (isMoving && weaponData != null)
         {
-            baseSpread = weaponData.baseSpread * weaponData.movementSpreadMultiplier;
-            movementSpread = (weaponData.baseSpread + 0.01f) * weaponData.movementSpreadMultiplier;
+            float clampedMoveMult = Mathf.Min(weaponData.movementSpreadMultiplier, 2.0f);
+            movementSpread = (weaponData.baseSpread + MOVEMENT_BASE_SPREAD_OFFSET) * clampedMoveMult;
         }
         else if (weaponData != null)
         {
-            baseSpread = weaponData.baseSpread;
             movementSpread = weaponData.baseSpread;
         }
 
@@ -160,7 +234,9 @@ public class WeaponBase : NetworkBehaviour
             return 0f;
         }
 
-        float burstSpread = _continuousShots > 0 ? (BURST_SPREAD_START + _firingSpreadPenalty) : 0f;
+        float burstProgression = Mathf.Clamp01((float)_continuousShots / CONTROLLED_BURST_SHOT_COUNT);
+        float smoothRampFactor = burstProgression * burstProgression;
+        float burstSpread = _continuousShots > 0 ? (BURST_SPREAD_START + (_firingSpreadPenalty * smoothRampFactor)) : 0f;
         float totalSpread = movementSpread + burstSpread;
 
         return Mathf.Clamp(totalSpread, 0f, MAX_TOTAL_SPREAD);
@@ -208,19 +284,22 @@ public class WeaponBase : NetworkBehaviour
         float currentSpread = GetCurrentSpread();
         if (currentSpread > 0f)
         {
-            rayDirection += alignTransform.right * UnityEngine.Random.Range(-currentSpread, currentSpread);
-            rayDirection += alignTransform.up * UnityEngine.Random.Range(-currentSpread, currentSpread);
+            Vector2 randomCircle = UnityEngine.Random.insideUnitCircle * currentSpread;
+            rayDirection += (alignTransform.right * randomCircle.x) + (alignTransform.up * randomCircle.y);
             rayDirection.Normalize();
         }
 
         _continuousShots++;
         if (weaponData != null)
         {
-            _firingSpreadPenalty = Mathf.Min(_firingSpreadPenalty + weaponData.spreadPerShot, MAX_FIRING_PENALTY);
+            float sanitizedStep = Mathf.Min(weaponData.spreadPerShot, MAX_SPREAD_PER_SHOT_STEP);
+            _firingSpreadPenalty = Mathf.Min(_firingSpreadPenalty + sanitizedStep, MAX_FIRING_PENALTY);
         }
 
         float maxRange = weaponData != null ? weaponData.range : 100f;
         Vector3 targetPoint = rayOrigin + (rayDirection * maxRange);
+        Vector3 hitNormal = -rayDirection;
+        SurfaceImpactType impactType = SurfaceImpactType.None;
 
         WeaponInventory inventory = _playerController != null ? _playerController.GetComponentInChildren<WeaponInventory>() : null;
 
@@ -240,11 +319,23 @@ public class WeaponBase : NetworkBehaviour
                 continue;
             }
 
-            targetPoint = hit.point;
-
-            NetworkObject victimObj = hit.collider.GetComponentInParent<NetworkObject>();
-            if (victimObj != null)
+            if (hit.collider.isTrigger && hit.collider.GetComponent<Hitbox>() == null)
             {
+                continue;
+            }
+
+            targetPoint = hit.point;
+            hitNormal = hit.normal;
+
+            NetworkHealth victimHealth = hit.collider.GetComponentInParent<NetworkHealth>();
+            NetworkObject victimObj = hit.collider.GetComponentInParent<NetworkObject>();
+
+            if (victimHealth != null && victimObj != null)
+            {
+                impactType = SurfaceImpactType.Player;
+                CreatePlayerImpactVisual(hit.point, hit.normal);
+                PlayImpactSound(hit.point, true);
+
                 if (inventory != null && inventory.IsOwner)
                 {
                     Hitbox hitbox = hit.collider.GetComponent<Hitbox>();
@@ -255,14 +346,16 @@ public class WeaponBase : NetworkBehaviour
             }
             else
             {
+                impactType = SurfaceImpactType.Wall;
                 CreateImpactVisual(hit);
+                PlayImpactSound(hit.point, false);
                 break;
             }
         }
 
         if (inventory != null && inventory.IsOwner)
         {
-            inventory.BroadcastShootServerRpc(targetPoint);
+            inventory.BroadcastShootServerRpc(targetPoint, hitNormal, (byte)impactType);
         }
 
         CreateTracerVisual(targetPoint);
@@ -277,29 +370,139 @@ public class WeaponBase : NetworkBehaviour
         }
     }
 
+    public void PlayImpactSound(Vector3 impactPosition, bool isPlayerHit)
+    {
+        AudioClip selectedClip = null;
+
+        if (isPlayerHit)
+        {
+            if (weaponData != null && weaponData.playerImpactSounds != null && weaponData.playerImpactSounds.Length > 0)
+            {
+                selectedClip = weaponData.playerImpactSounds[Random.Range(0, weaponData.playerImpactSounds.Length)];
+            }
+            else
+            {
+                selectedClip = _playerHitFallbackSound;
+            }
+
+            if (selectedClip != null && _audioSource != null)
+            {
+                _audioSource.PlayOneShot(selectedClip);
+            }
+        }
+        else
+        {
+            if (weaponData != null && weaponData.wallImpactSounds != null && weaponData.wallImpactSounds.Length > 0)
+            {
+                selectedClip = weaponData.wallImpactSounds[Random.Range(0, weaponData.wallImpactSounds.Length)];
+            }
+            else
+            {
+                selectedClip = _wallHitFallbackSound;
+            }
+
+            if (selectedClip != null)
+            {
+                SpawnSpatialImpactAudio(selectedClip, impactPosition);
+            }
+        }
+    }
+
+    private void SpawnSpatialImpactAudio(AudioClip clip, Vector3 position)
+    {
+        GameObject audioHost = new GameObject("SurfaceImpactAudio");
+        audioHost.transform.position = position;
+        AudioSource spatialSource = audioHost.AddComponent<AudioSource>();
+        spatialSource.spatialBlend = 1f;
+        spatialSource.rolloffMode = AudioRolloffMode.Linear;
+        spatialSource.minDistance = IMPACT_AUDIO_MIN_DISTANCE;
+        spatialSource.maxDistance = IMPACT_AUDIO_MAX_DISTANCE;
+        spatialSource.clip = clip;
+        spatialSource.Play();
+        Destroy(audioHost, clip.length + 0.1f);
+    }
+
     protected virtual void CreateImpactVisual(RaycastHit hit)
+    {
+        CreateWallImpactVisual(hit.point, hit.normal);
+    }
+
+    public void CreateWallImpactVisual(Vector3 hitPoint, Vector3 hitNormal)
     {
         if (weaponData != null && weaponData.impactPrefabs != null && weaponData.impactPrefabs.Length > 0 && PoolManager.Instance != null)
         {
             GameObject randomImpact = weaponData.impactPrefabs[Random.Range(0, weaponData.impactPrefabs.Length)];
-            Quaternion impactRotation = Quaternion.LookRotation(-hit.normal) * Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
-            Vector3 impactPosition = hit.point + (hit.normal * 0.01f);
+            Quaternion decalRotation = Quaternion.LookRotation(-hitNormal) * Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
+            Vector3 decalPosition = hitPoint + (hitNormal * 0.01f);
 
-            PoolManager.Instance.SpawnImpact(randomImpact, impactPosition, impactRotation, IMPACT_LIFETIME);
+            PoolManager.Instance.SpawnImpact(randomImpact, decalPosition, decalRotation, IMPACT_LIFETIME);
+        }
+
+        GameObject wallVfx = GetResolvedWallImpactPrefab();
+        if (wallVfx != null)
+        {
+            Quaternion particleRotation = hitNormal.sqrMagnitude > 0.001f ? Quaternion.LookRotation(hitNormal) : Quaternion.identity;
+            Vector3 particlePosition = hitPoint + (hitNormal * 0.02f);
+            SpawnVfxInstance(wallVfx, particlePosition, particleRotation, PARTICLE_IMPACT_LIFETIME);
+        }
+    }
+
+    public void CreatePlayerImpactVisual(Vector3 hitPoint, Vector3 hitNormal)
+    {
+        GameObject playerVfx = GetResolvedPlayerImpactPrefab();
+        if (playerVfx != null)
+        {
+            Quaternion particleRotation = hitNormal.sqrMagnitude > 0.001f ? Quaternion.LookRotation(hitNormal) : Quaternion.identity;
+            SpawnVfxInstance(playerVfx, hitPoint, particleRotation, PARTICLE_IMPACT_LIFETIME);
         }
     }
 
     protected virtual void CreateTracerVisual(Vector3 targetPoint)
     {
-        if (muzzleFlashPrefab != null && _firePoint != null && PoolManager.Instance != null)
+        GameObject muzzleVfx = GetResolvedMuzzleFlashPrefab();
+        if (muzzleVfx != null && _firePoint != null)
         {
-            PoolManager.Instance.SpawnImpact(muzzleFlashPrefab, _firePoint.position, _firePoint.rotation, MUZZLE_FLASH_DURATION);
+            SpawnVfxInstance(muzzleVfx, _firePoint.position, _firePoint.rotation, MUZZLE_FLASH_DURATION);
         }
 
         if (_firePoint != null)
         {
             StartCoroutine(RenderTracerRoutine(_firePoint.position, targetPoint));
         }
+    }
+
+    private void SpawnVfxInstance(GameObject prefab, Vector3 position, Quaternion rotation, float duration)
+    {
+        if (PoolManager.Instance != null)
+        {
+            PoolManager.Instance.SpawnImpact(prefab, position, rotation, duration);
+        }
+        else
+        {
+            GameObject instance = Instantiate(prefab, position, rotation);
+            Destroy(instance, duration);
+        }
+    }
+
+    private GameObject GetResolvedMuzzleFlashPrefab()
+    {
+        if (muzzleFlashPrefab != null) return muzzleFlashPrefab;
+        if (weaponData != null && weaponData.muzzleFlashVfxPrefab != null) return weaponData.muzzleFlashVfxPrefab;
+        return _loadedMuzzleVfx;
+    }
+
+    private GameObject GetResolvedWallImpactPrefab()
+    {
+        if (_wallImpactParticlePrefab != null) return _wallImpactParticlePrefab;
+        if (weaponData != null && weaponData.wallImpactVfxPrefab != null) return weaponData.wallImpactVfxPrefab;
+        return _loadedWallVfx;
+    }
+
+    private GameObject GetResolvedPlayerImpactPrefab()
+    {
+        if (_playerImpactParticlePrefab != null) return _playerImpactParticlePrefab;
+        if (weaponData != null && weaponData.playerImpactVfxPrefab != null) return weaponData.playerImpactVfxPrefab;
+        return _loadedPlayerVfx;
     }
 
     private IEnumerator RenderTracerRoutine(Vector3 start, Vector3 end)
@@ -312,7 +515,6 @@ public class WeaponBase : NetworkBehaviour
         tracer.SetPosition(0, start);
         tracer.SetPosition(1, start);
 
-        float distance = Vector3.Distance(start, end);
         float duration = TRACER_DURATION;
         float elapsedTime = 0f;
 
