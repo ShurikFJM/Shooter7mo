@@ -4,6 +4,11 @@
             "globalId": "GlobalObjectId_V1-2-c000273e43838594b97148ea2cdbee9a-2065633611-0",
             "source": "builtin",
             "value": "d_Image Icon"
+        },
+        {
+            "globalId": "GlobalObjectId_V1-2-7a241e49bcdcf8a419ef451860429469-1283506958-0",
+            "source": "builtin",
+            "value": "d_Button Icon"
         }
     ]
 }
