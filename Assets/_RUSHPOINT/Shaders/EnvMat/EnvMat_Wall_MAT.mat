@@ -62,22 +62,22 @@ Material:
     - _OffsetY: 0
     - _POMMaxSteps: 24
     - _POMMinSteps: 8
-    - _RandOffset: 1
+    - _RandOffset: 0.7
     - _RandRotation: 1
-    - _RandScale: 0.5
+    - _RandScale: 0.221
     - _Rotation: 0
     - _RoughConst: 0.6
     - _RoughInvert: 0
     - _RoughMax: 1
     - _TilingX: 1
-    - _TilingY: 3.12
+    - _TilingY: 3
     - _UVMode: 0
     - _UseARM: 1
     - _UseEmission: 0
     - _UseNormal: 1
     - _UseVoronoi: 1
     - _VertexDispScale: 0.1
-    - _VoronoiBlend: 0.5
+    - _VoronoiBlend: 0.27
     - _VoronoiJitter: 1
     - _VoronoiScale: 8
     m_Colors:

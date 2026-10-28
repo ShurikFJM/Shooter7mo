@@ -654,12 +654,12 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
-        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/Cube[0]"}'
-        count: 6
+        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/Plane[0]"}'
+        count: 7
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/Plane[0]"}'
+        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/Cube[0]"}'
         count: 6
         gameObjects:
         - {fileID: 0}
@@ -725,13 +725,25 @@ MonoBehaviour:
         - {fileID: 0}
       - paths:
         - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/Cube
-          (14)[0]"}'
+          (12)[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       recentlyClicked:
       - paths:
         - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/Plane[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/Cube
+          (12)[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/GM-Climb
+          (2)[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
@@ -782,26 +794,11 @@ MonoBehaviour:
         - {fileID: 0}
         - {fileID: 0}
         - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/GM-Cube
-          (2)[0]"}'
-        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/GM-Cube
-          (3)[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/GM-Cube
-          (2)[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: 4bf4b9cab4bbbe3478fae2f818391e24
     sceneName: RUSHPOINT_MAT
-    lastSaveTimePrint: 02:18 PM (October 28, 2026)
+    lastSaveTimePrint: 02:48 PM (October 28, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -812,22 +809,22 @@ MonoBehaviour:
     suggestedHeight: 0
     userAssetViewSize: 375.99997
     previewHeight: 0
-    scrollPosition: {x: 0, y: 734.80005}
+    scrollPosition: {x: 0, y: 324}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 59
+    lastValidTabWidth: 81
     alreadyCalculatedHeight: 1
     lastKnownHeight: 1
     tabs:
     - path: '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/Plane[0]"}'
       paths: []
-      tabWidth: 56
+      tabWidth: 78
       name: Plane
       icon: {fileID: 2244882685325231567, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: Plane
+      shortName: Cube (12)
       filterString: 
       newTab: 0
-      scrollPosition: 734.80005
+      scrollPosition: 324
       isSelected: 1
       allCollapsed: 0
       runtimeFoldouts: 
@@ -914,11 +911,19 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: meshcollider
-        niceComponentName: mesh collider
+        componentName: boxcollider
+        niceComponentName: box collider
       historyPaths:
       - paths:
         - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/Plane[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/Cube
+          (12)[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/GM-Climb
+          (2)[0]"}'
         prefab: 0
       - paths:
         - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/Cube
@@ -956,14 +961,6 @@ MonoBehaviour:
           (2)[0]"}'
         - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/GM-Cube
           (3)[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/GM-Cube
-          (2)[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"4bf4b9cab4bbbe3478fae2f818391e24","path":"Generator Facility[0]/GM-Curve
-          (5)[0]"}'
         prefab: 0
       owner: {fileID: 0}
     closedTabs: []

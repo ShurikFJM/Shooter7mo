@@ -41,7 +41,7 @@ Shader "Env/Universal environment Material"
         _MetalConst("Metallic (sin ARM)", Range(0, 1)) = 0
 
         [Header(Displacement)]
-        [KeywordEnum(Off, Offset, POM, Vertex)] _Disp("Mode", Float) = 0
+        [KeywordEnum(Off, Offset, POM)] _Disp("Mode", Float) = 0 // Opcion a implementar por vertex :V
         [Toggle(_HEIGHT_IN_ARM_A)] _HeightInARM("Height in ARM alpha", Float) = 0
         [NoScaleOffset] _HeightTex("Height", 2D) = "gray" {}
         [Toggle] _HeightInvert("Invert Height", Float) = 0

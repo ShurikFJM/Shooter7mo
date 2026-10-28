@@ -17,6 +17,7 @@ Material:
   - _NORMALMAP
   - _ROUGH_INVERT
   - _UVMODE_WORLDXZ
+  - _VORONOI
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -63,9 +64,9 @@ Material:
     - _OffsetY: 0
     - _POMMaxSteps: 24
     - _POMMinSteps: 8
-    - _RandOffset: 0
-    - _RandRotation: 1
-    - _RandScale: 0.173
+    - _RandOffset: 0.59
+    - _RandRotation: 0.77
+    - _RandScale: 0.1
     - _Rotation: 0
     - _RoughConst: 0.6
     - _RoughInvert: 1
@@ -77,11 +78,11 @@ Material:
     - _UseARM: 1
     - _UseEmission: 0
     - _UseNormal: 1
-    - _UseVoronoi: 0
+    - _UseVoronoi: 1
     - _VertexDispScale: 0.1
     - _VoronoiBlend: 0.5
     - _VoronoiJitter: 1
-    - _VoronoiScale: 3.04
+    - _VoronoiScale: 4.78
     m_Colors:
     - _BaseColor: {r: 0.86415094, g: 0.86415094, b: 0.86415094, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
