@@ -63,8 +63,8 @@ Material:
     - _POMMaxSteps: 24
     - _POMMinSteps: 8
     - _RandOffset: 0.7
-    - _RandRotation: 1
-    - _RandScale: 0.221
+    - _RandRotation: 0.504
+    - _RandScale: 0.333
     - _Rotation: 0
     - _RoughConst: 0.6
     - _RoughInvert: 0
@@ -77,11 +77,11 @@ Material:
     - _UseNormal: 1
     - _UseVoronoi: 1
     - _VertexDispScale: 0.1
-    - _VoronoiBlend: 0.27
-    - _VoronoiJitter: 1
-    - _VoronoiScale: 8
+    - _VoronoiBlend: 0.5
+    - _VoronoiJitter: 0.176
+    - _VoronoiScale: 2.87
     m_Colors:
-    - _BaseColor: {r: 0.85660374, g: 0.85660374, b: 0.85660374, a: 1}
+    - _BaseColor: {r: 0.5622641, g: 0.5622641, b: 0.5622641, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
