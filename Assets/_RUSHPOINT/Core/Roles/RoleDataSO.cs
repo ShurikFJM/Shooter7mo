@@ -16,11 +16,12 @@ public class RoleDataSO : ScriptableObject
     public PlayerRoleType roleType;
     public string roleName;
     [TextArea] public string roleDescription;
+
     public float maxHealth = 100f;
     public float maxArmor = 50f;
-    public float walkSpeed = 5f;
-    public float sprintSpeed = 7.5f;
-    public float jumpForce = 5f;
+    public float walkSpeed = 5.4f;
+    public float jumpForce = 1.6f;
+
     public GameObject primaryWeaponPrefab;
     public GameObject secondaryWeaponPrefab;
     public GameObject tpPrimaryWeaponPrefab;

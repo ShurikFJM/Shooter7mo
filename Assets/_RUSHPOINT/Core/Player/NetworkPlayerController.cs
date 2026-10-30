@@ -6,8 +6,7 @@ using UnityEngine.InputSystem;
 public class NetworkPlayerController : NetworkBehaviour
 {
     private const float GRAVITY = -19.62f;
-    private const float DEFAULT_WALK_SPEED = 5f;
-    private const float DEFAULT_SPRINT_SPEED = 8f;
+    private const float DEFAULT_WALK_SPEED = 5.5f;
     private const float DEFAULT_JUMP_FORCE = 1.6f;
     private const float CROUCH_HEIGHT = 1f;
     private const float STANDING_HEIGHT = 2f;
@@ -45,6 +44,8 @@ public class NetworkPlayerController : NetworkBehaviour
     public Camera PlayerCamera => _playerCamera;
     public bool IsGrounded => _characterController != null && _characterController.isGrounded;
     public bool IsMoving => _moveInput.sqrMagnitude > MIN_MOVE_MAGNITUDE_SQR;
+    public bool IsWalkingSlow => _isWalkingSlow;
+    public bool IsCrouching => _isCrouching;
     public RoleDataSO ActiveRole => _activeRole;
 
     private RoleDataSO _activeRole;
@@ -55,12 +56,10 @@ public class NetworkPlayerController : NetworkBehaviour
     private float _verticalVelocity;
     private Vector2 _moveInput;
     private Vector2 _lookInput;
-    private bool _isSprinting;
     private bool _isWalkingSlow;
     private bool _isCrouching;
     private bool _jumpRequested;
     private bool _isFirePressed;
-    private float _nextFireTime;
     private float _cameraPitch;
     private float _defaultCameraLocalY;
     private bool _hasInitiatedSpectate;
@@ -182,7 +181,6 @@ public class NetworkPlayerController : NetworkBehaviour
         {
             _moveInput = Vector2.zero;
             _lookInput = Vector2.zero;
-            _isSprinting = false;
             _isWalkingSlow = false;
             _jumpRequested = false;
             _isFirePressed = false;
@@ -241,6 +239,7 @@ public class NetworkPlayerController : NetworkBehaviour
                 _moveInput = Vector2.zero;
                 _lookInput = Vector2.zero;
                 _isFirePressed = false;
+                _isWalkingSlow = false;
                 return;
             }
 
@@ -326,7 +325,6 @@ public class NetworkPlayerController : NetworkBehaviour
         {
             _moveInput = Vector2.zero;
             _lookInput = Vector2.zero;
-            _isSprinting = false;
             _isWalkingSlow = false;
             _jumpRequested = false;
             _isFirePressed = false;
@@ -342,6 +340,7 @@ public class NetworkPlayerController : NetworkBehaviour
         if (isDead && !_hasInitiatedSpectate)
         {
             _hasInitiatedSpectate = true;
+            _isWalkingSlow = false;
 
             if (_characterController != null) _characterController.enabled = false;
             if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
@@ -381,7 +380,6 @@ public class NetworkPlayerController : NetworkBehaviour
         if (isLockedPhase || isInteractingBomb)
         {
             _moveInput = Vector2.zero;
-            _isSprinting = false;
             _isWalkingSlow = false;
             _jumpRequested = false;
             return;
@@ -389,23 +387,20 @@ public class NetworkPlayerController : NetworkBehaviour
 
         bool crouchPressed = false;
         bool walkSlowPressed = false;
-        bool sprintPressed = false;
 
         if (Keyboard.current != null)
         {
-            crouchPressed = Keyboard.current.leftCtrlKey.isPressed || Keyboard.current.cKey.isPressed;
-            walkSlowPressed = Keyboard.current.leftShiftKey.isPressed;
-            sprintPressed = Keyboard.current.leftShiftKey.isPressed && !_isWalkingSlow;
+            crouchPressed = Keyboard.current.leftCtrlKey.isPressed || Keyboard.current.rightCtrlKey.isPressed || Keyboard.current.cKey.isPressed;
+            walkSlowPressed = Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed;
         }
 
         if (Gamepad.current != null)
         {
             if (Gamepad.current.buttonEast.isPressed || Gamepad.current.rightStickButton.isPressed) crouchPressed = true;
-            if (Gamepad.current.leftStickButton.isPressed) sprintPressed = true;
+            if (Gamepad.current.leftStickButton.isPressed) walkSlowPressed = true;
         }
 
         _isWalkingSlow = walkSlowPressed;
-        _isSprinting = sprintPressed;
 
         bool targetCrouch = _isCrouching;
         if (crouchPressed) targetCrouch = true;
@@ -552,7 +547,6 @@ public class NetworkPlayerController : NetworkBehaviour
 
         if (_isCrouching) currentSpeed *= CROUCH_SPEED_RATIO;
         else if (_isWalkingSlow) currentSpeed *= WALK_SLOW_RATIO;
-        else if (_isSprinting) currentSpeed = _activeRole != null ? _activeRole.sprintSpeed : DEFAULT_SPRINT_SPEED;
 
         Vector3 moveDirection = transform.right * _moveInput.x + transform.forward * _moveInput.y;
         if (moveDirection.sqrMagnitude > 1f) moveDirection.Normalize();
@@ -593,6 +587,7 @@ public class NetworkPlayerController : NetworkBehaviour
         _verticalVelocity = 0f;
         _moveInput = Vector2.zero;
         _hasInitiatedSpectate = false;
+        _isWalkingSlow = false;
 
         if (IsOwner)
         {

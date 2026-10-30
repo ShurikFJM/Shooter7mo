@@ -24,7 +24,6 @@ public enum Team : byte
 public class RoundManager : NetworkBehaviour
 {
     private const int DEFAULT_ROUNDS_TO_WIN = 13;
-    private const int HALFTIME_ROUND = 12;
     private const float DEFAULT_WARMUP_DURATION = 7f;
     private const float DEFAULT_ROUND_TIME_LIMIT = 115f;
     private const float DEFAULT_ROUND_END_DISPLAY_DURATION = 5f;
@@ -93,6 +92,7 @@ public class RoundManager : NetworkBehaviour
     public float WarmupDuration => _warmupDuration;
     public float RoundEndDisplayDuration => _roundEndDisplayDuration;
     public int RoundsToWinMatch => _roundsToWinMatch;
+    public int HalftimeRound => Mathf.Max(1, _roundsToWinMatch - 1);
     public NetworkVariable<int> TerroristScore => RedScore;
     public NetworkVariable<int> CounterTerroristScore => BlueScore;
 
@@ -153,6 +153,13 @@ public class RoundManager : NetworkBehaviour
         {
             Instance = null;
         }
+    }
+
+    public void ConfigureMatchSettingsServer(float roundDuration, int roundsToWin)
+    {
+        if (!IsServer) return;
+        _roundTimeLimit = roundDuration;
+        _roundsToWinMatch = roundsToWin;
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
@@ -219,7 +226,7 @@ public class RoundManager : NetworkBehaviour
         {
             RoundNumber.Value++;
 
-            if (RoundNumber.Value == HALFTIME_ROUND)
+            if (RoundNumber.Value == HalftimeRound)
             {
                 PerformHalftimeSideSwitch();
             }
@@ -247,8 +254,11 @@ public class RoundManager : NetworkBehaviour
             if (teamComp != null)
             {
                 Team oldTeam = teamComp.CurrentTeam.Value;
-                Team newTeam = (oldTeam == Team.Red) ? Team.Blue : Team.Red;
-                teamComp.CurrentTeam.Value = newTeam;
+                if (oldTeam != Team.Neutral)
+                {
+                    Team newTeam = (oldTeam == Team.Red) ? Team.Blue : Team.Red;
+                    teamComp.CurrentTeam.Value = newTeam;
+                }
             }
         }
     }

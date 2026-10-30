@@ -1,3 +1,4 @@
+using System.Reflection;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ public class DynamicCrosshair : MonoBehaviour
     private const float MAX_TOTAL_SPREAD = 0.1f;
     private const float DEFAULT_CAMERA_FOV = 60f;
     private const float REFERENCE_CANVAS_HALF_HEIGHT = 540f;
+    private const float RESTING_SPREAD_CAP = 0.012f;
 
     [SerializeField] private RectTransform _topTick;
     [SerializeField] private RectTransform _bottomTick;
@@ -19,7 +21,7 @@ public class DynamicCrosshair : MonoBehaviour
     [SerializeField] private float _gapScaleMultiplier = 900f;
     [SerializeField] private float _maxGap = 160f;
     [SerializeField] private float _expandSpeed = 35f;
-    [SerializeField] private float _contractSpeed = 20f;
+    [SerializeField] private float _contractSpeed = 22f;
     [SerializeField] private bool _useCameraProjection = true;
     [SerializeField] private WeaponInventory _inventory;
 
@@ -31,6 +33,17 @@ public class DynamicCrosshair : MonoBehaviour
     private Vector3 _lastPlayerPosition;
     private bool _hasLastPosition;
     private float _currentGap;
+    private WeaponBase _lastActiveWeapon;
+
+    private static readonly FieldInfo _weaponPlayerControllerField = typeof(WeaponBase).GetField(
+        "_playerController",
+        BindingFlags.NonPublic | BindingFlags.Instance
+    );
+
+    private static readonly FieldInfo _weaponFirePointField = typeof(WeaponBase).GetField(
+        "_firePoint",
+        BindingFlags.NonPublic | BindingFlags.Instance
+    );
 
     public WeaponInventory Inventory
     {
@@ -72,6 +85,12 @@ public class DynamicCrosshair : MonoBehaviour
             return;
         }
 
+        if (activeWeapon != _lastActiveWeapon)
+        {
+            _lastActiveWeapon = activeWeapon;
+            EnsureWeaponDependencies(activeWeapon);
+        }
+
         float synchronizedSpread = CalculateSynchronizedSpread(activeWeapon);
         float spreadInPixels = ConvertSpreadToPixels(synchronizedSpread);
         float targetGap = _baseGap + spreadInPixels;
@@ -85,33 +104,71 @@ public class DynamicCrosshair : MonoBehaviour
         UpdateGapInterpolation(targetGap);
     }
 
+    private void EnsureWeaponDependencies(WeaponBase weapon)
+    {
+        if (weapon == null || _playerController == null) return;
+
+        if (_weaponPlayerControllerField != null)
+        {
+            object currentController = _weaponPlayerControllerField.GetValue(weapon);
+            if (currentController == null)
+            {
+                _weaponPlayerControllerField.SetValue(weapon, _playerController);
+            }
+        }
+
+        if (_weaponFirePointField != null && _playerCamera != null)
+        {
+            object currentFirePoint = _weaponFirePointField.GetValue(weapon);
+            if (currentFirePoint == null)
+            {
+                _weaponFirePointField.SetValue(weapon, _playerCamera.transform);
+            }
+        }
+    }
+
     private float CalculateSynchronizedSpread(WeaponBase activeWeapon)
     {
-        float weaponSpread = activeWeapon.GetCurrentSpread();
-
         bool isMoving = IsPlayerCurrentlyMoving();
         bool isGrounded = IsPlayerCurrentlyGrounded();
 
         WeaponData data = activeWeapon.WeaponData;
+
+        if (!isMoving && isGrounded)
+        {
+            float restingBaseSpread = (data != null) ? Mathf.Min(data.baseSpread, RESTING_SPREAD_CAP) : 0f;
+            float shotPenalty = 0f;
+
+            float reportedSpread = activeWeapon.GetCurrentSpread();
+            if (reportedSpread > 0.001f)
+            {
+                shotPenalty = Mathf.Min(reportedSpread, MAX_TOTAL_SPREAD);
+            }
+
+            return Mathf.Clamp(restingBaseSpread + shotPenalty, 0f, MAX_TOTAL_SPREAD);
+        }
+
         float movementCalculatedSpread = 0f;
 
         if (data != null)
         {
+            float sanitizedBase = Mathf.Min(data.baseSpread, RESTING_SPREAD_CAP);
+
             if (!isGrounded)
             {
-                movementCalculatedSpread = (data.baseSpread + DEFAULT_AIR_BASE_ADDITION) * data.airSpreadMultiplier;
+                float clampedAirMult = Mathf.Clamp(data.airSpreadMultiplier, 1f, 4.5f);
+                movementCalculatedSpread = (sanitizedBase + DEFAULT_AIR_BASE_ADDITION) * clampedAirMult;
             }
             else if (isMoving)
             {
-                movementCalculatedSpread = (data.baseSpread + DEFAULT_MOVEMENT_BASE_ADDITION) * data.movementSpreadMultiplier;
-            }
-            else
-            {
-                movementCalculatedSpread = data.baseSpread;
+                float clampedMoveMult = Mathf.Clamp(data.movementSpreadMultiplier, 1f, 2.2f);
+                movementCalculatedSpread = (sanitizedBase + DEFAULT_MOVEMENT_BASE_ADDITION) * clampedMoveMult;
             }
         }
 
-        float combinedSpread = Mathf.Max(weaponSpread, movementCalculatedSpread);
+        float actualWeaponSpread = activeWeapon.GetCurrentSpread();
+        float combinedSpread = Mathf.Max(actualWeaponSpread, movementCalculatedSpread);
+
         return Mathf.Clamp(combinedSpread, 0f, MAX_TOTAL_SPREAD);
     }
 
