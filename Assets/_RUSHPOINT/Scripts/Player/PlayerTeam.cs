@@ -18,7 +18,15 @@ public class PlayerTeam : NetworkBehaviour
             if (CustomLobbyManager.Instance != null)
             {
                 Team lobbyAssignedTeam = CustomLobbyManager.Instance.GetPlayerAssignedTeam(OwnerClientId);
-                CurrentTeam.Value = lobbyAssignedTeam;
+                if (lobbyAssignedTeam != Team.Neutral)
+                {
+                    CurrentTeam.Value = lobbyAssignedTeam;
+                }
+            }
+
+            if (CurrentTeam.Value == Team.Neutral)
+            {
+                CurrentTeam.Value = Team.Red;
             }
         }
 

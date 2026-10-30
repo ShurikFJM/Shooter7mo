@@ -16,6 +16,8 @@ public class CustomLobbyManager : NetworkBehaviour
 
     [SerializeField] private GameObject _customLobbyCanvas;
     [SerializeField] private GameObject _roleSelectCanvas;
+    [SerializeField] private GameObject _spectatorWaitCanvas;
+    [SerializeField] private string _gameSceneName = "RUSPOINT";
 
     public NetworkList<LobbyPlayerData> Players;
 
@@ -37,6 +39,8 @@ public class CustomLobbyManager : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    public string GameSceneName => _gameSceneName;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -46,7 +50,7 @@ public class CustomLobbyManager : NetworkBehaviour
         }
 
         Instance = this;
-        Players = new NetworkList<LobbyPlayerData>();
+        DontDestroyOnLoad(gameObject);
     }
 
     public override void OnNetworkSpawn()
@@ -226,13 +230,10 @@ public class CustomLobbyManager : NetworkBehaviour
         {
             LobbyPlayerData player = Players[i];
 
-            if (player.AssignedTeam != Team.Neutral)
-            {
-                if (!player.IsReady) return false;
+            if (!player.IsReady) return false;
 
-                if (player.AssignedTeam == Team.Red) activeRed++;
-                else if (player.AssignedTeam == Team.Blue) activeBlue++;
-            }
+            if (player.AssignedTeam == Team.Red) activeRed++;
+            else if (player.AssignedTeam == Team.Blue) activeBlue++;
         }
 
         return (activeRed > 0 || activeBlue > 0);
@@ -259,9 +260,21 @@ public class CustomLobbyManager : NetworkBehaviour
             _customLobbyCanvas.SetActive(false);
         }
 
-        if (_roleSelectCanvas != null)
+        Team localTeam = Team.Neutral;
+        if (NetworkManager.Singleton != null)
         {
-            _roleSelectCanvas.SetActive(true);
+            localTeam = GetPlayerAssignedTeam(NetworkManager.Singleton.LocalClientId);
+        }
+
+        if (localTeam == Team.Neutral)
+        {
+            if (_roleSelectCanvas != null) _roleSelectCanvas.SetActive(false);
+            if (_spectatorWaitCanvas != null) _spectatorWaitCanvas.SetActive(true);
+        }
+        else
+        {
+            if (_spectatorWaitCanvas != null) _spectatorWaitCanvas.SetActive(false);
+            if (_roleSelectCanvas != null) _roleSelectCanvas.SetActive(true);
         }
 
         OnMatchStarted?.Invoke();

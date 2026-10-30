@@ -224,6 +224,12 @@ public class NetworkPlayerController : NetworkBehaviour
                 _activeRole.tpPrimaryWeaponPrefab,
                 _activeRole.tpSecondaryWeaponPrefab
             );
+
+            TacticalHUD tacticalHud = FindAnyObjectByType<TacticalHUD>();
+            if (tacticalHud != null)
+            {
+                tacticalHud.Inventory = _weaponInventory;
+            }
         }
     }
 

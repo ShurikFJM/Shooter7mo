@@ -1,6 +1,7 @@
 using System;
-using TMPro;
 using System.Collections;
+using TMPro;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -104,7 +105,7 @@ public class CustomLobbyUI : MonoBehaviour
         }
 
         CustomLobbyManager.Instance.RequestUpdatePlayerNameServerRpc(
-            new Unity.Collections.FixedString32Bytes(localName),
+            new FixedString32Bytes(localName),
             NetworkManager.Singleton.LocalClientId
         );
     }
@@ -260,7 +261,7 @@ public class CustomLobbyUI : MonoBehaviour
             bool isMe = p.ClientId == localId;
             if (isMe) localIsReady = p.IsReady;
 
-            string readyBadge = p.AssignedTeam == Team.Neutral ? "" : (p.IsReady ? " <color=#00FF66>[READY]</color>" : " <color=#FF3333>[NOT READY]</color>");
+            string readyBadge = p.IsReady ? " <color=#00FF66>[READY]</color>" : " <color=#FF3333>[NOT READY]</color>";
             string display = $"{p.PlayerName}{(isMe ? " (YOU)" : "")}{readyBadge}";
 
             if (p.AssignedTeam == Team.Red)

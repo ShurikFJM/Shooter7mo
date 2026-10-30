@@ -1,6 +1,4 @@
-using System.Collections;
 using TMPro;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,12 +8,10 @@ public class LobbyUI : MonoBehaviour
     private const string DEFAULT_PLAYER_PREFIX = "Player_";
 
     [SerializeField] private TMP_InputField _playerNameInputField;
-
     [SerializeField] private Button _hostButton;
     [SerializeField] private Button _joinButton;
     [SerializeField] private TMP_InputField _joinCodeInputField;
     [SerializeField] private Button _backButton;
-
     [SerializeField] private GameObject _connectionPanel;
     [SerializeField] private GameObject _customLobbyCanvas;
     [SerializeField] private GameObject _mainMenuRootPanel;
@@ -76,11 +72,30 @@ public class LobbyUI : MonoBehaviour
     private async void OnHostClicked()
     {
         ValidatePlayerNameInput();
+
+        if (RelayNetworkManager.Instance == null)
+        {
+            Debug.LogError("[LobbyUI] Falta RelayNetworkManager en la escena.");
+            return;
+        }
+
         SetButtonsInteractable(false);
 
-        string code = await RelayNetworkManager.Instance.StartHostWithRelayAsync();
-        if (string.IsNullOrEmpty(code))
+        try
         {
+            string code = await RelayNetworkManager.Instance.StartHostWithRelayAsync();
+            if (!string.IsNullOrEmpty(code))
+            {
+                HandleHostStarted(code);
+            }
+            else
+            {
+                SetButtonsInteractable(true);
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[Relay] Error al hostear: {ex.Message}");
             SetButtonsInteractable(true);
         }
     }
@@ -91,13 +106,36 @@ public class LobbyUI : MonoBehaviour
 
         ValidatePlayerNameInput();
         string code = _joinCodeInputField.text.Trim();
-        if (string.IsNullOrEmpty(code)) return;
+
+        if (string.IsNullOrEmpty(code))
+        {
+            Debug.LogWarning("[LobbyUI] Codigo vacio.");
+            return;
+        }
+
+        if (RelayNetworkManager.Instance == null)
+        {
+            Debug.LogError("[LobbyUI] Falta RelayNetworkManager en la escena.");
+            return;
+        }
 
         SetButtonsInteractable(false);
 
-        bool success = await RelayNetworkManager.Instance.StartClientWithRelayAsync(code);
-        if (!success)
+        try
         {
+            bool success = await RelayNetworkManager.Instance.StartClientWithRelayAsync(code);
+            if (success)
+            {
+                TransitionToCustomLobby();
+            }
+            else
+            {
+                SetButtonsInteractable(true);
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[Relay] Error al unirse: {ex.Message}");
             SetButtonsInteractable(true);
         }
     }
@@ -141,6 +179,19 @@ public class LobbyUI : MonoBehaviour
 
     private void TransitionToCustomLobby()
     {
+        if (_customLobbyCanvas == null)
+        {
+            var rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
+            for (int i = 0; i < rootObjects.Length; i++)
+            {
+                if (rootObjects[i].name == "Canvas_Lobby_CustomGame")
+                {
+                    _customLobbyCanvas = rootObjects[i];
+                    break;
+                }
+            }
+        }
+
         if (_connectionPanel != null) _connectionPanel.SetActive(false);
         if (_mainMenuRootPanel != null) _mainMenuRootPanel.SetActive(false);
         if (_customLobbyCanvas != null) _customLobbyCanvas.SetActive(true);

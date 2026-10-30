@@ -124,7 +124,7 @@ public class RoleSelectScreenUI : MonoBehaviour
 
     private void HandlePhaseChanged(RoundPhase previousPhase, RoundPhase currentPhase)
     {
-        if (_hasLockedIn && (currentPhase == RoundPhase.Warmup || currentPhase == RoundPhase.InProgress))
+        if (currentPhase == RoundPhase.Warmup || currentPhase == RoundPhase.InProgress)
         {
             CloseRoleScreen();
         }
@@ -191,27 +191,23 @@ public class RoleSelectScreenUI : MonoBehaviour
 
         _hasLockedIn = true;
 
-        if (_confirmButton != null) _confirmButton.interactable = false;
-        if (_lockInButton != null) _lockInButton.interactable = false;
+        if (_confirmButton != null)
+        {
+            _confirmButton.interactable = false;
+            TMP_Text confirmText = _confirmButton.GetComponentInChildren<TMP_Text>();
+            if (confirmText != null) confirmText.text = "LOCKED IN...";
+        }
+
+        if (_lockInButton != null)
+        {
+            _lockInButton.interactable = false;
+            TMP_Text lockInText = _lockInButton.GetComponentInChildren<TMP_Text>();
+            if (lockInText != null) lockInText.text = "LOCKED IN...";
+        }
 
         if (RoleLobbyManager.Instance != null)
         {
-            RoleLobbyManager.Instance.LockInRoleAndTeamServerRpc(_selectedRole, _selectedTeam);
-        }
-
-        CloseRoleScreen();
-
-        if (_tacticalHudRoot != null) _tacticalHudRoot.SetActive(true);
-        if (_minimapRoot != null) _minimapRoot.SetActive(true);
-
-        if (NetworkManager.Singleton.LocalClient != null &&
-            NetworkManager.Singleton.LocalClient.PlayerObject != null)
-        {
-            Canvas playerCanvas = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponentInChildren<Canvas>(true);
-            if (playerCanvas != null)
-            {
-                playerCanvas.gameObject.SetActive(true);
-            }
+            RoleLobbyManager.Instance.ConfirmRoleSelection(_selectedRole, _selectedTeam);
         }
     }
 
@@ -227,6 +223,15 @@ public class RoleSelectScreenUI : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        if (CustomLobbyManager.Instance != null && NetworkManager.Singleton != null)
+        {
+            Team assignedTeam = CustomLobbyManager.Instance.GetPlayerAssignedTeam(NetworkManager.Singleton.LocalClientId);
+            if (assignedTeam != Team.Neutral)
+            {
+                _selectedTeam = assignedTeam;
+            }
+        }
 
         UpdateTeamFeedbackUI();
         SelectRolePreview(_selectedRole);
