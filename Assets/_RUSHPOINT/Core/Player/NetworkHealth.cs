@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(NetworkObject))]
 public class NetworkHealth : NetworkBehaviour
@@ -7,6 +8,8 @@ public class NetworkHealth : NetworkBehaviour
     [SerializeField] private float _defaultMaxHealth = 100f;
     [SerializeField] private float _defaultMaxArmor = 100f;
     [SerializeField] private bool _enableFriendlyFire = false;
+
+    [SerializeField] private GameObject _characterModelRoot;
 
     public NetworkVariable<float> CurrentHealth = new NetworkVariable<float>(
         100f,
@@ -40,9 +43,86 @@ public class NetworkHealth : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        IsAlive.OnValueChanged += HandleIsAliveChanged;
+
         if (IsServer)
         {
             ResetHealthServer();
+        }
+
+        ApplyLivingState(IsAlive.Value);
+    }
+
+    public void SetSpectatorStateServer()
+    {
+        if (!IsServer) return;
+        IsAlive.Value = false;
+        CurrentHealth.Value = 0f;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        IsAlive.OnValueChanged -= HandleIsAliveChanged;
+    }
+
+    private void HandleIsAliveChanged(bool previousState, bool isAlive)
+    {
+        ApplyLivingState(isAlive);
+    }
+
+    private void ApplyLivingState(bool isAlive)
+    {
+        CharacterController cc = GetComponent<CharacterController>();
+        if (cc != null) cc.enabled = isAlive;
+
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null) colliders[i].enabled = isAlive;
+        }
+
+        if (_characterModelRoot != null)
+        {
+            _characterModelRoot.SetActive(isAlive);
+        }
+        else
+        {
+            Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (renderers[i] is MeshRenderer || renderers[i] is SkinnedMeshRenderer)
+                {
+                    renderers[i].enabled = isAlive;
+                }
+            }
+        }
+
+        if (IsOwner)
+        {
+            PlayerInput input = GetComponent<PlayerInput>();
+            Camera playerCam = GetComponentInChildren<Camera>(true);
+
+            if (!isAlive)
+            {
+                if (input != null) input.DeactivateInput();
+
+                PlayerTeam teamComp = GetComponent<PlayerTeam>();
+                Team myTeam = teamComp != null ? teamComp.CurrentTeam.Value : Team.Red;
+
+                if (SpectatorManager.Instance != null && playerCam != null)
+                {
+                    SpectatorManager.Instance.StartSpectating(myTeam, playerCam, transform, 1.6f);
+                }
+            }
+            else
+            {
+                if (SpectatorManager.Instance != null && SpectatorManager.Instance.isSpectating)
+                {
+                    SpectatorManager.Instance.StopSpectating();
+                }
+
+                if (input != null) input.ActivateInput();
+            }
         }
     }
 
@@ -75,14 +155,12 @@ public class NetworkHealth : NetworkBehaviour
     public void HealServerRpc(float amount, RpcParams rpcParams = default)
     {
         if (!IsServer || !IsAlive.Value) return;
-
         CurrentHealth.Value = Mathf.Min(CurrentHealth.Value + amount, MaxHealth.Value);
     }
 
     public void HealServer(float amount)
     {
         if (!IsServer || !IsAlive.Value) return;
-
         CurrentHealth.Value = Mathf.Min(CurrentHealth.Value + amount, MaxHealth.Value);
     }
 
@@ -116,7 +194,7 @@ public class NetworkHealth : NetworkBehaviour
         float calculatedDamage = baseDamage;
         if (hitboxType == HitboxType.Head)
         {
-            calculatedDamage *= 2.5f; 
+            calculatedDamage *= 2.5f;
         }
         else if (hitboxType == HitboxType.Legs)
         {

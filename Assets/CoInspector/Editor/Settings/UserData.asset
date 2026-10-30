@@ -65,13 +65,200 @@ MonoBehaviour:
   generalScrollSpeed: 18
   sessions:
   - tracker:
-      mostClicked: []
-      recentlyClicked: []
+      mostClicked:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      recentlyClicked:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 07:48 AM (October 30, 2026)
+    lastSaveTimePrint: 09:26 AM (October 30, 2026)
+    gracePeriod: 3
+    activeIndex: 0
+    checkingToLoad: 0
+    assetsCollapsed: 0
+    lockedAsset: 1
+    maximizedAssetView: 0
+    showImportSettings: 0
+    suggestedHeight: 0
+    userAssetViewSize: 0
+    previewHeight: 0
+    scrollPosition: {x: 0, y: 0}
+    toolbarScrollPosition: {x: 0, y: 0}
+    rawUserHeight: 0
+    lastValidTabWidth: 81
+    alreadyCalculatedHeight: 0
+    lastKnownHeight: 0
+    tabs:
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+      paths: []
+      tabWidth: 0
+      name: RoundManager
+      icon: {fileID: 148978298399363526, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: RoundManager
+      filterString: 
+      newTab: 0
+      scrollPosition: 0
+      isSelected: 0
+      allCollapsed: 0
+      runtimeFoldouts: 
+      runtimeMultiComponents: []
+      tabTextContent:
+        m_Text: 
+        m_Image: {fileID: 0}
+        m_Tooltip: 
+        m_TextWithWhitespace: 
+      multiEditMode: 0
+      locked: 0
+      hasPreview: 0
+      previewHeight: 150
+      debug: 0
+      filtering: 0
+      prefab: 0
+      multiFoldout: 1
+      target: {fileID: 0}
+      targets: []
+      linkedPrefabs: []
+      trackMultiTarget: {fileID: 0}
+      serializedTransform:
+        owner: {fileID: 0}
+        localPosition: {x: 0, y: 0, z: 0}
+        localRotation: {x: 0, y: 0, z: 0, w: 0}
+        localScale: {x: 0, y: 0, z: 0}
+        originalPosition: {x: 0, y: 0, z: 0}
+        originalRotation: {x: 0, y: 0, z: 0, w: 0}
+        originalLocalScale: {x: 0, y: 0, z: 0}
+        anchorMin: {x: 0, y: 0}
+        anchorMax: {x: 0, y: 0}
+        anchoredPosition: {x: 0, y: 0}
+        sizeDelta: {x: 0, y: 0}
+        pivot: {x: 0, y: 0}
+        originalAnchorMin: {x: 0, y: 0}
+        originalAnchorMax: {x: 0, y: 0}
+        originalAnchoredPosition: {x: 0, y: 0}
+        originalSizeDelta: {x: 0, y: 0}
+        originalPivot: {x: 0, y: 0}
+        isRectTransform: 0
+        appliedTransform: 0
+        undidTransform: 0
+        autoSave: 0
+      serializedTransforms: []
+      savePlayModeTransform: 0
+      index: 0
+      historyPosition: 0
+      componentMaps:
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      historyPaths:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        prefab: 0
+      owner: {fileID: 0}
+    closedTabs: []
+    playModeTransforms: []
+    historyAssets:
+    - assetGUIDs:
+      - 48274daa9c39edc48b50e2de7f606b80
+    - assetGUIDs:
+      - 48cc7be0e52650449a9ecd9e4a7dfef0
+    - assetGUIDs:
+      - a78fb2409d867404fbee4a2e6ce9abf3
+    - assetGUIDs:
+      - db0dc0af79cf470459007ddda960ca5d
+    - assetGUIDs:
+      - 86bef325797ee5b499e235c907444fe9
+    - assetGUIDs:
+      - 544ae097fc1697e4bb9e6de845cea729
+    - assetGUIDs:
+      - 123378fb1c65b0f4d8eec38cfbc1f425
+    - assetGUIDs:
+      - 54e9a1ff8eb4a4e488da187ffe56f535
+    - assetGUIDs:
+      - c000273e43838594b97148ea2cdbee9a
+    - assetGUIDs:
+      - 4bf4b9cab4bbbe3478fae2f818391e24
+    - assetGUIDs:
+      - 7a241e49bcdcf8a419ef451860429469
+    targetObject: {fileID: 2100000, guid: 48274daa9c39edc48b50e2de7f606b80, type: 2}
+    targetObjects: []
+    lastSelectedAsset: Assets/_RUSHPOINT/Shaders/EnvMat/EnvMat_MetalPlates_MAT.mat
+    lastClickedTab: -1
+    previousTab: 0
+  - tracker:
+      mostClicked: []
+      recentlyClicked:
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      mostClickedContents: []
+      recentlyClickedContents: []
+    sceneGUID: 7a241e49bcdcf8a419ef451860429469
+    sceneName: MainMenu
+    lastSaveTimePrint: 09:02 AM (October 30, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -147,303 +334,6 @@ MonoBehaviour:
       historyPosition: 0
       componentMaps: []
       historyPaths: []
-      owner: {fileID: 0}
-    closedTabs: []
-    playModeTransforms: []
-    historyAssets:
-    - assetGUIDs:
-      - 48274daa9c39edc48b50e2de7f606b80
-    - assetGUIDs:
-      - 48cc7be0e52650449a9ecd9e4a7dfef0
-    - assetGUIDs:
-      - a78fb2409d867404fbee4a2e6ce9abf3
-    - assetGUIDs:
-      - db0dc0af79cf470459007ddda960ca5d
-    - assetGUIDs:
-      - 86bef325797ee5b499e235c907444fe9
-    - assetGUIDs:
-      - 544ae097fc1697e4bb9e6de845cea729
-    - assetGUIDs:
-      - 123378fb1c65b0f4d8eec38cfbc1f425
-    - assetGUIDs:
-      - 54e9a1ff8eb4a4e488da187ffe56f535
-    - assetGUIDs:
-      - c000273e43838594b97148ea2cdbee9a
-    - assetGUIDs:
-      - 4bf4b9cab4bbbe3478fae2f818391e24
-    - assetGUIDs:
-      - 7a241e49bcdcf8a419ef451860429469
-    targetObject: {fileID: 2100000, guid: 48274daa9c39edc48b50e2de7f606b80, type: 2}
-    targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Shaders/EnvMat/EnvMat_MetalPlates_MAT.mat
-    lastClickedTab: -1
-    previousTab: 0
-  - tracker:
-      mostClicked: []
-      recentlyClicked:
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
-      mostClickedContents: []
-      recentlyClickedContents: []
-    sceneGUID: 7a241e49bcdcf8a419ef451860429469
-    sceneName: MainMenu
-    lastSaveTimePrint: 07:54 AM (October 30, 2026)
-    gracePeriod: 3
-    activeIndex: 0
-    checkingToLoad: 0
-    assetsCollapsed: 0
-    lockedAsset: 1
-    maximizedAssetView: 0
-    showImportSettings: 0
-    suggestedHeight: 0
-    userAssetViewSize: 0
-    previewHeight: 0
-    scrollPosition: {x: 0, y: 0}
-    toolbarScrollPosition: {x: 0, y: 0}
-    rawUserHeight: 0
-    lastValidTabWidth: 81
-    alreadyCalculatedHeight: 0
-    lastKnownHeight: 0
-    tabs:
-    - path: '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]"}'
-      paths: []
-      tabWidth: 0
-      name: NetworkPlayer
-      icon: {fileID: 5988843443690612340, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: NetworkPlayer
-      filterString: 
-      newTab: 0
-      scrollPosition: 0
-      isSelected: 0
-      allCollapsed: 0
-      runtimeFoldouts: 
-      runtimeMultiComponents: []
-      tabTextContent:
-        m_Text: 
-        m_Image: {fileID: 0}
-        m_Tooltip: 
-        m_TextWithWhitespace: 
-      multiEditMode: 0
-      locked: 0
-      hasPreview: 0
-      previewHeight: 150
-      debug: 0
-      filtering: 0
-      prefab: 1
-      multiFoldout: 1
-      target: {fileID: 0}
-      targets: []
-      linkedPrefabs: []
-      trackMultiTarget: {fileID: 0}
-      serializedTransform:
-        owner: {fileID: 0}
-        localPosition: {x: 0, y: 0, z: 0}
-        localRotation: {x: 0, y: 0, z: 0, w: 0}
-        localScale: {x: 0, y: 0, z: 0}
-        originalPosition: {x: 0, y: 0, z: 0}
-        originalRotation: {x: 0, y: 0, z: 0, w: 0}
-        originalLocalScale: {x: 0, y: 0, z: 0}
-        anchorMin: {x: 0, y: 0}
-        anchorMax: {x: 0, y: 0}
-        anchoredPosition: {x: 0, y: 0}
-        sizeDelta: {x: 0, y: 0}
-        pivot: {x: 0, y: 0}
-        originalAnchorMin: {x: 0, y: 0}
-        originalAnchorMax: {x: 0, y: 0}
-        originalAnchoredPosition: {x: 0, y: 0}
-        originalSizeDelta: {x: 0, y: 0}
-        originalPivot: {x: 0, y: 0}
-        isRectTransform: 0
-        appliedTransform: 0
-        undidTransform: 0
-        autoSave: 0
-      serializedTransforms: []
-      savePlayModeTransform: 0
-      index: 0
-      historyPosition: 0
-      componentMaps:
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
-      historyPaths:
-      - paths:
-        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]"}'
-        prefab: 1
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
@@ -885,7 +775,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: 91539b0d54401974baf219f36a5d3390
     sceneName: IntroRushpoint
-    lastSaveTimePrint: 07:48 AM (October 30, 2026)
+    lastSaveTimePrint: 09:02 AM (October 30, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -992,6 +882,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/_RUSHPOINT/Shaders/EnvMat/EnvMat_MetalPlates_MAT.mat
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000010000000100000001000000010000000000000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000000000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  tipsShown: 01000000010000000100000001000000010000000100000001000000010000000000000001000000000000000100000001000000010000000100000001000000010000000100000001000000000000000100000001000000000000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
   playModeStartScene: {}
   enteringPlayMode: 0

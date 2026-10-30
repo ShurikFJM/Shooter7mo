@@ -398,16 +398,22 @@ public class WeaponInventory : NetworkBehaviour
                              slot == 2 ? (_currentTpSecondary != null ? _currentTpSecondary.transform : null) : null;
 
         Vector3 tracerStart = tpWeapon != null ? tpWeapon.position : (transform.position + Vector3.up * 1.5f);
-        StartCoroutine(RenderNetworkTracer(tracerStart, hitPoint));
+
+        if (PoolManager.Instance != null)
+        {
+            PoolManager.Instance.StartCoroutine(RenderNetworkTracerRoutine(tracerStart, hitPoint));
+        }
     }
 
-    private IEnumerator RenderNetworkTracer(Vector3 start, Vector3 end)
+    private static IEnumerator RenderNetworkTracerRoutine(Vector3 start, Vector3 end)
     {
         if (PoolManager.Instance == null) yield break;
 
         LineRenderer line = PoolManager.Instance.GetTracer(null);
         if (line == null) yield break;
 
+        line.enabled = true;
+        line.positionCount = 2;
         line.SetPosition(0, start);
         line.SetPosition(1, start);
 
@@ -416,12 +422,17 @@ public class WeaponInventory : NetworkBehaviour
         {
             elapsedTime += Time.deltaTime;
             Vector3 currentPos = Vector3.Lerp(start, end, elapsedTime / 0.04f);
-            line.SetPosition(1, currentPos);
+            if (line != null) line.SetPosition(1, currentPos);
             yield return null;
         }
 
-        line.SetPosition(1, end);
-        yield return new WaitForSeconds(0.05f);
-        PoolManager.Instance.ReturnTracer(line);
+        if (line != null)
+        {
+            line.SetPosition(1, end);
+            yield return new WaitForSeconds(0.04f);
+            line.positionCount = 0;
+            line.enabled = false;
+            PoolManager.Instance.ReturnTracer(line);
+        }
     }
 }

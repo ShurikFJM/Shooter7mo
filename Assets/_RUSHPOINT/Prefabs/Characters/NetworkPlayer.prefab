@@ -419,6 +419,7 @@ MonoBehaviour:
   _defaultMaxHealth: 100
   _defaultMaxArmor: 100
   _enableFriendlyFire: 1
+  _characterModelRoot: {fileID: 2470624848093030887}
   CurrentHealth:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0

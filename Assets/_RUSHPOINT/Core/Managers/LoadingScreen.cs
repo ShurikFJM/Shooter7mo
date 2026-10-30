@@ -15,7 +15,7 @@ public class LoadingScreen : MonoBehaviour
     [SerializeField] private TMP_Text _mapNameText;
     [SerializeField] private TMP_Text _modeNameText;
     [SerializeField] private CanvasGroup _canvasGroup;
-    [SerializeField] private float _fadeDuration = 0.5f;
+    [SerializeField] private float _fadeDuration = 0.35f;
 
     private Canvas _canvas;
     private bool _isLoading;
@@ -29,6 +29,11 @@ public class LoadingScreen : MonoBehaviour
         }
 
         Instance = this;
+
+        if (transform.parent != null)
+        {
+            transform.SetParent(null);
+        }
         DontDestroyOnLoad(gameObject);
 
         _canvas = GetComponent<Canvas>();
@@ -38,11 +43,7 @@ public class LoadingScreen : MonoBehaviour
             _canvas.sortingOrder = 999;
         }
 
-        if (_loadingScreenRoot != null)
-        {
-            _loadingScreenRoot.SetActive(false);
-        }
-
+        HideImmediate();
         SceneManager.sceneLoaded += HandleSceneLoaded;
     }
 
@@ -54,7 +55,7 @@ public class LoadingScreen : MonoBehaviour
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "RUSPOINT")
+        if (scene.name == "RUSPOINT" && gameObject.activeInHierarchy)
         {
             StartCoroutine(SafetyDismissRoutine());
         }
@@ -62,8 +63,7 @@ public class LoadingScreen : MonoBehaviour
 
     private IEnumerator SafetyDismissRoutine()
     {
-        // En 3 segundos reales, si el servidor no lo cerro, se desvanece forzosamente
-        yield return new WaitForSecondsRealtime(3.0f);
+        yield return new WaitForSecondsRealtime(1.5f);
         Dismiss();
     }
 
@@ -83,6 +83,11 @@ public class LoadingScreen : MonoBehaviour
             _loadingScreenRoot.SetActive(true);
         }
 
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            transform.GetChild(i).gameObject.SetActive(true);
+        }
+
         if (_canvasGroup != null)
         {
             _canvasGroup.alpha = 1f;
@@ -96,6 +101,14 @@ public class LoadingScreen : MonoBehaviour
 
         StopAllCoroutines();
         StartCoroutine(SimulateProgressRoutine());
+        StartCoroutine(MaxDurationWatchdogRoutine());
+    }
+
+    private IEnumerator MaxDurationWatchdogRoutine()
+    {
+        // Si por cualquier motivo la red tarda mas de 4 segundos, se cierra sola sin bloquear la pantalla
+        yield return new WaitForSecondsRealtime(4.0f);
+        Dismiss();
     }
 
     private IEnumerator SimulateProgressRoutine()
@@ -103,7 +116,7 @@ public class LoadingScreen : MonoBehaviour
         float progress = 0f;
         while (_isLoading && progress < 0.95f)
         {
-            progress += Time.unscaledDeltaTime * Random.Range(0.4f, 0.7f);
+            progress += Time.unscaledDeltaTime * Random.Range(0.45f, 0.75f);
             float clamped = Mathf.Clamp01(progress);
             if (_progressBar != null) _progressBar.value = clamped;
             if (_progressText != null) _progressText.text = $"{Mathf.RoundToInt(clamped * 100f)}%";
@@ -113,6 +126,12 @@ public class LoadingScreen : MonoBehaviour
 
     public void Dismiss()
     {
+        if (!gameObject.activeInHierarchy)
+        {
+            HideImmediate();
+            return;
+        }
+
         _isLoading = false;
         StopAllCoroutines();
         StartCoroutine(DismissLoadingScreenRoutine());
@@ -123,7 +142,7 @@ public class LoadingScreen : MonoBehaviour
         if (_progressBar != null) _progressBar.value = 1f;
         if (_progressText != null) _progressText.text = "100%";
 
-        yield return new WaitForSecondsRealtime(0.2f);
+        yield return new WaitForSecondsRealtime(0.15f);
 
         if (_canvasGroup != null)
         {
@@ -138,9 +157,21 @@ public class LoadingScreen : MonoBehaviour
             _canvasGroup.blocksRaycasts = false;
         }
 
-        if (_loadingScreenRoot != null)
+        HideImmediate();
+    }
+
+    private void HideImmediate()
+    {
+        _isLoading = false;
+
+        if (_loadingScreenRoot != null && _loadingScreenRoot != gameObject)
         {
             _loadingScreenRoot.SetActive(false);
+        }
+
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            transform.GetChild(i).gameObject.SetActive(false);
         }
 
         if (_canvas != null)
