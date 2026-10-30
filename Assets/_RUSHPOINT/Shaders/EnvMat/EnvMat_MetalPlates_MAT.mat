@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: EnvMat_MetalPlates_MAT
+  m_Shader: {fileID: 4800000, guid: 30f9d07c07d7b7f49b20c3ac4c5414af, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _ARMMAP
+  - _DISP_OFF
+  - _NORMALMAP
+  - _ROUGH_INVERT
+  - _UVMODE_MESH
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _ARMTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _AlbedoTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HeightTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AOStrength: 1
+    - _Disp: 0
+    - _FadeRange: 10
+    - _FadeStart: 15
+    - _HeightInARM: 0
+    - _HeightInvert: 0
+    - _HeightRef: 0.5
+    - _HeightScale: 0.04
+    - _MetalConst: 0
+    - _MetalMax: 1
+    - _MetalMin: 0
+    - _NormalFlipY: 0
+    - _NormalStrength: 1.35
+    - _OffsetX: 0
+    - _OffsetY: 0
+    - _POMMaxSteps: 24
+    - _POMMinSteps: 8
+    - _RandOffset: 0.3
+    - _RandRotation: 1
+    - _RandScale: 0.15
+    - _Rotation: 0
+    - _RoughConst: 0.6
+    - _RoughInvert: 1
+    - _RoughMax: 1
+    - _RoughMin: 0
+    - _TilingX: 0.06
+    - _TilingY: 0.06
+    - _UVMode: 0
+    - _UseARM: 1
+    - _UseEmission: 0
+    - _UseNormal: 1
+    - _UseVoronoi: 0
+    - _VertexDispScale: 0.1
+    - _VoronoiBlend: 0.12
+    - _VoronoiJitter: 1
+    - _VoronoiScale: 2
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
