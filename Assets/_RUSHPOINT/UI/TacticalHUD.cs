@@ -144,19 +144,21 @@ public class TacticalHUD : MonoBehaviour
 
     private void EnsureLocalPlayerReferences()
     {
-        if (PlayerHealth != null && Inventory != null) return;
-
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsClient) return;
 
         NetworkObject localPlayer = NetworkManager.Singleton.LocalClient?.PlayerObject;
         if (localPlayer == null) return;
 
-        if (PlayerHealth == null)
+        if (PlayerHealth == null || PlayerHealth.gameObject != localPlayer.gameObject)
         {
             PlayerHealth = localPlayer.GetComponent<NetworkHealth>();
+            if (PlayerHealth == null)
+            {
+                PlayerHealth = localPlayer.GetComponentInChildren<NetworkHealth>(true);
+            }
         }
 
-        if (Inventory == null)
+        if (Inventory == null || Inventory.gameObject != localPlayer.gameObject)
         {
             Inventory = localPlayer.GetComponent<WeaponInventory>();
             if (Inventory == null)
@@ -196,6 +198,14 @@ public class TacticalHUD : MonoBehaviour
     private void UpdateAmmoDisplay()
     {
         if (Inventory == null)
+        {
+            SetEmptyAmmoDisplay();
+            HideReloadingPopup();
+            return;
+        }
+
+        // Si tenemos seleccionado el Cuchillo (Slot 3), forzamos - / -
+        if (Inventory.ActiveSlotIndex == 3)
         {
             SetEmptyAmmoDisplay();
             HideReloadingPopup();

@@ -1,45 +1,64 @@
 using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
+[RequireComponent(typeof(NetworkObject))]
 public class CustomLobbyManager : NetworkBehaviour
 {
     public const int MAX_PLAYERS_PER_TEAM = 5;
-    private const float DEFAULT_ROUND_DURATION = 90f;
-    private const int DEFAULT_ROUNDS_TO_WIN = 5;
 
     public static CustomLobbyManager Instance { get; private set; }
 
-    public event Action OnLobbyDataUpdated;
-    public event Action OnMatchStarted;
+    public static readonly Dictionary<ulong, Team> SavedTeams = new Dictionary<ulong, Team>();
+    public static readonly Dictionary<ulong, PlayerRoleType> SavedRoles = new Dictionary<ulong, PlayerRoleType>();
 
+    public event Action OnLobbyDataUpdated;
+
+    [Header("Escena")]
+    [SerializeField] private string _gameSceneName = "RUSPOINT";
+    public string GameSceneName => _gameSceneName;
+
+    [Header("UI Canvas")]
     [SerializeField] private GameObject _customLobbyCanvas;
     [SerializeField] private GameObject _roleSelectCanvas;
     [SerializeField] private GameObject _spectatorWaitCanvas;
-    [SerializeField] private string _gameSceneName = "RUSPOINT";
 
     public NetworkList<LobbyPlayerData> Players;
 
-    public NetworkVariable<float> SelectedRoundDuration = new NetworkVariable<float>(
-        DEFAULT_ROUND_DURATION,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-
-    public NetworkVariable<int> SelectedRoundsToWin = new NetworkVariable<int>(
-        DEFAULT_ROUNDS_TO_WIN,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-
-    public NetworkVariable<FixedString32Bytes> LobbyJoinCode = new NetworkVariable<FixedString32Bytes>(
+    public NetworkVariable<FixedString64Bytes> LobbyJoinCode = new NetworkVariable<FixedString64Bytes>(
         string.Empty,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    public string GameSceneName => _gameSceneName;
+    public NetworkVariable<float> SelectedRoundDuration = new NetworkVariable<float>(
+        115f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    public NetworkVariable<int> SelectedRoundsToWin = new NetworkVariable<int>(
+        13,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    public bool CanStartMatch()
+    {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return false;
+        if (Players == null || Players.Count == 0) return true;
+
+        for (int i = 0; i < Players.Count; i++)
+        {
+            if (Players[i].AssignedTeam != Team.Neutral && !Players[i].IsReady)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 
     private void Awake()
     {
@@ -50,58 +69,65 @@ public class CustomLobbyManager : NetworkBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+
+        Players = new NetworkList<LobbyPlayerData>(
+            new List<LobbyPlayerData>(),
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+    }
+
+    public override void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+        base.OnDestroy();
     }
 
     public override void OnNetworkSpawn()
     {
-        Players.OnListChanged += HandlePlayersChanged;
-        SelectedRoundDuration.OnValueChanged += HandleRoundDurationChanged;
-        SelectedRoundsToWin.OnValueChanged += HandleRoundsToWinChanged;
-        LobbyJoinCode.OnValueChanged += HandleJoinCodeChanged;
-
         if (IsServer)
         {
             NetworkManager.Singleton.OnClientConnectedCallback += HandleClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
 
-            RegisterPlayer(NetworkManager.Singleton.LocalClientId);
+            HandleClientConnected(NetworkManager.Singleton.LocalClientId);
         }
+
+        Players.OnListChanged += (changeEvent) => OnLobbyDataUpdated?.Invoke();
+        LobbyJoinCode.OnValueChanged += (prev, curr) => OnLobbyDataUpdated?.Invoke();
+        SelectedRoundDuration.OnValueChanged += (prev, curr) => OnLobbyDataUpdated?.Invoke();
+        SelectedRoundsToWin.OnValueChanged += (prev, curr) => OnLobbyDataUpdated?.Invoke();
 
         OnLobbyDataUpdated?.Invoke();
     }
 
     public override void OnNetworkDespawn()
     {
-        Players.OnListChanged -= HandlePlayersChanged;
-        SelectedRoundDuration.OnValueChanged -= HandleRoundDurationChanged;
-        SelectedRoundsToWin.OnValueChanged -= HandleRoundsToWinChanged;
-        LobbyJoinCode.OnValueChanged -= HandleJoinCodeChanged;
-
         if (IsServer && NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientConnectedCallback -= HandleClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnected;
         }
-
-        if (Instance == this)
-        {
-            Instance = null;
-        }
     }
 
-    public void SetLobbyJoinCode(string code)
-    {
-        if (IsServer)
-        {
-            LobbyJoinCode.Value = code;
-        }
-    }
+  
+
 
     private void HandleClientConnected(ulong clientId)
     {
         if (!IsServer) return;
-        RegisterPlayer(clientId);
+
+        for (int i = 0; i < Players.Count; i++)
+        {
+            if (Players[i].ClientId == clientId) return;
+        }
+
+        string defaultName = PlayerPrefs.GetString("PlayerName", $"Player_{clientId}");
+        Team defaultTeam = Team.Neutral;
+
+        Players.Add(new LobbyPlayerData(clientId, defaultName, defaultTeam, false));
+        SavedTeams[clientId] = defaultTeam;
+        OnLobbyDataUpdated?.Invoke();
     }
 
     private void HandleClientDisconnected(ulong clientId)
@@ -116,44 +142,85 @@ public class CustomLobbyManager : NetworkBehaviour
                 break;
             }
         }
+
+        SavedTeams.Remove(clientId);
+        SavedRoles.Remove(clientId);
+        OnLobbyDataUpdated?.Invoke();
     }
 
-    private void RegisterPlayer(ulong clientId)
+    public static void SavePlayerData(ulong clientId, Team team, PlayerRoleType role)
     {
-        for (int i = 0; i < Players.Count; i++)
-        {
-            if (Players[i].ClientId == clientId) return;
-        }
-
-        Team initialTeam = GetNextAvailableTeam();
-        FixedString32Bytes defaultName = $"Player {clientId + 1}";
-        Players.Add(new LobbyPlayerData(clientId, defaultName, initialTeam, false));
+        SavedTeams[clientId] = team;
+        SavedRoles[clientId] = role;
     }
 
-    private Team GetNextAvailableTeam()
+    public Team GetPlayerAssignedTeam(ulong clientId)
     {
-        int redCount = 0;
-        int blueCount = 0;
-
-        for (int i = 0; i < Players.Count; i++)
+        if (SavedTeams != null && SavedTeams.TryGetValue(clientId, out Team team))
         {
-            if (Players[i].AssignedTeam == Team.Red) redCount++;
-            else if (Players[i].AssignedTeam == Team.Blue) blueCount++;
+            return team;
         }
 
-        if (redCount < MAX_PLAYERS_PER_TEAM) return Team.Red;
-        if (blueCount < MAX_PLAYERS_PER_TEAM) return Team.Blue;
-        return Team.Neutral;
+        if (Players != null)
+        {
+            for (int i = 0; i < Players.Count; i++)
+            {
+                if (Players[i].ClientId == clientId)
+                {
+                    return Players[i].AssignedTeam;
+                }
+            }
+        }
+
+        return Team.Red;
+    }
+
+    public void SetLobbyJoinCode(string code)
+    {
+        if (IsServer)
+        {
+            LobbyJoinCode.Value = code;
+            OnLobbyDataUpdated?.Invoke();
+        }
+        else
+        {
+            SetLobbyJoinCodeServerRpc(code);
+        }
     }
 
     [Rpc(SendTo.Server)]
-    public void RequestUpdatePlayerNameServerRpc(FixedString32Bytes newName, ulong requestingClientId)
+    public void SetLobbyJoinCodeServerRpc(FixedString64Bytes code)
     {
-        if (string.IsNullOrWhiteSpace(newName.ToString())) return;
+        LobbyJoinCode.Value = code;
+        OnLobbyDataUpdated?.Invoke();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void SetRoundDurationServerRpc(float duration)
+    {
+        SelectedRoundDuration.Value = duration;
+        OnLobbyDataUpdated?.Invoke();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void SetRoundsToWinServerRpc(int rounds)
+    {
+        SelectedRoundsToWin.Value = rounds;
+        OnLobbyDataUpdated?.Invoke();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void RequestUpdatePlayerNameServerRpc(FixedString32Bytes newName, ulong clientId = 0, RpcParams rpcParams = default)
+    {
+        ulong targetId = (clientId != 0) ? clientId : rpcParams.Receive.SenderClientId;
+        if (targetId == 0 && NetworkManager.Singleton != null)
+        {
+            targetId = NetworkManager.Singleton.LocalClientId;
+        }
 
         for (int i = 0; i < Players.Count; i++)
         {
-            if (Players[i].ClientId == requestingClientId)
+            if (Players[i].ClientId == targetId)
             {
                 LobbyPlayerData updated = Players[i];
                 updated.PlayerName = newName;
@@ -161,41 +228,63 @@ public class CustomLobbyManager : NetworkBehaviour
                 break;
             }
         }
+
+        OnLobbyDataUpdated?.Invoke();
     }
 
     [Rpc(SendTo.Server)]
-    public void RequestSelectTeamServerRpc(Team desiredTeam, ulong requestingClientId)
+    public void UpdatePlayerNameServerRpc(FixedString32Bytes newName, ulong clientId = 0, RpcParams rpcParams = default)
     {
-        if (desiredTeam != Team.Neutral)
-        {
-            int currentTeamCount = 0;
-            for (int i = 0; i < Players.Count; i++)
-            {
-                if (Players[i].AssignedTeam == desiredTeam) currentTeamCount++;
-            }
+        RequestUpdatePlayerNameServerRpc(newName, clientId, rpcParams);
+    }
 
-            if (currentTeamCount >= MAX_PLAYERS_PER_TEAM) return;
+    [Rpc(SendTo.Server)]
+    public void RequestSelectTeamServerRpc(Team newTeam, ulong clientId = 0, RpcParams rpcParams = default)
+    {
+        SelectTeamInternal(newTeam, clientId, rpcParams);
+    }
+
+    [Rpc(SendTo.Server)]
+    public void SelectTeamServerRpc(Team newTeam, ulong clientId = 0, RpcParams rpcParams = default)
+    {
+        SelectTeamInternal(newTeam, clientId, rpcParams);
+    }
+
+    private void SelectTeamInternal(Team newTeam, ulong clientId, RpcParams rpcParams)
+    {
+        ulong targetId = (clientId != 0) ? clientId : rpcParams.Receive.SenderClientId;
+        if (targetId == 0 && NetworkManager.Singleton != null)
+        {
+            targetId = NetworkManager.Singleton.LocalClientId;
         }
 
         for (int i = 0; i < Players.Count; i++)
         {
-            if (Players[i].ClientId == requestingClientId)
+            if (Players[i].ClientId == targetId)
             {
                 LobbyPlayerData updated = Players[i];
-                updated.AssignedTeam = desiredTeam;
-                updated.IsReady = false;
+                updated.AssignedTeam = newTeam;
                 Players[i] = updated;
+                SavedTeams[targetId] = newTeam;
                 break;
             }
         }
+
+        OnLobbyDataUpdated?.Invoke();
     }
 
     [Rpc(SendTo.Server)]
-    public void ToggleReadyServerRpc(ulong requestingClientId)
+    public void ToggleReadyServerRpc(ulong clientId = 0, RpcParams rpcParams = default)
     {
+        ulong targetId = (clientId != 0) ? clientId : rpcParams.Receive.SenderClientId;
+        if (targetId == 0 && NetworkManager.Singleton != null)
+        {
+            targetId = NetworkManager.Singleton.LocalClientId;
+        }
+
         for (int i = 0; i < Players.Count; i++)
         {
-            if (Players[i].ClientId == requestingClientId)
+            if (Players[i].ClientId == targetId)
             {
                 LobbyPlayerData updated = Players[i];
                 updated.IsReady = !updated.IsReady;
@@ -203,124 +292,41 @@ public class CustomLobbyManager : NetworkBehaviour
                 break;
             }
         }
+
+        OnLobbyDataUpdated?.Invoke();
     }
 
     [Rpc(SendTo.Server)]
-    public void SetRoundDurationServerRpc(float duration)
+    public void RequestToggleReadyServerRpc(ulong clientId = 0, RpcParams rpcParams = default)
+    {
+        ToggleReadyServerRpc(clientId, rpcParams);
+    }
+
+    [Rpc(SendTo.Server)]
+    public void RequestStartGameServerRpc(RpcParams rpcParams = default)
     {
         if (!IsServer) return;
-        SelectedRoundDuration.Value = duration;
-    }
 
-    [Rpc(SendTo.Server)]
-    public void SetRoundsToWinServerRpc(int rounds)
-    {
-        if (!IsServer) return;
-        SelectedRoundsToWin.Value = rounds;
-    }
-
-    public bool CanStartMatch()
-    {
-        if (!IsServer) return false;
-
-        int activeRed = 0;
-        int activeBlue = 0;
-
-        for (int i = 0; i < Players.Count; i++)
-        {
-            LobbyPlayerData player = Players[i];
-
-            if (!player.IsReady) return false;
-
-            if (player.AssignedTeam == Team.Red) activeRed++;
-            else if (player.AssignedTeam == Team.Blue) activeBlue++;
-        }
-
-        return (activeRed > 0 || activeBlue > 0);
-    }
-
-    [Rpc(SendTo.Server)]
-    public void RequestStartGameServerRpc()
-    {
-        if (!IsServer || !CanStartMatch()) return;
-
-        if (RoundManager.Instance != null)
-        {
-            RoundManager.Instance.ConfigureMatchSettingsServer(SelectedRoundDuration.Value, SelectedRoundsToWin.Value);
-        }
-
-        StartGameClientRpc();
+        StartRoleSelectionClientRpc();
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void StartGameClientRpc()
+    private void StartRoleSelectionClientRpc()
     {
-        if (_customLobbyCanvas != null)
-        {
-            _customLobbyCanvas.SetActive(false);
-        }
+        if (_customLobbyCanvas != null) _customLobbyCanvas.SetActive(false);
 
-        Team localTeam = Team.Neutral;
-        if (NetworkManager.Singleton != null)
-        {
-            localTeam = GetPlayerAssignedTeam(NetworkManager.Singleton.LocalClientId);
-        }
+        ulong localId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
+        Team myTeam = GetPlayerAssignedTeam(localId);
 
-        if (localTeam == Team.Neutral)
+        if (myTeam == Team.Neutral)
         {
-            if (_roleSelectCanvas != null) _roleSelectCanvas.SetActive(false);
             if (_spectatorWaitCanvas != null) _spectatorWaitCanvas.SetActive(true);
+            if (_roleSelectCanvas != null) _roleSelectCanvas.SetActive(false);
         }
         else
         {
-            if (_spectatorWaitCanvas != null) _spectatorWaitCanvas.SetActive(false);
             if (_roleSelectCanvas != null) _roleSelectCanvas.SetActive(true);
+            if (_spectatorWaitCanvas != null) _spectatorWaitCanvas.SetActive(false);
         }
-
-        OnMatchStarted?.Invoke();
-    }
-
-    private void HandlePlayersChanged(NetworkListEvent<LobbyPlayerData> changeEvent)
-    {
-        OnLobbyDataUpdated?.Invoke();
-    }
-
-    private void HandleRoundDurationChanged(float previous, float current)
-    {
-        OnLobbyDataUpdated?.Invoke();
-    }
-
-    private void HandleRoundsToWinChanged(int previous, int current)
-    {
-        OnLobbyDataUpdated?.Invoke();
-    }
-
-    private void HandleJoinCodeChanged(FixedString32Bytes previous, FixedString32Bytes current)
-    {
-        OnLobbyDataUpdated?.Invoke();
-    }
-
-    public Team GetPlayerAssignedTeam(ulong clientId)
-    {
-        for (int i = 0; i < Players.Count; i++)
-        {
-            if (Players[i].ClientId == clientId)
-            {
-                return Players[i].AssignedTeam;
-            }
-        }
-        return Team.Neutral;
-    }
-
-    public string GetPlayerName(ulong clientId)
-    {
-        for (int i = 0; i < Players.Count; i++)
-        {
-            if (Players[i].ClientId == clientId)
-            {
-                return Players[i].PlayerName.ToString();
-            }
-        }
-        return $"Player {clientId + 1}";
     }
 }

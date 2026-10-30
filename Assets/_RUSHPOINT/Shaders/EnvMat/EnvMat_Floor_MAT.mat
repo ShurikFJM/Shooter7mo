@@ -53,20 +53,20 @@ Material:
     - _FadeStart: 15
     - _HeightInARM: 0
     - _HeightInvert: 0
-    - _HeightRef: 0.5
-    - _HeightScale: 0.03
+    - _HeightRef: 1
+    - _HeightScale: 0.0468
     - _MetalConst: 0
     - _MetalMax: 1
     - _MetalMin: 0.119
     - _NormalFlipY: 0
-    - _NormalStrength: 1.35
+    - _NormalStrength: 1.282
     - _OffsetX: 0
     - _OffsetY: 0
     - _POMMaxSteps: 64
-    - _POMMinSteps: 24.3
+    - _POMMinSteps: 7.1
     - _RandOffset: 0.53
-    - _RandRotation: 0.77
-    - _RandScale: 0.1
+    - _RandRotation: 1
+    - _RandScale: 0.331
     - _Rotation: 0
     - _RoughConst: 0
     - _RoughInvert: 1
@@ -81,8 +81,8 @@ Material:
     - _UseVoronoi: 1
     - _VertexDispScale: 0.1
     - _VoronoiBlend: 0.5
-    - _VoronoiJitter: 1
-    - _VoronoiScale: 7.64
+    - _VoronoiJitter: 0.835
+    - _VoronoiScale: 1.32
     m_Colors:
     - _BaseColor: {r: 0.86415094, g: 0.86415094, b: 0.86415094, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

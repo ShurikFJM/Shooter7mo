@@ -8344,24 +8344,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomLobbyManager
   ShowTopMostFoldoutHeaderGroup: 1
+  _gameSceneName: RUSPOINT
   _customLobbyCanvas: {fileID: 1868850327}
   _roleSelectCanvas: {fileID: 650109270}
   _spectatorWaitCanvas: {fileID: 922261591}
-  _gameSceneName: RUSPOINT
   Players:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
-  SelectedRoundDuration:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 115
-  SelectedRoundsToWin:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 5
   LobbyJoinCode:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -8386,20 +8376,64 @@ MonoBehaviour:
           byte0013: 0
           byte0014: 0
           byte0015: 0
-        byte0016: 0
-        byte0017: 0
-        byte0018: 0
-        byte0019: 0
-        byte0020: 0
-        byte0021: 0
-        byte0022: 0
-        byte0023: 0
-        byte0024: 0
-        byte0025: 0
-        byte0026: 0
-        byte0027: 0
-        byte0028: 0
-        byte0029: 0
+        offset0016:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0032:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0048: 0
+        byte0049: 0
+        byte0050: 0
+        byte0051: 0
+        byte0052: 0
+        byte0053: 0
+        byte0054: 0
+        byte0055: 0
+        byte0056: 0
+        byte0057: 0
+        byte0058: 0
+        byte0059: 0
+        byte0060: 0
+        byte0061: 0
+  SelectedRoundDuration:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 115
+  SelectedRoundsToWin:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 5
 --- !u!114 &522695468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26655,7 +26689,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1411921484
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26705,7 +26739,7 @@ Canvas:
   m_GameObject: {fileID: 1411921483}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 655370600}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
@@ -26718,7 +26752,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!224 &1411921487
 RectTransform:
@@ -26759,18 +26793,6 @@ MonoBehaviour:
   _modeNameText: {fileID: 1329217095}
   _canvasGroup: {fileID: 1111580900}
   _fadeDuration: 0.8
-  _attackerSlots:
-  - {fileID: 176091964}
-  - {fileID: 615617671}
-  - {fileID: 63647579}
-  - {fileID: 303833916}
-  - {fileID: 467926244}
-  _defenderSlots:
-  - {fileID: 1256730928}
-  - {fileID: 155071774}
-  - {fileID: 310847854}
-  - {fileID: 1175788338}
-  - {fileID: 369921359}
 --- !u!1 &1424741902
 GameObject:
   m_ObjectHideFlags: 0
@@ -34853,7 +34875,7 @@ RectTransform:
   m_Father: {fileID: 1197158789}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -37372,6 +37394,54 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2048673126}
   m_CullTransparentMesh: 1
+--- !u!1 &2050934823
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2050934824}
+  - component: {fileID: 2050934825}
+  m_Layer: 0
+  m_Name: SoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2050934824
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2050934823}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.56248, y: -0, z: 30.42647}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2050934825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2050934823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26b0945e28ac8af4ea4adc23f7474448, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SoundManager
+  _audioMixer: {fileID: 24100000, guid: 2157669b2e7d95f4ca5cbc4c019a0121, type: 2}
+  _masterVolume: 0.057
+  _sfxVolume: 0.5
+  _musicVolume: 0.5
 --- !u!1 &2053510783
 GameObject:
   m_ObjectHideFlags: 0
@@ -39422,3 +39492,4 @@ SceneRoots:
   - {fileID: 270468680}
   - {fileID: 522695465}
   - {fileID: 1808274633}
+  - {fileID: 2050934824}

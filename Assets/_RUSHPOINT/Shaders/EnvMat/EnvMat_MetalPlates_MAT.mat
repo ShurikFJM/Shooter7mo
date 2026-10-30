@@ -13,11 +13,12 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ARMMAP
-  - _DISP_OFF
+  - _DISP_POM
   - _NORMALMAP
   - _ROUGH_INVERT
-  - _UVMODE_MESH
-  m_InvalidKeywords: []
+  - _UVMODE_WORLDXZ
+  m_InvalidKeywords:
+  - _HEIGHTINVERT_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -29,51 +30,51 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _ARMTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 33eceda2d4fb966438ba0188d5153b66, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AlbedoTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 2e07e762d8f25224f9fec2d427a09f58, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 70942b8d970343141890b8725f25e125, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: ae6cfa8a6ae942d46ae444890f0f772b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AOStrength: 1
-    - _Disp: 0
+    - _AOStrength: 0.567
+    - _Disp: 2
     - _FadeRange: 10
     - _FadeStart: 15
     - _HeightInARM: 0
-    - _HeightInvert: 0
-    - _HeightRef: 0.5
-    - _HeightScale: 0.04
+    - _HeightInvert: 1
+    - _HeightRef: 1
+    - _HeightScale: 0.0478
     - _MetalConst: 0
     - _MetalMax: 1
-    - _MetalMin: 0
+    - _MetalMin: 0.961
     - _NormalFlipY: 0
-    - _NormalStrength: 1.35
+    - _NormalStrength: 2
     - _OffsetX: 0
     - _OffsetY: 0
-    - _POMMaxSteps: 24
-    - _POMMinSteps: 8
+    - _POMMaxSteps: 64
+    - _POMMinSteps: 4
     - _RandOffset: 0.3
     - _RandRotation: 1
     - _RandScale: 0.15
     - _Rotation: 0
-    - _RoughConst: 0.6
+    - _RoughConst: 0
     - _RoughInvert: 1
-    - _RoughMax: 1
+    - _RoughMax: 0
     - _RoughMin: 0
-    - _TilingX: 0.06
-    - _TilingY: 0.06
-    - _UVMode: 0
+    - _TilingX: 0.12
+    - _TilingY: 0.12
+    - _UVMode: 1
     - _UseARM: 1
     - _UseEmission: 0
     - _UseNormal: 1
@@ -81,7 +82,7 @@ Material:
     - _VertexDispScale: 0.1
     - _VoronoiBlend: 0.12
     - _VoronoiJitter: 1
-    - _VoronoiScale: 2
+    - _VoronoiScale: 3.41
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

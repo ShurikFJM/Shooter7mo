@@ -1,10 +1,10 @@
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(Canvas))]
 public class LoadingScreen : MonoBehaviour
 {
     public static LoadingScreen Instance { get; private set; }
@@ -15,19 +15,9 @@ public class LoadingScreen : MonoBehaviour
     [SerializeField] private TMP_Text _mapNameText;
     [SerializeField] private TMP_Text _modeNameText;
     [SerializeField] private CanvasGroup _canvasGroup;
-    [SerializeField] private float _fadeDuration = 0.8f;
+    [SerializeField] private float _fadeDuration = 0.5f;
 
-    [SerializeField] private TMP_Text[] _attackerSlots;
-    [SerializeField] private TMP_Text[] _defenderSlots;
-
-    private struct PlayerRosterEntry
-    {
-        public string Name;
-        public Team Team;
-        public PlayerRoleType Role;
-    }
-
-    private readonly List<PlayerRosterEntry> _cachedRoster = new List<PlayerRosterEntry>();
+    private Canvas _canvas;
     private bool _isLoading;
 
     private void Awake()
@@ -41,142 +31,52 @@ public class LoadingScreen : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        _canvas = GetComponent<Canvas>();
+        if (_canvas != null)
+        {
+            _canvas.overrideSorting = true;
+            _canvas.sortingOrder = 999;
+        }
+
         if (_loadingScreenRoot != null)
         {
             _loadingScreenRoot.SetActive(false);
         }
-    }
 
-    private void Start()
-    {
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
-        {
-            NetworkManager.Singleton.SceneManager.OnSceneEvent += HandleSceneEvent;
-        }
+        SceneManager.sceneLoaded += HandleSceneLoaded;
     }
 
     private void OnDestroy()
     {
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
-        {
-            NetworkManager.Singleton.SceneManager.OnSceneEvent -= HandleSceneEvent;
-        }
-
-        if (Instance == this)
-        {
-            Instance = null;
-        }
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        if (Instance == this) Instance = null;
     }
 
-    public void SetRosterData(string[] names, byte[] teams, byte[] roles)
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        _cachedRoster.Clear();
-
-        if (names == null || teams == null || roles == null) return;
-
-        int count = Mathf.Min(names.Length, Mathf.Min(teams.Length, roles.Length));
-        for (int i = 0; i < count; i++)
+        if (scene.name == "RUSPOINT")
         {
-            _cachedRoster.Add(new PlayerRosterEntry
-            {
-                Name = names[i],
-                Team = (Team)teams[i],
-                Role = (PlayerRoleType)roles[i]
-            });
+            StartCoroutine(SafetyDismissRoutine());
         }
-
-        RenderRoster();
     }
 
-    private void RenderRoster()
+    private IEnumerator SafetyDismissRoutine()
     {
-        ClearRosterSlots();
-
-        int attackerIdx = 0;
-        int defenderIdx = 0;
-
-        for (int i = 0; i < _cachedRoster.Count; i++)
-        {
-            PlayerRosterEntry entry = _cachedRoster[i];
-            string slotText = $"{entry.Name}\n<color=#FFCC00>{entry.Role}</color>";
-
-            if (entry.Team == Team.Red && _attackerSlots != null && attackerIdx < _attackerSlots.Length)
-            {
-                if (_attackerSlots[attackerIdx] != null)
-                {
-                    _attackerSlots[attackerIdx].text = slotText;
-                    _attackerSlots[attackerIdx].gameObject.SetActive(true);
-                }
-                attackerIdx++;
-            }
-            else if (entry.Team == Team.Blue && _defenderSlots != null && defenderIdx < _defenderSlots.Length)
-            {
-                if (_defenderSlots[defenderIdx] != null)
-                {
-                    _defenderSlots[defenderIdx].text = slotText;
-                    _defenderSlots[defenderIdx].gameObject.SetActive(true);
-                }
-                defenderIdx++;
-            }
-        }
+        // En 3 segundos reales, si el servidor no lo cerro, se desvanece forzosamente
+        yield return new WaitForSecondsRealtime(3.0f);
+        Dismiss();
     }
 
-    private void ClearRosterSlots()
-    {
-        if (_attackerSlots != null)
-        {
-            for (int i = 0; i < _attackerSlots.Length; i++)
-            {
-                if (_attackerSlots[i] != null)
-                {
-                    _attackerSlots[i].text = string.Empty;
-                    _attackerSlots[i].gameObject.SetActive(false);
-                }
-            }
-        }
-
-        if (_defenderSlots != null)
-        {
-            for (int i = 0; i < _defenderSlots.Length; i++)
-            {
-                if (_defenderSlots[i] != null)
-                {
-                    _defenderSlots[i].text = string.Empty;
-                    _defenderSlots[i].gameObject.SetActive(false);
-                }
-            }
-        }
-    }
-
-    private void HandleSceneEvent(SceneEvent sceneEvent)
-    {
-        switch (sceneEvent.SceneEventType)
-        {
-            case SceneEventType.Load:
-                ShowLoadingScreen();
-                break;
-
-            case SceneEventType.LoadEventCompleted:
-                StartCoroutine(DismissLoadingScreenRoutine());
-
-                if (NetworkManager.Singleton.IsServer && RoundManager.Instance != null)
-                {
-                    RoundManager.Instance.StartMatchServer();
-                }
-                break;
-
-            case SceneEventType.SynchronizeComplete:
-                if (sceneEvent.ClientId == NetworkManager.Singleton.LocalClientId)
-                {
-                    StartCoroutine(DismissLoadingScreenRoutine());
-                }
-                break;
-        }
-    }
-
-    private void ShowLoadingScreen()
+    public void ShowLoadingScreen()
     {
         _isLoading = true;
+        gameObject.SetActive(true);
+
+        if (_canvas != null)
+        {
+            _canvas.enabled = true;
+            _canvas.sortingOrder = 999;
+        }
 
         if (_loadingScreenRoot != null)
         {
@@ -186,59 +86,66 @@ public class LoadingScreen : MonoBehaviour
         if (_canvasGroup != null)
         {
             _canvasGroup.alpha = 1f;
+            _canvasGroup.blocksRaycasts = true;
         }
 
         if (_mapNameText != null) _mapNameText.text = "HEAVEN";
         if (_modeNameText != null) _modeNameText.text = "SEARCH & DESTROY";
-
         if (_progressBar != null) _progressBar.value = 0f;
         if (_progressText != null) _progressText.text = "0%";
 
-        RenderRoster();
-
+        StopAllCoroutines();
         StartCoroutine(SimulateProgressRoutine());
     }
 
     private IEnumerator SimulateProgressRoutine()
     {
         float progress = 0f;
-
-        while (_isLoading && progress < 0.9f)
+        while (_isLoading && progress < 0.95f)
         {
-            progress += Time.deltaTime * Random.Range(0.2f, 0.45f);
-            UpdateProgressDisplay(progress);
+            progress += Time.unscaledDeltaTime * Random.Range(0.4f, 0.7f);
+            float clamped = Mathf.Clamp01(progress);
+            if (_progressBar != null) _progressBar.value = clamped;
+            if (_progressText != null) _progressText.text = $"{Mathf.RoundToInt(clamped * 100f)}%";
             yield return null;
         }
     }
 
-    private void UpdateProgressDisplay(float value)
+    public void Dismiss()
     {
-        float clamped = Mathf.Clamp01(value);
-        if (_progressBar != null) _progressBar.value = clamped;
-        if (_progressText != null) _progressText.text = $"{Mathf.RoundToInt(clamped * 100f)}%";
+        _isLoading = false;
+        StopAllCoroutines();
+        StartCoroutine(DismissLoadingScreenRoutine());
     }
 
     private IEnumerator DismissLoadingScreenRoutine()
     {
-        _isLoading = false;
-        UpdateProgressDisplay(1f);
+        if (_progressBar != null) _progressBar.value = 1f;
+        if (_progressText != null) _progressText.text = "100%";
 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSecondsRealtime(0.2f);
 
         if (_canvasGroup != null)
         {
             float elapsed = 0f;
             while (elapsed < _fadeDuration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 _canvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / _fadeDuration);
                 yield return null;
             }
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.blocksRaycasts = false;
         }
 
         if (_loadingScreenRoot != null)
         {
             _loadingScreenRoot.SetActive(false);
+        }
+
+        if (_canvas != null)
+        {
+            _canvas.enabled = false;
         }
     }
 }

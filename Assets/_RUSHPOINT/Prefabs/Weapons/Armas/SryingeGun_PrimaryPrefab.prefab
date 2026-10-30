@@ -266,8 +266,12 @@ MonoBehaviour:
   _weaponAnimator: {fileID: 0}
   _hitLayers:
     serializedVersion: 2
-    m_Bits: 2048
+    m_Bits: 2057
   _returnSpeed: 10
+  _wallImpactParticlePrefab: {fileID: 0}
+  _playerImpactParticlePrefab: {fileID: 0}
+  _wallHitFallbackSound: {fileID: 0}
+  _playerHitFallbackSound: {fileID: 0}
   _healAmount: 50
   _healRange: 50
   _healImpactEffect: {fileID: 0}

@@ -65,11 +65,13 @@ public class PauseMenuManager : MonoBehaviour
 
     private void OnEnable()
     {
-        if (_pauseAction != null)
+        if (_pauseAction == null)
         {
-            _pauseAction.performed += HandlePausePerformed;
-            _pauseAction.Enable();
+            ConfigureInputActions();
         }
+
+        _pauseAction.performed += HandlePausePerformed;
+        _pauseAction.Enable();
 
         InputSystem.onEvent += HandleInputDeviceChanged;
     }

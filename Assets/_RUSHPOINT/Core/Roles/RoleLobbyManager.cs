@@ -39,10 +39,7 @@ public class RoleLobbyManager : NetworkBehaviour
             _lockInButton.onClick.RemoveListener(OnLockInClicked);
         }
 
-        if (Instance == this)
-        {
-            Instance = null;
-        }
+        if (Instance == this) Instance = null;
 
         base.OnDestroy();
     }
@@ -55,6 +52,16 @@ public class RoleLobbyManager : NetworkBehaviour
     public void ConfirmRoleSelection(PlayerRoleType role, Team team)
     {
         _localSelectedRole = role;
+
+        if (_roleSelectCanvas != null)
+        {
+            _roleSelectCanvas.SetActive(false);
+        }
+
+        if (LoadingScreen.Instance != null)
+        {
+            LoadingScreen.Instance.ShowLoadingScreen();
+        }
 
         if (NetworkManager.Singleton == null) return;
 
@@ -96,42 +103,7 @@ public class RoleLobbyManager : NetworkBehaviour
         _selectedRoles[clientId] = role;
         _selectedTeams[clientId] = team;
 
-        if (CustomLobbyManager.Instance != null)
-        {
-            for (int i = 0; i < CustomLobbyManager.Instance.Players.Count; i++)
-            {
-                if (CustomLobbyManager.Instance.Players[i].ClientId == clientId)
-                {
-                    LobbyPlayerData updated = CustomLobbyManager.Instance.Players[i];
-                    if (team != Team.Neutral)
-                    {
-                        updated.AssignedTeam = team;
-                    }
-                    CustomLobbyManager.Instance.Players[i] = updated;
-                    break;
-                }
-            }
-        }
-
-        if (!_lockedInClients.Contains(clientId))
-        {
-            _lockedInClients.Add(clientId);
-        }
-
-        CheckAllActivePlayersLockedIn();
-    }
-
-    [Rpc(SendTo.Server)]
-    public void SubmitRoleChoiceServerRpc(PlayerRoleType role, ulong clientId)
-    {
-        Team fallbackTeam = Team.Red;
-        if (CustomLobbyManager.Instance != null)
-        {
-            fallbackTeam = CustomLobbyManager.Instance.GetPlayerAssignedTeam(clientId);
-        }
-
-        _selectedRoles[clientId] = role;
-        _selectedTeams[clientId] = fallbackTeam;
+        CustomLobbyManager.SavePlayerData(clientId, team, role);
 
         if (!_lockedInClients.Contains(clientId))
         {
@@ -143,95 +115,33 @@ public class RoleLobbyManager : NetworkBehaviour
 
     private void CheckAllActivePlayersLockedIn()
     {
-        if (!IsServer) return;
+        if (!IsServer || NetworkManager.Singleton == null) return;
 
-        int totalConnected = NetworkManager.Singleton != null ? NetworkManager.Singleton.ConnectedClients.Count : 1;
-
-        if (_lockedInClients.Count < totalConnected)
-        {
-            return;
-        }
-
-        AssignRolesAndTeamsToPlayers();
-        BroadcastRoster();
-        StartGameSceneLoad();
-    }
-
-    private void AssignRolesAndTeamsToPlayers()
-    {
-        if (NetworkManager.Singleton == null) return;
+        int requiredPlayers = 0;
 
         foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
         {
             ulong clientId = client.ClientId;
 
-            if (client.PlayerObject != null)
+            Team assignedTeam = Team.Red;
+            if (CustomLobbyManager.Instance != null)
             {
-                if (_selectedRoles.TryGetValue(clientId, out PlayerRoleType role))
-                {
-                    NetworkPlayerController controller = client.PlayerObject.GetComponent<NetworkPlayerController>();
-                    if (controller != null)
-                    {
-                        controller.SetInitialRole(role);
-                    }
-                }
+                assignedTeam = CustomLobbyManager.Instance.GetPlayerAssignedTeam(clientId);
+            }
 
-                if (_selectedTeams.TryGetValue(clientId, out Team team))
+            if (assignedTeam != Team.Neutral)
+            {
+                requiredPlayers++;
+                if (!_lockedInClients.Contains(clientId))
                 {
-                    PlayerTeam playerTeam = client.PlayerObject.GetComponent<PlayerTeam>();
-                    if (playerTeam == null) playerTeam = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
-                    if (playerTeam != null)
-                    {
-                        playerTeam.CurrentTeam.Value = team;
-                    }
+                    return;
                 }
             }
         }
-    }
 
-    private void BroadcastRoster()
-    {
-        if (!IsServer) return;
-
-        List<string> names = new List<string>();
-        List<byte> teams = new List<byte>();
-        List<byte> roles = new List<byte>();
-
-        if (CustomLobbyManager.Instance != null && CustomLobbyManager.Instance.Players.Count > 0)
+        if (requiredPlayers > 0 || NetworkManager.Singleton.ConnectedClients.Count > 0)
         {
-            for (int i = 0; i < CustomLobbyManager.Instance.Players.Count; i++)
-            {
-                LobbyPlayerData p = CustomLobbyManager.Instance.Players[i];
-                names.Add(p.PlayerName.ToString());
-                teams.Add((byte)p.AssignedTeam);
-
-                PlayerRoleType role = _selectedRoles.TryGetValue(p.ClientId, out var r) ? r : PlayerRoleType.Assault;
-                roles.Add((byte)role);
-            }
-        }
-        else if (NetworkManager.Singleton != null)
-        {
-            foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
-            {
-                names.Add($"Player {client.ClientId + 1}");
-                Team t = _selectedTeams.TryGetValue(client.ClientId, out var team) ? team : Team.Red;
-                teams.Add((byte)t);
-                PlayerRoleType r = _selectedRoles.TryGetValue(client.ClientId, out var role) ? role : PlayerRoleType.Assault;
-                roles.Add((byte)r);
-            }
-        }
-
-        string namesPayload = string.Join("|", names);
-        SetLoadingScreenRosterClientRpc(namesPayload, teams.ToArray(), roles.ToArray());
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    private void SetLoadingScreenRosterClientRpc(string namesPayload, byte[] teams, byte[] roles)
-    {
-        if (LoadingScreen.Instance != null)
-        {
-            string[] names = string.IsNullOrEmpty(namesPayload) ? new string[0] : namesPayload.Split('|');
-            LoadingScreen.Instance.SetRosterData(names, teams, roles);
+            StartGameSceneLoad();
         }
     }
 
