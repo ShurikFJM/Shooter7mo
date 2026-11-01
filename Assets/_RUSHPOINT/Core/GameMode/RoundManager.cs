@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
-using Unity.Netcode.Components;
 using UnityEngine;
 
 public enum RoundPhase : byte
@@ -24,7 +23,6 @@ public enum Team : byte
 public class RoundManager : NetworkBehaviour
 {
     private const int DEFAULT_ROUNDS_TO_WIN = 13;
-    private const int HALFTIME_ROUND = 12;
     private const float DEFAULT_WARMUP_DURATION = 7f;
     private const float DEFAULT_ROUND_TIME_LIMIT = 115f;
     private const float DEFAULT_ROUND_END_DISPLAY_DURATION = 5f;
@@ -32,10 +30,14 @@ public class RoundManager : NetworkBehaviour
 
     public static RoundManager Instance { get; private set; }
 
+    [Header("Prefabs y Spawns")]
+    [SerializeField] private GameObject _playerPrefab;
     [SerializeField] private Bomb _bomb;
     [SerializeField] private Transform[] _terroristSpawnPoints;
     [SerializeField] private Transform[] _counterTerroristSpawnPoints;
     [SerializeField] private Transform _defaultBombSpawn;
+
+    [Header("Configuracion de Ronda")]
     [SerializeField] private float _warmupDuration = DEFAULT_WARMUP_DURATION;
     [SerializeField] private float _roundTimeLimit = DEFAULT_ROUND_TIME_LIMIT;
     [SerializeField] private float _roundEndDisplayDuration = DEFAULT_ROUND_END_DISPLAY_DURATION;
@@ -93,11 +95,12 @@ public class RoundManager : NetworkBehaviour
     public float WarmupDuration => _warmupDuration;
     public float RoundEndDisplayDuration => _roundEndDisplayDuration;
     public int RoundsToWinMatch => _roundsToWinMatch;
+    public int HalftimeRound => Mathf.Max(1, _roundsToWinMatch - 1);
     public NetworkVariable<int> TerroristScore => RedScore;
     public NetworkVariable<int> CounterTerroristScore => BlueScore;
 
-    private readonly HashSet<ulong> _lockedInClients = new HashSet<ulong>();
     private Coroutine _roundLoopCoroutine;
+    private bool _hasStartedMatch;
 
     private void Awake()
     {
@@ -109,9 +112,18 @@ public class RoundManager : NetworkBehaviour
 
         Instance = this;
 
-        if (_bomb == null)
+        CleanSceneArtifacts();
+    }
+
+    private void CleanSceneArtifacts()
+    {
+        Time.timeScale = 1f;
+
+        // Oculta la UI residual de la lobby sin apagar Canvas_Pause
+        GameObject lobbyUi = GameObject.Find("Ui_Lobby");
+        if (lobbyUi != null)
         {
-            _bomb = FindAnyObjectByType<Bomb>();
+            lobbyUi.SetActive(false);
         }
     }
 
@@ -119,18 +131,12 @@ public class RoundManager : NetworkBehaviour
     {
         if (IsServer)
         {
-            if (_bomb == null)
-            {
-                _bomb = FindAnyObjectByType<Bomb>();
-            }
+            CleanSceneArtifacts();
 
-            if (_bomb != null)
-            {
-                _bomb.bombState.OnValueChanged += HandleBombStateChanged;
-            }
+            if (_bomb == null) _bomb = FindAnyObjectByType<Bomb>();
+            if (_bomb != null) _bomb.bombState.OnValueChanged += HandleBombStateChanged;
 
-            CurrentPhase.Value = RoundPhase.WaitingForPlayers;
-            _lockedInClients.Clear();
+            StartCoroutine(ServerDelayedStartRoutine());
         }
     }
 
@@ -138,79 +144,63 @@ public class RoundManager : NetworkBehaviour
     {
         if (IsServer)
         {
-            if (_bomb != null)
-            {
-                _bomb.bombState.OnValueChanged -= HandleBombStateChanged;
-            }
-
-            if (_roundLoopCoroutine != null)
-            {
-                StopCoroutine(_roundLoopCoroutine);
-            }
+            if (_bomb != null) _bomb.bombState.OnValueChanged -= HandleBombStateChanged;
+            if (_roundLoopCoroutine != null) StopCoroutine(_roundLoopCoroutine);
         }
 
-        if (Instance == this)
-        {
-            Instance = null;
-        }
+        if (Instance == this) Instance = null;
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    public void NotifyPlayerLockedInServerRpc(ulong clientId)
+    private IEnumerator ServerDelayedStartRoutine()
     {
-        NotifyPlayerLockedInServer(clientId);
-    }
+        yield return new WaitForSeconds(1.5f);
 
-    public void NotifyPlayerLockedInServer(ulong clientId)
-    {
-        if (!IsServer) return;
-        if (CurrentPhase.Value != RoundPhase.WaitingForPlayers) return;
-
-        if (!_lockedInClients.Contains(clientId))
-        {
-            _lockedInClients.Add(clientId);
-        }
-
-        int totalClients = NetworkManager.Singleton.ConnectedClients.Count;
-        if (_lockedInClients.Count >= totalClients && totalClients > 0)
+        if (IsServer && IsSpawned && !_hasStartedMatch)
         {
             StartMatchServer();
         }
     }
 
-    public void StartMatchServer()
+    public void ConfigureMatchSettingsServer(float roundDuration, int roundsToWin)
     {
         if (!IsServer) return;
+        _roundTimeLimit = roundDuration;
+        _roundsToWinMatch = roundsToWin;
+    }
+
+    public void StartMatchServer()
+    {
+        if (_hasStartedMatch || !IsServer || !IsSpawned) return;
+
+        _hasStartedMatch = true;
 
         RedScore.Value = 0;
         BlueScore.Value = 0;
         RoundNumber.Value = 0;
         LastRoundWinner.Value = Team.Neutral;
 
-        if (_roundLoopCoroutine != null)
-        {
-            StopCoroutine(_roundLoopCoroutine);
-        }
+        DismissLoadingScreenClientRpc();
 
+        if (_roundLoopCoroutine != null) StopCoroutine(_roundLoopCoroutine);
         _roundLoopCoroutine = StartCoroutine(MatchLoopRoutine());
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void DismissLoadingScreenClientRpc()
+    {
+        if (LoadingScreen.Instance != null)
+        {
+            LoadingScreen.Instance.Dismiss();
+        }
     }
 
     private void HandleBombStateChanged(BombState previousState, BombState currentState)
     {
         if (!IsServer || CurrentPhase.Value != RoundPhase.InProgress) return;
 
-        if (currentState == BombState.Planted)
-        {
-            IsBombPlanted.Value = true;
-        }
-        else if (currentState == BombState.Defused)
-        {
-            EndRoundServer(Team.Blue);
-        }
-        else if (currentState == BombState.Exploded)
-        {
-            EndRoundServer(Team.Red);
-        }
+        if (currentState == BombState.Planted) IsBombPlanted.Value = true;
+        else if (currentState == BombState.Defused) EndRoundServer(Team.Blue);
+        else if (currentState == BombState.Exploded) EndRoundServer(Team.Red);
     }
 
     private IEnumerator MatchLoopRoutine()
@@ -219,7 +209,7 @@ public class RoundManager : NetworkBehaviour
         {
             RoundNumber.Value++;
 
-            if (RoundNumber.Value == HALFTIME_ROUND)
+            if (RoundNumber.Value == HalftimeRound)
             {
                 PerformHalftimeSideSwitch();
             }
@@ -247,8 +237,10 @@ public class RoundManager : NetworkBehaviour
             if (teamComp != null)
             {
                 Team oldTeam = teamComp.CurrentTeam.Value;
-                Team newTeam = (oldTeam == Team.Red) ? Team.Blue : Team.Red;
-                teamComp.CurrentTeam.Value = newTeam;
+                if (oldTeam != Team.Neutral)
+                {
+                    teamComp.CurrentTeam.Value = (oldTeam == Team.Red) ? Team.Blue : Team.Red;
+                }
             }
         }
     }
@@ -363,10 +355,7 @@ public class RoundManager : NetworkBehaviour
 
     private void CheckEliminationsBeforePlant()
     {
-        int totalRed = 0;
-        int totalBlue = 0;
-        int aliveRed = 0;
-        int aliveBlue = 0;
+        int totalRed = 0, totalBlue = 0, aliveRed = 0, aliveBlue = 0;
 
         foreach (var clientPair in NetworkManager.Singleton.ConnectedClients)
         {
@@ -375,7 +364,6 @@ public class RoundManager : NetworkBehaviour
 
             PlayerTeam teamComp = client.PlayerObject.GetComponent<PlayerTeam>();
             if (teamComp == null) teamComp = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
-
             NetworkHealth healthComp = client.PlayerObject.GetComponent<NetworkHealth>();
             if (healthComp == null) healthComp = client.PlayerObject.GetComponentInChildren<NetworkHealth>();
 
@@ -395,21 +383,14 @@ public class RoundManager : NetworkBehaviour
 
         if (totalRed > 0 && totalBlue > 0)
         {
-            if (aliveRed <= 0 && aliveBlue > 0)
-            {
-                EndRoundServer(Team.Blue);
-            }
-            else if (aliveBlue <= 0 && aliveRed > 0)
-            {
-                EndRoundServer(Team.Red);
-            }
+            if (aliveRed <= 0 && aliveBlue > 0) EndRoundServer(Team.Blue);
+            else if (aliveBlue <= 0 && aliveRed > 0) EndRoundServer(Team.Red);
         }
     }
 
     private void CheckEliminationsAfterPlant()
     {
-        int totalBlue = 0;
-        int aliveBlue = 0;
+        int totalBlue = 0, aliveBlue = 0;
 
         foreach (var clientPair in NetworkManager.Singleton.ConnectedClients)
         {
@@ -418,7 +399,6 @@ public class RoundManager : NetworkBehaviour
 
             PlayerTeam teamComp = client.PlayerObject.GetComponent<PlayerTeam>();
             if (teamComp == null) teamComp = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
-
             NetworkHealth healthComp = client.PlayerObject.GetComponent<NetworkHealth>();
             if (healthComp == null) healthComp = client.PlayerObject.GetComponentInChildren<NetworkHealth>();
 
@@ -431,10 +411,7 @@ public class RoundManager : NetworkBehaviour
             }
         }
 
-        if (totalBlue > 0 && aliveBlue <= 0)
-        {
-            EndRoundServer(Team.Red);
-        }
+        if (totalBlue > 0 && aliveBlue <= 0) EndRoundServer(Team.Red);
     }
 
     private void EndRoundServer(Team winner)
@@ -451,51 +428,99 @@ public class RoundManager : NetworkBehaviour
 
     private void ResetEntitiesForNewRound()
     {
+        if (NetworkManager.Singleton == null) return;
+
         int tIndex = 0;
         int ctIndex = 0;
 
         foreach (var clientPair in NetworkManager.Singleton.ConnectedClients)
         {
+            ulong clientId = clientPair.Key;
             NetworkClient client = clientPair.Value;
-            if (client.PlayerObject == null) continue;
 
-            NetworkHealth health = client.PlayerObject.GetComponent<NetworkHealth>();
-            if (health == null) health = client.PlayerObject.GetComponentInChildren<NetworkHealth>();
-            if (health != null)
+            Team team = Team.Red;
+            if (CustomLobbyManager.SavedTeams != null && CustomLobbyManager.SavedTeams.TryGetValue(clientId, out Team savedTeam))
             {
-                health.ResetHealthServer();
+                team = savedTeam;
             }
 
-            ResetPlayerWeaponsClientRpc(client.ClientId);
+            if (team == Team.Neutral && NetworkManager.Singleton.ConnectedClients.Count > 1)
+            {
+                // Mantiene el modo espectador
+            }
+            else if (team == Team.Neutral)
+            {
+                team = Team.Red;
+            }
 
-            PlayerTeam playerTeamComp = client.PlayerObject.GetComponent<PlayerTeam>();
-            if (playerTeamComp == null) playerTeamComp = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
-            if (playerTeamComp == null) continue;
-
-            Team team = playerTeamComp.CurrentTeam.Value;
             Transform[] spawns = (team == Team.Red) ? _terroristSpawnPoints : _counterTerroristSpawnPoints;
+            if (spawns == null || spawns.Length == 0) spawns = _terroristSpawnPoints;
+
             int spawnIndex = (team == Team.Red) ? tIndex++ : ctIndex++;
+            Vector3 targetPosition = Vector3.up * 2f;
+            Quaternion targetRotation = Quaternion.identity;
 
             if (spawns != null && spawns.Length > 0)
             {
                 Transform targetSpawn = spawns[spawnIndex % spawns.Length];
-                Vector3 targetPosition = targetSpawn.position;
-                Quaternion targetRotation = targetSpawn.rotation;
+                if (targetSpawn != null)
+                {
+                    targetPosition = targetSpawn.position;
+                    targetRotation = targetSpawn.rotation;
+                }
+            }
 
-                NetworkPlayerController playerController = client.PlayerObject.GetComponent<NetworkPlayerController>();
+            GameObject activePlayer = null;
+
+            if (client.PlayerObject == null)
+            {
+                GameObject prefabToSpawn = _playerPrefab;
+                if (prefabToSpawn == null && NetworkManager.Singleton.NetworkConfig.PlayerPrefab != null)
+                {
+                    prefabToSpawn = NetworkManager.Singleton.NetworkConfig.PlayerPrefab;
+                }
+
+                if (prefabToSpawn != null)
+                {
+                    activePlayer = Instantiate(prefabToSpawn, targetPosition, targetRotation);
+                    NetworkObject netObj = activePlayer.GetComponent<NetworkObject>();
+                    netObj.SpawnAsPlayerObject(clientId, true);
+                }
+            }
+            else
+            {
+                activePlayer = client.PlayerObject.gameObject;
+            }
+
+            if (activePlayer != null)
+            {
+                NetworkHealth health = activePlayer.GetComponent<NetworkHealth>();
+                if (health == null) health = activePlayer.GetComponentInChildren<NetworkHealth>();
+                if (health != null) health.ResetHealthServer();
+
+                ResetPlayerWeaponsClientRpc(clientId);
+
+                PlayerTeam playerTeamComp = activePlayer.GetComponent<PlayerTeam>();
+                if (playerTeamComp == null) playerTeamComp = activePlayer.GetComponentInChildren<PlayerTeam>();
+                if (playerTeamComp != null) playerTeamComp.CurrentTeam.Value = team;
+
+                if (CustomLobbyManager.SavedRoles != null && CustomLobbyManager.SavedRoles.TryGetValue(clientId, out PlayerRoleType savedRole))
+                {
+                    NetworkPlayerController controller = activePlayer.GetComponent<NetworkPlayerController>();
+                    if (controller != null) controller.SetInitialRole(savedRole);
+                }
+
+                NetworkPlayerController playerController = activePlayer.GetComponent<NetworkPlayerController>();
                 if (playerController != null)
                 {
                     playerController.RespawnPlayer(targetPosition, targetRotation);
                 }
 
-                TeleportPlayerClientRpc(targetPosition, targetRotation, client.ClientId);
+                TeleportPlayerClientRpc(targetPosition, targetRotation, clientId);
             }
         }
 
-        if (_bomb == null)
-        {
-            _bomb = FindAnyObjectByType<Bomb>();
-        }
+        if (_bomb == null) _bomb = FindAnyObjectByType<Bomb>();
 
         if (_bomb != null)
         {
@@ -517,10 +542,7 @@ public class RoundManager : NetworkBehaviour
         if (playerObject == null) return;
 
         WeaponInventory inventory = playerObject.GetComponentInChildren<WeaponInventory>(true);
-        if (inventory != null)
-        {
-            inventory.ResetAllWeaponsAmmo();
-        }
+        if (inventory != null) inventory.ResetAllWeaponsAmmo();
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -531,16 +553,10 @@ public class RoundManager : NetworkBehaviour
         if (playerObject == null) return;
 
         NetworkPlayerController playerController = playerObject.GetComponent<NetworkPlayerController>();
-        if (playerController != null)
-        {
-            playerController.RespawnPlayer(targetPosition, targetRotation);
-        }
+        if (playerController != null) playerController.RespawnPlayer(targetPosition, targetRotation);
 
-        NetworkTransform networkTransform = playerObject.GetComponent<NetworkTransform>();
-        if (networkTransform != null)
-        {
-            networkTransform.Teleport(targetPosition, targetRotation, playerObject.transform.localScale);
-        }
+        Unity.Netcode.Components.NetworkTransform networkTransform = playerObject.GetComponent<Unity.Netcode.Components.NetworkTransform>();
+        if (networkTransform != null) networkTransform.Teleport(targetPosition, targetRotation, playerObject.transform.localScale);
     }
 
     private double GetPhaseElapsed()

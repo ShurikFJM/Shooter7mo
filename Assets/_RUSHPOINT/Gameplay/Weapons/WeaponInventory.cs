@@ -26,7 +26,27 @@ public class WeaponInventory : NetworkBehaviour
     private int _currentSlotIndex = 1;
     private bool _hasEquippedLoadout = false;
 
-    public WeaponBase ActiveWeapon => _equippedWeapons[_currentSlotIndex - 1];
+    public WeaponBase ActiveWeapon
+    {
+        get
+        {
+            int index = _currentSlotIndex - 1;
+            if (index >= 0 && index < _equippedWeapons.Length && _equippedWeapons[index] != null)
+            {
+                return _equippedWeapons[index];
+            }
+
+            // Fallback: si el arreglo aún no se pobló, devuelve el arma activa en los hijos
+            WeaponBase[] childWeapons = GetComponentsInChildren<WeaponBase>(false);
+            if (childWeapons != null && childWeapons.Length > 0)
+            {
+                return childWeapons[0];
+            }
+
+            return null;
+        }
+    }
+
     public int ActiveSlotIndex => _currentSlotIndex;
 
     private void Awake()
@@ -36,11 +56,42 @@ public class WeaponInventory : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        EnsureHolders();
+        base.OnNetworkSpawn();
+
+        // Suscripción de red para ver el cambio de armas de los otros jugadores
         activeSlotNetworked.OnValueChanged += HandleActiveSlotChanged;
 
-        if (IsOwner) SwitchSlot(activeSlotNetworked.Value);
-        else UpdateThirdPersonWeaponVisibility(activeSlotNetworked.Value);
+        if (IsOwner)
+        {
+            EnsureHolders();
+
+            // Si las armas ya existen en el prefab y no entraron por SetupLoadoutForRole
+            if (_equippedWeapons[0] == null)
+            {
+                WeaponBase[] foundWeapons = GetComponentsInChildren<WeaponBase>(true);
+                for (int i = 0; i < foundWeapons.Length && i < TOTAL_SLOTS; i++)
+                {
+                    _equippedWeapons[i] = foundWeapons[i];
+                    _weaponInstances[i] = foundWeapons[i].gameObject;
+                }
+
+                if (_equippedWeapons[0] != null)
+                {
+                    _hasEquippedLoadout = true;
+                    _currentSlotIndex = 1;
+
+                    for (int i = 0; i < _weaponInstances.Length; i++)
+                    {
+                        if (_weaponInstances[i] != null)
+                        {
+                            _weaponInstances[i].SetActive(i == 0);
+                        }
+                    }
+                }
+            }
+
+            UpdateThirdPersonWeaponVisibility(activeSlotNetworked.Value);
+        }
     }
 
     public override void OnNetworkDespawn()
@@ -226,6 +277,12 @@ public class WeaponInventory : NetworkBehaviour
         for (int i = 0; i < _equippedWeapons.Length; i++)
         {
             if (_equippedWeapons[i] != null) _equippedWeapons[i].ResetAmmo();
+        }
+
+        WeaponBase[] childWeapons = GetComponentsInChildren<WeaponBase>(true);
+        for (int i = 0; i < childWeapons.Length; i++)
+        {
+            if (childWeapons[i] != null) childWeapons[i].ResetAmmo();
         }
     }
 
