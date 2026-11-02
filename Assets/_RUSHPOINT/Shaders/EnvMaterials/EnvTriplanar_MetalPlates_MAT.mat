@@ -21,7 +21,7 @@ Material:
   - _TRISPACE_WORLD
   m_InvalidKeywords: []
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -60,7 +60,7 @@ Material:
     - _HeightInARM: 0
     - _HeightInvert: 0
     - _HeightRef: 1
-    - _HeightScale: 0.04
+    - _HeightScale: 0.02
     - _MetalConst: 0
     - _MetalMax: 1
     - _MetalMin: 0
