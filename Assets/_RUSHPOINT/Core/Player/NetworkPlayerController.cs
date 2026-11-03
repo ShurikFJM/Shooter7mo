@@ -24,6 +24,7 @@ public class NetworkPlayerController : NetworkBehaviour
     private CharacterController _characterController;
     private WeaponInventory _weaponInventory;
     private NetworkHealth _networkHealth;
+    private BombInteractor _bombInteractor;
 
     private Vector3 _velocity;
     private float _verticalLookRotation;
@@ -36,11 +37,23 @@ public class NetworkPlayerController : NetworkBehaviour
     private float _defaultControllerHeight;
     private Vector3 _defaultControllerCenter;
 
+    private readonly NetworkVariable<float> _networkLookPitch = new NetworkVariable<float>(
+        0f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
+
+    private readonly NetworkVariable<bool> _networkIsCrouching = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
+
     public RoleDataSO ActiveRole => _activeRole;
     public Camera PlayerCamera => _playerCamera;
     public bool IsMoving => _isMoving;
     public bool IsSlowWalking => _isSlowWalking;
-    public bool IsCrouching => _isCrouching;
+    public bool IsCrouching => _networkIsCrouching.Value;
     public bool IsGrounded => _characterController != null && _characterController.isGrounded;
 
     private void Awake()
@@ -48,6 +61,7 @@ public class NetworkPlayerController : NetworkBehaviour
         _characterController = GetComponent<CharacterController>();
         _weaponInventory = GetComponent<WeaponInventory>();
         _networkHealth = GetComponent<NetworkHealth>();
+        _bombInteractor = GetComponent<BombInteractor>();
 
         if (_playerCamera == null)
         {
@@ -92,8 +106,15 @@ public class NetworkPlayerController : NetworkBehaviour
             _audioListener.enabled = isLocalPlayer;
         }
 
+        _networkIsCrouching.OnValueChanged += HandleNetworkCrouchChanged;
+
         if (isLocalPlayer)
         {
+            if (LoadingScreen.Instance != null)
+            {
+                LoadingScreen.Instance.Dismiss();
+            }
+
             SetCursorLocked(true);
             ConfigureLocalOwnerMeshShadows();
 
@@ -103,6 +124,16 @@ public class NetworkPlayerController : NetworkBehaviour
                 TacticalHUD.Instance.Inventory = _weaponInventory;
             }
         }
+        else
+        {
+            ApplyRemoteCrouchVisuals(_networkIsCrouching.Value);
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        _networkIsCrouching.OnValueChanged -= HandleNetworkCrouchChanged;
+        base.OnNetworkDespawn();
     }
 
     private void ConfigureLocalOwnerMeshShadows()
@@ -121,29 +152,54 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsOwner) return;
+        if (!IsOwner)
+        {
+            ApplyRemotePitchAndPosition();
+            return;
+        }
 
         if (_networkHealth != null && !_networkHealth.IsAlive.Value) return;
         if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused) return;
 
         HandleRotation();
 
-        bool isRoundActive = RoundManager.Instance == null || RoundManager.Instance.CurrentPhase.Value == RoundPhase.InProgress;
+        bool isRoundActive = RoundManager.Instance == null || RoundManager.Instance.SyncedPhase == RoundPhase.InProgress;
         if (!isRoundActive)
         {
             _isMoving = false;
             _isSlowWalking = false;
-            if (_characterController != null && !_characterController.isGrounded)
-            {
-                _velocity.y += _GRAVITY * Time.deltaTime;
-                _characterController.Move(_velocity * Time.deltaTime);
-            }
+            ApplyGravityOnly();
+            return;
+        }
+
+        if (_bombInteractor != null && _bombInteractor.IsInteracting)
+        {
+            _isMoving = false;
+            _isSlowWalking = false;
+            ApplyGravityOnly();
             return;
         }
 
         HandleCrouch();
         HandleMovement();
         HandleCombatActions();
+    }
+
+    private void ApplyGravityOnly()
+    {
+        if (_characterController != null && !_characterController.isGrounded)
+        {
+            _velocity.y += _GRAVITY * Time.deltaTime;
+            _characterController.Move(_velocity * Time.deltaTime);
+        }
+    }
+
+    private void ApplyRemotePitchAndPosition()
+    {
+        if (_cameraAnchor != null)
+        {
+            _cameraAnchor.localRotation = Quaternion.Euler(_networkLookPitch.Value, 0f, 0f);
+        }
     }
 
     private void HandleRotation()
@@ -157,6 +213,8 @@ public class NetworkPlayerController : NetworkBehaviour
         _verticalLookRotation -= lookDelta.y;
         _verticalLookRotation = Mathf.Clamp(_verticalLookRotation, _HEAD_ROTATION_LIMIT_UP, _HEAD_ROTATION_LIMIT_DOWN);
         _cameraAnchor.localRotation = Quaternion.Euler(_verticalLookRotation, 0f, 0f);
+
+        _networkLookPitch.Value = _verticalLookRotation;
     }
 
     private void HandleMovement()
@@ -208,19 +266,50 @@ public class NetworkPlayerController : NetworkBehaviour
         if (wantsToCrouch != _isCrouching)
         {
             _isCrouching = wantsToCrouch;
+            _networkIsCrouching.Value = _isCrouching;
 
-            float targetHeight = _isCrouching ? (_defaultControllerHeight - _crouchControllerHeightOffset) : _defaultControllerHeight;
-            _characterController.height = targetHeight;
+            ApplyLocalCrouchState(_isCrouching);
+        }
+    }
 
-            Vector3 targetCenter = _isCrouching
+    private void ApplyLocalCrouchState(bool crouching)
+    {
+        float targetHeight = crouching ? (_defaultControllerHeight - _crouchControllerHeightOffset) : _defaultControllerHeight;
+        _characterController.height = targetHeight;
+
+        Vector3 targetCenter = crouching
+            ? _defaultControllerCenter - new Vector3(0f, _crouchControllerHeightOffset * 0.5f, 0f)
+            : _defaultControllerCenter;
+        _characterController.center = targetCenter;
+
+        Vector3 targetAnchorPos = crouching
+            ? _defaultCameraLocalPosition - new Vector3(0f, _crouchCameraDropOffset, 0f)
+            : _defaultCameraLocalPosition;
+        _cameraAnchor.localPosition = targetAnchorPos;
+    }
+
+    private void HandleNetworkCrouchChanged(bool previous, bool current)
+    {
+        if (!IsOwner)
+        {
+            ApplyRemoteCrouchVisuals(current);
+        }
+    }
+
+    private void ApplyRemoteCrouchVisuals(bool crouching)
+    {
+        if (_characterController != null)
+        {
+            _characterController.height = crouching ? (_defaultControllerHeight - _crouchControllerHeightOffset) : _defaultControllerHeight;
+            _characterController.center = crouching
                 ? _defaultControllerCenter - new Vector3(0f, _crouchControllerHeightOffset * 0.5f, 0f)
                 : _defaultControllerCenter;
-            _characterController.center = targetCenter;
+        }
 
-            Vector3 targetAnchorPos = _isCrouching
-                ? _defaultCameraLocalPosition - new Vector3(0f, _crouchCameraDropOffset, 0f)
-                : _defaultCameraLocalPosition;
-            _cameraAnchor.localPosition = targetAnchorPos;
+        if (_thirdPersonBodyRoot != null)
+        {
+            _thirdPersonBodyRoot.transform.localScale = crouching ? new Vector3(1f, 0.65f, 1f) : Vector3.one;
+            _thirdPersonBodyRoot.transform.localPosition = crouching ? new Vector3(0f, -0.35f, 0f) : Vector3.zero;
         }
     }
 
@@ -254,6 +343,49 @@ public class NetworkPlayerController : NetworkBehaviour
             {
                 activeWeapon.Reload();
             }
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SyncRoundStateClientRpc(int roundTime, int redScore, int blueScore, int roundNumber, byte phaseByte, byte winnerByte)
+    {
+        if (LoadingScreen.Instance != null)
+        {
+            LoadingScreen.Instance.Dismiss();
+        }
+
+        RoundManager manager = RoundManager.Instance != null ? RoundManager.Instance : FindAnyObjectByType<RoundManager>();
+        if (manager != null)
+        {
+            manager.ApplyClientSyncedState(roundTime, redScore, blueScore, roundNumber, (RoundPhase)phaseByte, (Team)winnerByte);
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void TeleportAndResetClientRpc(Vector3 spawnPosition, Quaternion spawnRotation)
+    {
+        if (!IsOwner) return;
+
+        if (LoadingScreen.Instance != null)
+        {
+            LoadingScreen.Instance.Dismiss();
+        }
+
+        RespawnPlayer(spawnPosition, spawnRotation);
+
+        if (_weaponInventory != null)
+        {
+            _weaponInventory.ResetAllWeaponsAmmo();
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void ReturnToMainMenuClientRpc()
+    {
+        RoundManager manager = RoundManager.Instance != null ? RoundManager.Instance : FindAnyObjectByType<RoundManager>();
+        if (manager != null)
+        {
+            manager.TriggerDisconnectAndLoadMenu();
         }
     }
 

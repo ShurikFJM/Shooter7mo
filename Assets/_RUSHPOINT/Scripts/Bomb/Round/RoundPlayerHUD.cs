@@ -1,5 +1,4 @@
 using TMPro;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -66,12 +65,9 @@ public class RoundPlayerHUD : MonoBehaviour
 
     private void UpdateTimer(RoundManager roundManager)
     {
-        if (_roundTimerText == null)
-        {
-            return;
-        }
+        if (_roundTimerText == null) return;
 
-        int totalSeconds = Mathf.Max(roundManager.CurrentRoundTime.Value, 0);
+        int totalSeconds = Mathf.Max(roundManager.SyncedRoundTime, 0);
         int minutes = totalSeconds / 60;
         int seconds = totalSeconds % 60;
 
@@ -80,8 +76,8 @@ public class RoundPlayerHUD : MonoBehaviour
 
     private void UpdateScore(RoundManager roundManager)
     {
-        int redScore = roundManager.RedScore.Value;
-        int blueScore = roundManager.BlueScore.Value;
+        int redScore = roundManager.SyncedRedScore;
+        int blueScore = roundManager.SyncedBlueScore;
 
         if (_terroristScoreText != null)
         {
@@ -99,12 +95,8 @@ public class RoundPlayerHUD : MonoBehaviour
 
     private void UpdateRoundNumber(RoundManager roundManager)
     {
-        if (_roundNumberText == null)
-        {
-            return;
-        }
-
-        _roundNumberText.text = roundManager.RoundNumber.Value.ToString();
+        if (_roundNumberText == null) return;
+        _roundNumberText.text = roundManager.SyncedRoundNumber.ToString();
     }
 
     private void RefreshDiamonds(Image[] diamondArray, int filledCount)
@@ -122,7 +114,7 @@ public class RoundPlayerHUD : MonoBehaviour
 
     private void UpdateResultUI(RoundManager roundManager)
     {
-        RoundPhase phase = roundManager.CurrentPhase.Value;
+        RoundPhase phase = roundManager.SyncedPhase;
 
         if (phase == RoundPhase.RoundEnd)
         {
@@ -141,22 +133,11 @@ public class RoundPlayerHUD : MonoBehaviour
 
     private void ShowRoundResult(RoundManager roundManager)
     {
-        if (_matchResultRoot != null)
-        {
-            _matchResultRoot.SetActive(false);
-        }
+        if (_matchResultRoot != null) _matchResultRoot.SetActive(false);
+        if (_roundResultRoot != null) _roundResultRoot.SetActive(true);
 
-        if (_roundResultRoot != null)
-        {
-            _roundResultRoot.SetActive(true);
-        }
-
-        Team winner = roundManager.LastRoundWinner.Value;
-
-        if (_roundWinnerText == null)
-        {
-            return;
-        }
+        Team winner = roundManager.SyncedLastWinner;
+        if (_roundWinnerText == null) return;
 
         if (winner == Team.Red)
         {
@@ -176,22 +157,12 @@ public class RoundPlayerHUD : MonoBehaviour
 
     private void ShowMatchResult(RoundManager roundManager)
     {
-        if (_roundResultRoot != null)
-        {
-            _roundResultRoot.SetActive(false);
-        }
+        if (_roundResultRoot != null) _roundResultRoot.SetActive(false);
+        if (_matchResultRoot != null) _matchResultRoot.SetActive(true);
 
-        if (_matchResultRoot != null)
-        {
-            _matchResultRoot.SetActive(true);
-        }
+        if (_matchWinnerText == null) return;
 
-        if (_matchWinnerText == null)
-        {
-            return;
-        }
-
-        if (roundManager.RedScore.Value > roundManager.BlueScore.Value)
+        if (roundManager.SyncedRedScore > roundManager.SyncedBlueScore)
         {
             _matchWinnerText.text = TERRORISTS_MATCH_WIN_TEXT;
             _matchWinnerText.color = _terroristColor;
@@ -205,14 +176,7 @@ public class RoundPlayerHUD : MonoBehaviour
 
     private void HideResultUI()
     {
-        if (_roundResultRoot != null)
-        {
-            _roundResultRoot.SetActive(false);
-        }
-
-        if (_matchResultRoot != null)
-        {
-            _matchResultRoot.SetActive(false);
-        }
+        if (_roundResultRoot != null) _roundResultRoot.SetActive(false);
+        if (_matchResultRoot != null) _matchResultRoot.SetActive(false);
     }
 }

@@ -1,75 +1,69 @@
-using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
 public class BombInteractor : NetworkBehaviour
 {
-    private const float RAYCAST_ORIGIN_OFFSET = 0.5f;
-    private const float GROUND_CHECK_DISTANCE = 2f;
-    private const float SITE_DETECTION_RADIUS = 0.5f;
-    private const int MAX_BUFFER_HITS = 8;
-    private const float MIN_PLANT_HOLD_TIME = 4f;
-    private const float MIN_DEFUSE_HOLD_TIME = 5f;
+    private const float DEFAULT_PLANT_DURATION = 3.5f;
+    private const float DEFAULT_DEFUSE_DURATION = 5.0f;
+    private const float INTERACTION_DISTANCE = 3.5f;
+    private const float AUTO_PICKUP_RADIUS = 2.2f;
 
-    [SerializeField] private Transform _interactOrigin;
-    [SerializeField] private float _interactRange = 3.5f;
+    [SerializeField] private Camera _interactOrigin;
     [SerializeField] private LayerMask _bombLayer;
     [SerializeField] private LayerMask _siteLayer;
-    [SerializeField] private float _plantHoldTime = 4f;
-    [SerializeField] private float _defuseHoldTime = 5f;
     [SerializeField] private PlayerTeam _playerTeam;
-    [SerializeField] private AudioSource _interactorAudioSource;
-    [SerializeField] private AudioClip _startPlantingClip;
-    [SerializeField] private AudioClip _startDefusingClip;
 
-    private readonly Collider[] _bombHitBuffer = new Collider[MAX_BUFFER_HITS];
-    private readonly Collider[] _siteHitBuffer = new Collider[MAX_BUFFER_HITS];
+    [SerializeField] private float _plantDuration = DEFAULT_PLANT_DURATION;
+    [SerializeField] private float _defuseDuration = DEFAULT_DEFUSE_DURATION;
 
-    private Bomb _cachedBomb;
-    private Bomb _carriedBomb;
-    private Bomb _nearbyBomb;
-    private Bomb _nearbyPlantedBomb;
-    private BombSite _currentSite;
-    private float _plantProgress;
+    private Bomb _activeBomb;
+    private string _currentSiteId = string.Empty;
     private bool _isPlanting;
-    private float _defuseProgress;
     private bool _isDefusing;
+    private float _currentInteractionTimer;
+    private float _lastPickupRequestTime;
 
-    public bool IsCarryingBomb => _carriedBomb != null &&
-                                  _carriedBomb.bombState.Value == BombState.Carried &&
-                                  _carriedBomb.carrierClientId.Value == NetworkManager.Singleton.LocalClientId;
-
+    public bool HasBomb => _activeBomb != null && _activeBomb.CurrentState == BombState.Carried && _activeBomb.CurrentCarrierId == OwnerClientId;
+    public bool IsCarryingBomb => HasBomb;
+    public bool IsInSite => !string.IsNullOrEmpty(_currentSiteId);
     public bool IsPlanting => _isPlanting;
-    public float PlantProgressNormalized => EffectivePlantHoldTime > 0f ? _plantProgress / EffectivePlantHoldTime : 0f;
     public bool IsDefusing => _isDefusing;
-    public float DefuseProgressNormalized => EffectiveDefuseHoldTime > 0f ? _defuseProgress / EffectiveDefuseHoldTime : 0f;
-    public bool HasNearbyBomb => _nearbyBomb != null;
-    public bool HasNearbyPlantedBomb => _nearbyPlantedBomb != null;
-    public bool IsInSite => _currentSite != null;
+    public bool IsInteracting => _isPlanting || _isDefusing;
 
-    private float EffectivePlantHoldTime => Mathf.Max(MIN_PLANT_HOLD_TIME, _plantHoldTime);
-    private float EffectiveDefuseHoldTime => Mathf.Max(MIN_DEFUSE_HOLD_TIME, _defuseHoldTime);
+    public float PlantProgressNormalized => (_isPlanting && _plantDuration > 0f) ? Mathf.Clamp01(_currentInteractionTimer / _plantDuration) : 0f;
+    public float DefuseProgressNormalized => (_isDefusing && _defuseDuration > 0f) ? Mathf.Clamp01(_currentInteractionTimer / _defuseDuration) : 0f;
+    public float InteractionProgressNormalized => _isPlanting ? PlantProgressNormalized : DefuseProgressNormalized;
+
+    public bool HasNearbyPlantedBomb
+    {
+        get
+        {
+            if (_activeBomb == null || _activeBomb.CurrentState != BombState.Planted) return false;
+            if (_playerTeam != null && _playerTeam.CurrentTeam.Value != Team.Blue) return false;
+            return GetHorizontalDistanceSqr(transform.position, _activeBomb.transform.position) <= (INTERACTION_DISTANCE * INTERACTION_DISTANCE);
+        }
+    }
+
+    public bool HasNearbyBomb
+    {
+        get
+        {
+            if (_activeBomb == null || _activeBomb.CurrentState != BombState.OnGround) return false;
+            if (_playerTeam != null && _playerTeam.CurrentTeam.Value != Team.Red) return false;
+            return GetHorizontalDistanceSqr(transform.position, _activeBomb.transform.position) <= (INTERACTION_DISTANCE * INTERACTION_DISTANCE);
+        }
+    }
 
     private void Awake()
     {
-        if (_interactOrigin == null)
-        {
-            Camera playerCamera = GetComponentInChildren<Camera>();
-            _interactOrigin = playerCamera != null ? playerCamera.transform : transform;
-        }
-
         if (_playerTeam == null) _playerTeam = GetComponent<PlayerTeam>();
+        if (_interactOrigin == null) _interactOrigin = GetComponentInChildren<Camera>(true);
+    }
 
-        if (_interactorAudioSource == null)
-        {
-            _interactorAudioSource = GetComponent<AudioSource>();
-            if (_interactorAudioSource == null)
-            {
-                _interactorAudioSource = gameObject.AddComponent<AudioSource>();
-                _interactorAudioSource.spatialBlend = 1f;
-                _interactorAudioSource.playOnAwake = false;
-            }
-        }
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        LocateSceneBomb();
     }
 
     private void Update()
@@ -77,302 +71,183 @@ public class BombInteractor : NetworkBehaviour
         if (!IsOwner) return;
 
         LocateSceneBomb();
-        ValidateCarriedBombAuthority();
-
-        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
-        {
-            CancelActions();
-            return;
-        }
-
-        if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
-        {
-            CancelActions();
-            return;
-        }
-
-        if (RoundManager.Instance != null && RoundManager.Instance.CurrentPhase.Value != RoundPhase.InProgress)
-        {
-            CancelActions();
-            return;
-        }
-
-        HandleInput();
-        DetectNearbyDroppedBomb();
-        DetectNearbyPlantedBomb();
-        DetectCurrentBombSite();
-        ExecutePlantingTimer();
-        ExecuteDefusingTimer();
-    }
-
-    private void HandleInput()
-    {
-        if (InputManager.Instance == null) return;
-
-        if (InputManager.Instance.WasInteractTriggered)
-        {
-            ProcessInteractionInput();
-        }
-        else if (InputManager.Instance.WasInteractReleased)
-        {
-            CancelActions();
-        }
+        CheckAutoPickup();
+        HandleManualPickup();
+        HandleDropInput();
+        HandlePlantAndDefuse();
     }
 
     private void LocateSceneBomb()
     {
-        if (_cachedBomb == null) _cachedBomb = FindAnyObjectByType<Bomb>();
-    }
-
-    private void ValidateCarriedBombAuthority()
-    {
-        if (_carriedBomb == null)
+        if (_activeBomb == null)
         {
-            if (_cachedBomb != null &&
-                _cachedBomb.bombState.Value == BombState.Carried &&
-                _cachedBomb.carrierClientId.Value == NetworkManager.Singleton.LocalClientId)
-            {
-                _carriedBomb = _cachedBomb;
-            }
-        }
-        else
-        {
-            if (_carriedBomb.bombState.Value != BombState.Carried ||
-                _carriedBomb.carrierClientId.Value != NetworkManager.Singleton.LocalClientId)
-            {
-                _carriedBomb = null;
-                if (_isPlanting) StopPlantingProcess();
-            }
+            _activeBomb = FindAnyObjectByType<Bomb>();
         }
     }
 
-    private void DetectNearbyDroppedBomb()
+    private float GetHorizontalDistanceSqr(Vector3 a, Vector3 b)
     {
-        if (IsCarryingBomb || _playerTeam == null)
-        {
-            _nearbyBomb = null;
-            return;
-        }
+        float dx = a.x - b.x;
+        float dz = a.z - b.z;
+        return (dx * dx) + (dz * dz);
+    }
 
-        if (_cachedBomb != null && _cachedBomb.bombState.Value == BombState.Dropped)
+    private void CheckAutoPickup()
+    {
+        if (_activeBomb == null || HasBomb) return;
+        if (_playerTeam == null || _playerTeam.CurrentTeam.Value != Team.Red) return;
+        if (Time.time - _lastPickupRequestTime < 0.25f) return;
+
+        if (_activeBomb.CurrentState == BombState.OnGround)
         {
-            if (_playerTeam.CurrentTeam.Value == _cachedBomb.BombCarrierTeam)
+            float horizontalDistSqr = GetHorizontalDistanceSqr(transform.position, _activeBomb.transform.position);
+            if (horizontalDistSqr <= (AUTO_PICKUP_RADIUS * AUTO_PICKUP_RADIUS))
             {
-                float distance = Vector3.Distance(_interactOrigin.position, _cachedBomb.transform.position);
-                if (distance <= _interactRange)
+                _lastPickupRequestTime = Time.time;
+                RequestPickupBombServerRpc();
+            }
+        }
+    }
+
+    private void HandleManualPickup()
+    {
+        if (HasBomb || !HasNearbyBomb || InputManager.Instance == null) return;
+
+        if (InputManager.Instance.WasInteractTriggered)
+        {
+            _lastPickupRequestTime = Time.time;
+            RequestPickupBombServerRpc();
+        }
+    }
+
+    private void HandleDropInput()
+    {
+        if (!HasBomb) return;
+
+        if (InputManager.Instance != null && InputManager.Instance.WasDropTriggered)
+        {
+            Vector3 dropPos = transform.position + (transform.forward * 1.2f) + (Vector3.up * 0.1f);
+            RequestDropBombServerRpc(dropPos, transform.rotation);
+        }
+    }
+
+    private void HandlePlantAndDefuse()
+    {
+        if (InputManager.Instance == null || _activeBomb == null) return;
+
+        bool isHoldingInteract = InputManager.Instance.IsInteractPressed;
+
+        if (HasBomb && !string.IsNullOrEmpty(_currentSiteId) && _playerTeam != null && _playerTeam.CurrentTeam.Value == Team.Red)
+        {
+            if (isHoldingInteract)
+            {
+                _isPlanting = true;
+                _currentInteractionTimer += Time.deltaTime;
+
+                if (_currentInteractionTimer >= _plantDuration)
                 {
-                    _nearbyBomb = _cachedBomb;
-                    return;
+                    Vector3 plantPos = transform.position;
+                    Quaternion plantRot = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+                    RequestPlantBombServerRpc(_currentSiteId, plantPos, plantRot);
+                    CancelInteraction();
                 }
+                return;
             }
         }
 
-        _nearbyBomb = null;
-    }
-
-    private void DetectNearbyPlantedBomb()
-    {
-        if (_playerTeam == null || _cachedBomb == null)
+        if (_playerTeam != null && _playerTeam.CurrentTeam.Value == Team.Blue && _activeBomb.CurrentState == BombState.Planted)
         {
-            _nearbyPlantedBomb = null;
-            return;
-        }
-
-        if (_cachedBomb.bombState.Value == BombState.Planted || _cachedBomb.bombState.Value == BombState.Defusing)
-        {
-            if (_playerTeam.CurrentTeam.Value == _cachedBomb.DefuseTeam)
+            float horizontalDistSqr = GetHorizontalDistanceSqr(transform.position, _activeBomb.transform.position);
+            if (horizontalDistSqr <= (INTERACTION_DISTANCE * INTERACTION_DISTANCE) && isHoldingInteract)
             {
-                float distance = Vector3.Distance(_interactOrigin.position, _cachedBomb.transform.position);
-                if (distance <= _interactRange)
+                _isDefusing = true;
+                _currentInteractionTimer += Time.deltaTime;
+
+                if (_currentInteractionTimer >= _defuseDuration)
                 {
-                    _nearbyPlantedBomb = _cachedBomb;
-                    return;
+                    RequestDefuseBombServerRpc();
+                    CancelInteraction();
                 }
+                return;
             }
         }
 
-        _nearbyPlantedBomb = null;
-    }
-
-    private void DetectCurrentBombSite()
-    {
-        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, SITE_DETECTION_RADIUS, _siteHitBuffer, _siteLayer);
-        _currentSite = null;
-
-        for (int i = 0; i < hitCount; i++)
+        if (_isPlanting || _isDefusing)
         {
-            BombSite detectedSite = _siteHitBuffer[i].GetComponent<BombSite>();
-            if (detectedSite != null)
-            {
-                _currentSite = detectedSite;
-                break;
-            }
+            CancelInteraction();
         }
     }
 
-    private void ProcessInteractionInput()
-    {
-        if (IsCarryingBomb && _currentSite != null)
-        {
-            StartPlantingProcess();
-        }
-        else if (IsCarryingBomb)
-        {
-            RequestDropExecution();
-        }
-        else if (_nearbyPlantedBomb != null && _nearbyPlantedBomb.bombState.Value == BombState.Planted)
-        {
-            StartDefusingProcess();
-        }
-        else if (_nearbyBomb != null)
-        {
-            RequestPickupExecution(_nearbyBomb);
-        }
-    }
-
-    private void ExecutePlantingTimer()
-    {
-        if (!_isPlanting) return;
-
-        if (_currentSite == null || !IsCarryingBomb)
-        {
-            StopPlantingProcess();
-            return;
-        }
-
-        _plantProgress += Time.deltaTime;
-        if (_plantProgress >= EffectivePlantHoldTime)
-        {
-            CompletePlantingProcess();
-            StopPlantingProcess();
-        }
-    }
-
-    private void ExecuteDefusingTimer()
-    {
-        if (!_isDefusing) return;
-
-        bool isAnotherPlayerDefusing = _nearbyPlantedBomb != null &&
-                                       _nearbyPlantedBomb.bombState.Value == BombState.Defusing &&
-                                       _nearbyPlantedBomb.defuserClientId.Value != Bomb.UNASSIGNED_CARRIER_ID &&
-                                       _nearbyPlantedBomb.defuserClientId.Value != NetworkManager.Singleton.LocalClientId;
-
-        if (_nearbyPlantedBomb == null ||
-            (_nearbyPlantedBomb.bombState.Value != BombState.Planted && _nearbyPlantedBomb.bombState.Value != BombState.Defusing) ||
-            isAnotherPlayerDefusing)
-        {
-            StopDefusingProcess();
-            return;
-        }
-
-        _defuseProgress += Time.deltaTime;
-        if (_defuseProgress >= EffectiveDefuseHoldTime)
-        {
-            CompleteDefusingProcess();
-            StopDefusingProcess();
-        }
-    }
-
-    private void StartPlantingProcess()
-    {
-        _isPlanting = true;
-        _plantProgress = 0f;
-        PlayInteractionSoundServerRpc(true);
-    }
-
-    private void StopPlantingProcess()
+    private void CancelInteraction()
     {
         _isPlanting = false;
-        _plantProgress = 0f;
-    }
-
-    private void StartDefusingProcess()
-    {
-        if (_nearbyPlantedBomb == null) return;
-
-        _isDefusing = true;
-        _defuseProgress = 0f;
-
-        PlayInteractionSoundServerRpc(false);
-        _nearbyPlantedBomb.RequestStartDefuseServerRpc(NetworkManager.Singleton.LocalClientId);
-    }
-
-    private void StopDefusingProcess()
-    {
-        if (_isDefusing && _nearbyPlantedBomb != null)
-        {
-            _nearbyPlantedBomb.RequestStopDefuseServerRpc(NetworkManager.Singleton.LocalClientId);
-        }
-
         _isDefusing = false;
-        _defuseProgress = 0f;
+        _currentInteractionTimer = 0f;
     }
 
-    private void CancelActions()
+    private void OnTriggerEnter(Collider other)
     {
-        StopPlantingProcess();
-        StopDefusingProcess();
-    }
-
-    private void CompletePlantingProcess()
-    {
-        if (_carriedBomb == null || _currentSite == null || !IsCarryingBomb) return;
-
-        Vector3 groundPlantPosition = transform.position;
-        Vector3 raycastOrigin = transform.position + (Vector3.up * RAYCAST_ORIGIN_OFFSET);
-
-        if (Physics.Raycast(raycastOrigin, Vector3.down, out RaycastHit groundHit, GROUND_CHECK_DISTANCE))
+        BombSite site = other.GetComponent<BombSite>();
+        if (site != null)
         {
-            groundPlantPosition = groundHit.point;
+            _currentSiteId = site.SiteId;
         }
-
-        Quaternion playerFacingRotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
-        FixedString32Bytes siteIdentifier = new FixedString32Bytes(_currentSite.SiteId);
-
-        _carriedBomb.RequestPlantServerRpc(
-            NetworkManager.Singleton.LocalClientId,
-            siteIdentifier,
-            groundPlantPosition,
-            playerFacingRotation
-        );
-
-        _carriedBomb = null;
     }
 
-    private void CompleteDefusingProcess()
+    private void OnTriggerExit(Collider other)
     {
-        if (_nearbyPlantedBomb == null) return;
-        _nearbyPlantedBomb.RequestDefuseServerRpc(NetworkManager.Singleton.LocalClientId);
-    }
-
-    private void RequestPickupExecution(Bomb targetBomb)
-    {
-        targetBomb.RequestPickupServerRpc(NetworkManager.Singleton.LocalClientId);
-        _carriedBomb = targetBomb;
-    }
-
-    private void RequestDropExecution()
-    {
-        if (_carriedBomb == null) return;
-
-        _carriedBomb.RequestDropServerRpc(NetworkManager.Singleton.LocalClientId);
-        _carriedBomb = null;
-        StopPlantingProcess();
-    }
-
-    [Rpc(SendTo.Server)]
-    private void PlayInteractionSoundServerRpc(bool isPlanting)
-    {
-        PlayInteractionSoundClientRpc(isPlanting);
+        BombSite site = other.GetComponent<BombSite>();
+        if (site != null && _currentSiteId == site.SiteId)
+        {
+            _currentSiteId = string.Empty;
+            if (_isPlanting) CancelInteraction();
+        }
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void PlayInteractionSoundClientRpc(bool isPlanting)
+    public void SyncBombStateClientRpc(byte stateByte, ulong carrierId, Vector3 targetPos, Quaternion targetRot, double plantServerTime, byte soundType)
     {
-        AudioClip clip = isPlanting ? _startPlantingClip : _startDefusingClip;
-        if (clip != null && _interactorAudioSource != null)
+        LocateSceneBomb();
+        if (_activeBomb != null)
         {
-            _interactorAudioSource.PlayOneShot(clip);
+            _activeBomb.ApplySyncedBombState((BombState)stateByte, carrierId, targetPos, targetRot, plantServerTime, soundType);
         }
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestPickupBombServerRpc(RpcParams rpcParams = default)
+    {
+        LocateSceneBomb();
+        if (_activeBomb == null) return;
+
+        ulong senderId = rpcParams.Receive.SenderClientId;
+        _activeBomb.ServerPickup(senderId);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestDropBombServerRpc(Vector3 dropPosition, Quaternion dropRotation)
+    {
+        LocateSceneBomb();
+        if (_activeBomb == null) return;
+
+        _activeBomb.ServerDrop(dropPosition, dropRotation);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestPlantBombServerRpc(string siteId, Vector3 plantPosition, Quaternion plantRotation)
+    {
+        LocateSceneBomb();
+        if (_activeBomb == null) return;
+
+        _activeBomb.ServerPlant(siteId, plantPosition, plantRotation);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestDefuseBombServerRpc()
+    {
+        LocateSceneBomb();
+        if (_activeBomb == null) return;
+
+        _activeBomb.ServerDefuse();
     }
 }

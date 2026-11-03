@@ -136,37 +136,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bomb
   ShowTopMostFoldoutHeaderGroup: 1
-  _bombCarrierTeam: 1
-  _defuseTeam: 2
-  _detonationDuration: 45
-  _dropVfxPrefab: {fileID: 0}
-  _plantVfxPrefab: {fileID: 0}
-  _defuseVfxPrefab: {fileID: 0}
+  _detonationTimeDuration: 40
+  _beepAudioClip: {fileID: 8300000, guid: b9dcaceb890d30a42b10612af0430ba8, type: 3}
+  _plantCompletedAudioClip: {fileID: 8300000, guid: ad71a4e14ac42f84e9cb6473357af1c9, type: 3}
+  _defusedAudioClip: {fileID: 8300000, guid: ba41196db5683f145b436727bb01e81f, type: 3}
+  _explosionAudioClip: {fileID: 8300000, guid: 8e8e99f27a7ba3246b0b54dfff1d6141, type: 3}
   _explosionVfxPrefab: {fileID: 0}
-  _globalPlantedClip: {fileID: 8300000, guid: ad71a4e14ac42f84e9cb6473357af1c9, type: 3}
-  _globalPlantedVolume: 0.25
-  _bombAudioSource: {fileID: 5141321757497337635}
-  _plantedBeepClip: {fileID: 8300000, guid: b9dcaceb890d30a42b10612af0430ba8, type: 3}
-  _beepVolume: 0.2
-  _initialBeepInterval: 1
-  _fastestBeepInterval: 0.08
-  _audioMinDistance: 5
-  _audioMaxDistance: 80
-  State:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  CarrierClientId:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 9999
-  PlantedServerTime:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
 --- !u!65 &3217160544809793302
 BoxCollider:
   m_ObjectHideFlags: 0

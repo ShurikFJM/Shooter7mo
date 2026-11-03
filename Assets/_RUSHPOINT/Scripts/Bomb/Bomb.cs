@@ -1,12 +1,12 @@
-using System.Collections;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
-using Unity.Netcode.Components;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public enum BombState : byte
 {
-    Dropped,
+    OnGround,
     Carried,
     Planted,
     Defusing,
@@ -17,470 +17,316 @@ public enum BombState : byte
 [RequireComponent(typeof(NetworkObject), typeof(AudioSource))]
 public class Bomb : NetworkBehaviour
 {
-    public const ulong UNASSIGNED_CARRIER_ID = 9999;
-    private const float MIN_REMAINING_DETONATION_TIME = 0f;
-    private const float MIN_NORMALIZED_PROGRESS = 0f;
-    private const float MAX_NORMALIZED_PROGRESS = 1f;
-    private const float GROUND_CHECK_RAY_ORIGIN_HEIGHT = 1f;
-    private const float GROUND_CHECK_RAY_DISTANCE = 10f;
-    private const float GROUND_OFFSET_Y = 0.12f;
-    private const float DROP_FORWARD_OFFSET = 1.0f;
-    private const float AUDIO_CLEANUP_EXTRA_DELAY = 0.1f;
-    private const float DEFUSE_TOLERANCE_MARGIN = 0.25f;
-    private const float CARRIER_OFFSET_Y = 0.95f;
-    private const float CARRIER_OFFSET_Z = 0.24f;
+    private const float DEFAULT_DETONATION_TIME = 40f;
+    private const float CARRIED_OFFSET_UP = 0.95f;
+    private const float CARRIED_OFFSET_BACK = 0.22f;
+    public const ulong NO_CARRIER_ID = ulong.MaxValue;
 
-    [SerializeField] private Team _bombCarrierTeam = Team.Red;
-    [SerializeField] private Team _defuseTeam = Team.Blue;
-    [SerializeField] private float _detonationDuration = 45f;
-    [SerializeField] private float _defuseDuration = 5f;
-    [SerializeField] private GameObject _dropVfxPrefab;
-    [SerializeField] private GameObject _plantVfxPrefab;
-    [SerializeField] private GameObject _defuseVfxPrefab;
+    [SerializeField] private float _detonationTimeDuration = DEFAULT_DETONATION_TIME;
+    [SerializeField] private AudioClip _beepAudioClip;
+    [SerializeField] private AudioClip _plantCompletedAudioClip;
+    [SerializeField] private AudioClip _defusedAudioClip;
+    [SerializeField] private AudioClip _explosionAudioClip;
     [SerializeField] private GameObject _explosionVfxPrefab;
-    [SerializeField] private AudioClip _globalPlantedClip;
-    [SerializeField] private float _globalPlantedVolume = 0.6f;
-    [SerializeField] private AudioSource _bombAudioSource;
-    [SerializeField] private AudioClip _plantedBeepClip;
-    [SerializeField] private float _beepVolume = 1f;
-    [SerializeField] private float _initialBeepInterval = 1f;
-    [SerializeField] private float _fastestBeepInterval = 0.08f;
-    [SerializeField] private float _audioMinDistance = 8f;
-    [SerializeField] private float _audioMaxDistance = 50f;
 
-    public NetworkVariable<BombState> bombState = new NetworkVariable<BombState>(
-        BombState.Dropped,
+    public readonly NetworkVariable<BombState> bombState = new NetworkVariable<BombState>(
+        BombState.OnGround,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    public NetworkVariable<ulong> carrierClientId = new NetworkVariable<ulong>(
-        UNASSIGNED_CARRIER_ID,
+    public readonly NetworkVariable<ulong> carrierClientId = new NetworkVariable<ulong>(
+        NO_CARRIER_ID,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    public NetworkVariable<ulong> defuserClientId = new NetworkVariable<ulong>(
-        UNASSIGNED_CARRIER_ID,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-
-    public NetworkVariable<double> plantedServerTime = new NetworkVariable<double>(
+    public readonly NetworkVariable<double> plantedServerTime = new NetworkVariable<double>(
         0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    public Team BombCarrierTeam => _bombCarrierTeam;
-    public Team DefuseTeam => _defuseTeam;
-    public float DetonationTimeDuration => _detonationDuration;
-    public float DefuseDuration => _defuseDuration;
+    public readonly NetworkVariable<FixedString32Bytes> plantedSiteId = new NetworkVariable<FixedString32Bytes>(
+        string.Empty,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
-    private Coroutine _beepCoroutine;
-    private Collider _bombCollider;
+    private BombState _syncedState = BombState.OnGround;
+    private ulong _syncedCarrierId = NO_CARRIER_ID;
+    private double _syncedPlantedTime;
+
+    public BombState CurrentState => _syncedState;
+    public ulong CurrentCarrierId => _syncedCarrierId;
+    public double PlantedTime => _syncedPlantedTime;
+    public float DetonationTimeDuration => _detonationTimeDuration;
+
+    private Collider _collider;
     private Rigidbody _rigidbody;
+    private AudioSource _audioSource;
+    private Transform _carrierTransform;
     private Renderer[] _renderers;
-    private NetworkTransform _networkTransform;
-    private double _defuseStartTime;
+    private float _nextBeepTime;
+    private float _beepInterval = 1.0f;
 
     private void Awake()
     {
-        _bombCollider = GetComponent<Collider>();
+        _collider = GetComponent<Collider>();
         _rigidbody = GetComponent<Rigidbody>();
+        _audioSource = GetComponent<AudioSource>();
         _renderers = GetComponentsInChildren<Renderer>(true);
-        _networkTransform = GetComponent<NetworkTransform>();
 
-        if (_rigidbody != null)
+        if (_audioSource != null)
         {
-            _rigidbody.isKinematic = true;
-            _rigidbody.useGravity = false;
+            _audioSource.spatialBlend = 1f;
         }
-
-        InitializeAudioSourceConfiguration();
-    }
-
-    private void InitializeAudioSourceConfiguration()
-    {
-        if (_bombAudioSource == null)
-        {
-            _bombAudioSource = GetComponent<AudioSource>();
-        }
-
-        if (_bombAudioSource != null)
-        {
-            _bombAudioSource.spatialBlend = 1f;
-            _bombAudioSource.rolloffMode = AudioRolloffMode.Linear;
-            _bombAudioSource.minDistance = _audioMinDistance;
-            _bombAudioSource.maxDistance = _audioMaxDistance;
-            _bombAudioSource.playOnAwake = false;
-        }
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        bombState.OnValueChanged += HandleBombStateChanged;
-        ApplyPhysicsAndVisualState(bombState.Value);
-
-        if (bombState.Value == BombState.Planted && _beepCoroutine == null)
-        {
-            _beepCoroutine = StartCoroutine(PlantedBeepLoop());
-        }
-    }
-
-    public override void OnNetworkDespawn()
-    {
-        bombState.OnValueChanged -= HandleBombStateChanged;
-        StopBeepRoutine();
     }
 
     private void LateUpdate()
     {
-        if (bombState.Value == BombState.Carried)
+        if (_syncedState == BombState.Carried)
         {
-            UpdateCarriedPosition();
+            if (_carrierTransform == null)
+            {
+                ResolveCarrierTransform(_syncedCarrierId);
+            }
+
+            if (_carrierTransform != null)
+            {
+                transform.position = _carrierTransform.position + (_carrierTransform.up * CARRIED_OFFSET_UP) - (_carrierTransform.forward * CARRIED_OFFSET_BACK);
+                transform.rotation = _carrierTransform.rotation;
+            }
+        }
+
+        if (_syncedState == BombState.Planted || _syncedState == BombState.Defusing)
+        {
+            HandleBeeping();
         }
     }
 
-    private void UpdateCarriedPosition()
+    public void ApplySyncedBombState(BombState state, ulong carrierId, Vector3 targetPos, Quaternion targetRot, double plantServerTime, byte soundType)
     {
-        ulong currentCarrier = carrierClientId.Value;
-        if (currentCarrier == UNASSIGNED_CARRIER_ID) return;
+        _syncedState = state;
+        _syncedCarrierId = carrierId;
+        _syncedPlantedTime = plantServerTime;
 
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
+        if (!IsSpawned || (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer))
         {
-            NetworkObject playerObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(currentCarrier);
-            if (playerObject != null)
+            try
             {
-                Transform playerTransform = playerObject.transform;
-                Vector3 targetPosition = playerTransform.position + (Vector3.up * CARRIER_OFFSET_Y) - (playerTransform.forward * CARRIER_OFFSET_Z);
-                Quaternion targetRotation = playerTransform.rotation * Quaternion.Euler(0f, 180f, 0f);
+                bombState.Value = state;
+                carrierClientId.Value = carrierId;
+                plantedServerTime.Value = plantServerTime;
+            }
+            catch { }
+        }
 
-                transform.position = targetPosition;
-                transform.rotation = targetRotation;
+        if (state != BombState.Carried)
+        {
+            _carrierTransform = null;
+            transform.SetPositionAndRotation(targetPos, targetRot);
+        }
+        else
+        {
+            ResolveCarrierTransform(carrierId);
+        }
+
+        ApplyStateVisualsAndPhysics(state, carrierId);
+        PlaySoundEffect(soundType);
+    }
+
+    private void BroadcastToAllClients(byte soundType)
+    {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+
+        foreach (KeyValuePair<ulong, NetworkClient> clientPair in NetworkManager.Singleton.ConnectedClients)
+        {
+            if (clientPair.Value.PlayerObject != null)
+            {
+                BombInteractor interactor = clientPair.Value.PlayerObject.GetComponent<BombInteractor>();
+                if (interactor != null && interactor.IsSpawned)
+                {
+                    interactor.SyncBombStateClientRpc(
+                        (byte)_syncedState,
+                        _syncedCarrierId,
+                        transform.position,
+                        transform.rotation,
+                        _syncedPlantedTime,
+                        soundType
+                    );
+                    break;
+                }
             }
         }
     }
 
-    private void HandleBombStateChanged(BombState previousState, BombState currentState)
+    private void ResolveCarrierTransform(ulong clientId)
     {
-        ApplyPhysicsAndVisualState(currentState);
+        _carrierTransform = null;
 
-        switch (currentState)
+        if (clientId == NO_CARRIER_ID) return;
+
+        NetworkPlayerController[] allPlayers = FindObjectsByType<NetworkPlayerController>(FindObjectsSortMode.None);
+        for (int i = 0; i < allPlayers.Length; i++)
         {
-            case BombState.Carried:
-            case BombState.Dropped:
-                StopBeepRoutine();
-                break;
-            case BombState.Planted:
-            case BombState.Defusing:
-                if (_beepCoroutine == null)
-                {
-                    _beepCoroutine = StartCoroutine(PlantedBeepLoop());
-                }
-                break;
-            case BombState.Defused:
-            case BombState.Exploded:
-                StopBeepRoutine();
-                break;
+            if (allPlayers[i] != null && allPlayers[i].OwnerClientId == clientId)
+            {
+                _carrierTransform = allPlayers[i].transform;
+                return;
+            }
         }
     }
 
-    private void ApplyPhysicsAndVisualState(BombState currentState)
+    private void ApplyStateVisualsAndPhysics(BombState state, ulong currentCarrierId)
     {
-        bool isVisible = currentState != BombState.Exploded;
-        UpdateRendererVisibility(isVisible);
+        bool isLocalCarrier = NetworkManager.Singleton != null && currentCarrierId == NetworkManager.Singleton.LocalClientId;
 
-        if (_bombCollider != null)
+        if (state == BombState.Carried)
         {
-            _bombCollider.enabled = currentState == BombState.Dropped || currentState == BombState.Planted || currentState == BombState.Defusing;
+            if (_collider != null) _collider.enabled = false;
+            if (_rigidbody != null) _rigidbody.isKinematic = true;
+
+            SetRenderersVisibility(true);
+            SetShadowsOnly(isLocalCarrier);
         }
-
-        if (_networkTransform != null)
+        else if (state == BombState.OnGround || state == BombState.Planted || state == BombState.Defusing)
         {
-            _networkTransform.enabled = currentState != BombState.Carried;
+            if (_collider != null)
+            {
+                _collider.enabled = true;
+                _collider.isTrigger = true;
+            }
+            if (_rigidbody != null) _rigidbody.isKinematic = true;
+
+            SetRenderersVisibility(true);
+            SetShadowsOnly(false);
+        }
+        else if (state == BombState.Defused || state == BombState.Exploded)
+        {
+            if (_collider != null) _collider.enabled = false;
+            if (_rigidbody != null) _rigidbody.isKinematic = true;
+            if (state == BombState.Exploded) SetRenderersVisibility(false);
         }
     }
 
-    private void UpdateRendererVisibility(bool isVisible)
+    private void SetRenderersVisibility(bool visible)
     {
+        if (_renderers == null) return;
+        for (int i = 0; i < _renderers.Length; i++)
+        {
+            if (_renderers[i] != null) _renderers[i].enabled = visible;
+        }
+    }
+
+    private void SetShadowsOnly(bool shadowsOnly)
+    {
+        if (_renderers == null) return;
         for (int i = 0; i < _renderers.Length; i++)
         {
             if (_renderers[i] != null)
             {
-                _renderers[i].enabled = isVisible;
+                _renderers[i].shadowCastingMode = shadowsOnly ? ShadowCastingMode.ShadowsOnly : ShadowCastingMode.On;
             }
         }
     }
 
-    [Rpc(SendTo.Server)]
-    public void RequestPickupServerRpc(ulong requestingClientId)
+    private void HandleBeeping()
     {
-        if (bombState.Value != BombState.Dropped) return;
+        if (Time.time < _nextBeepTime || NetworkManager.Singleton == null) return;
 
-        carrierClientId.Value = requestingClientId;
-        bombState.Value = BombState.Carried;
+        double elapsed = NetworkManager.Singleton.ServerTime.Time - _syncedPlantedTime;
+        float remaining = Mathf.Max(0f, _detonationTimeDuration - (float)elapsed);
 
-        ApplyPhysicsAndVisualState(BombState.Carried);
-        UpdateCarriedPosition();
-    }
+        float progress = 1f - (remaining / _detonationTimeDuration);
+        _beepInterval = Mathf.Lerp(1.0f, 0.12f, progress);
 
-    [Rpc(SendTo.Server)]
-    public void RequestDropServerRpc(ulong requestingClientId)
-    {
-        if (bombState.Value != BombState.Carried || carrierClientId.Value != requestingClientId) return;
-
-        Vector3 dropPosition = transform.position;
-        Vector3 forwardVector = Vector3.forward;
-
-        if (NetworkManager.Singleton.SpawnManager != null)
+        if (_beepAudioClip != null && _audioSource != null)
         {
-            NetworkObject playerObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(requestingClientId);
-            if (playerObj != null)
-            {
-                Transform pTransform = playerObj.transform;
-                forwardVector = pTransform.forward;
-                forwardVector.y = 0f;
-                forwardVector.Normalize();
-
-                dropPosition = pTransform.position + (Vector3.up * 0.5f) + (forwardVector * DROP_FORWARD_OFFSET);
-            }
+            _audioSource.PlayOneShot(_beepAudioClip);
         }
 
-        Vector3 rayStart = dropPosition + (Vector3.up * GROUND_CHECK_RAY_ORIGIN_HEIGHT);
-        if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit groundHit, GROUND_CHECK_RAY_DISTANCE, ~0, QueryTriggerInteraction.Ignore))
-        {
-            dropPosition.y = groundHit.point.y + GROUND_OFFSET_Y;
-        }
-
-        Quaternion dropRotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-
-        carrierClientId.Value = UNASSIGNED_CARRIER_ID;
-        bombState.Value = BombState.Dropped;
-
-        transform.SetPositionAndRotation(dropPosition, dropRotation);
-
-        if (_networkTransform != null)
-        {
-            _networkTransform.enabled = true;
-            _networkTransform.Teleport(dropPosition, dropRotation, transform.localScale);
-        }
-
-        ApplyPhysicsAndVisualState(BombState.Dropped);
-        SynchronizeDropClientRpc(dropPosition, dropRotation);
-        SpawnDropVfxClientRpc(dropPosition);
+        _nextBeepTime = Time.time + _beepInterval;
     }
 
-    [Rpc(SendTo.ClientsAndHost)]
-    private void SynchronizeDropClientRpc(Vector3 synchronizedPosition, Quaternion synchronizedRotation)
+    public void ServerPickup(ulong clientId)
     {
-        transform.SetPositionAndRotation(synchronizedPosition, synchronizedRotation);
-        ApplyPhysicsAndVisualState(BombState.Dropped);
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer || _syncedState != BombState.OnGround) return;
+
+        ApplySyncedBombState(BombState.Carried, clientId, transform.position, transform.rotation, 0, 0);
+        BroadcastToAllClients(0);
     }
 
-    [Rpc(SendTo.Server)]
-    public void RequestPlantServerRpc(ulong requestingClientId, FixedString32Bytes siteIdentifier, Vector3 targetPlantPosition, Quaternion targetPlantRotation)
+    public void ServerDrop(Vector3 dropPosition, Quaternion dropRotation)
     {
-        if (bombState.Value != BombState.Carried || carrierClientId.Value != requestingClientId) return;
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer || _syncedState != BombState.Carried) return;
 
-        BombSite[] detectedSites = FindObjectsByType<BombSite>(FindObjectsSortMode.None);
-        bool isInsideValidSite = false;
-        string targetSiteString = siteIdentifier.ToString();
-
-        for (int i = 0; i < detectedSites.Length; i++)
-        {
-            if (detectedSites[i].SiteId == targetSiteString && detectedSites[i].IsPositionInside(targetPlantPosition))
-            {
-                isInsideValidSite = true;
-                break;
-            }
-        }
-
-        if (!isInsideValidSite) return;
-
-        carrierClientId.Value = UNASSIGNED_CARRIER_ID;
-        transform.SetPositionAndRotation(targetPlantPosition, targetPlantRotation);
-
-        if (_networkTransform != null)
-        {
-            _networkTransform.enabled = true;
-            _networkTransform.Teleport(targetPlantPosition, targetPlantRotation, transform.localScale);
-        }
-
-        plantedServerTime.Value = NetworkManager.Singleton.ServerTime.Time;
-        bombState.Value = BombState.Planted;
-
-        ApplyPhysicsAndVisualState(BombState.Planted);
-        SynchronizePlantedTransformClientRpc(targetPlantPosition, targetPlantRotation);
-        SpawnPlantVfxAndGlobalAudioClientRpc(targetPlantPosition);
+        ApplySyncedBombState(BombState.OnGround, NO_CARRIER_ID, dropPosition, dropRotation, 0, 0);
+        BroadcastToAllClients(0);
     }
 
-    [Rpc(SendTo.ClientsAndHost)]
-    private void SynchronizePlantedTransformClientRpc(Vector3 synchronizedPosition, Quaternion synchronizedRotation)
+    public void ServerPlant(string siteId, Vector3 plantPosition, Quaternion plantRotation)
     {
-        transform.SetPositionAndRotation(synchronizedPosition, synchronizedRotation);
-        ApplyPhysicsAndVisualState(BombState.Planted);
-    }
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
 
-    [Rpc(SendTo.Server)]
-    public void RequestStartDefuseServerRpc(ulong requestingClientId)
-    {
-        if (bombState.Value == BombState.Planted)
+        double serverTime = NetworkManager.Singleton.ServerTime.Time;
+        try { plantedSiteId.Value = siteId; } catch { }
+
+        ApplySyncedBombState(BombState.Planted, NO_CARRIER_ID, plantPosition, plantRotation, serverTime, 1);
+        BroadcastToAllClients(1);
+
+        if (RoundManager.Instance != null)
         {
-            bombState.Value = BombState.Defusing;
-            defuserClientId.Value = requestingClientId;
-            _defuseStartTime = NetworkManager.Singleton.ServerTime.Time;
+            RoundManager.Instance.NotifyBombStateChangedServer(BombState.Planted);
         }
     }
 
-    [Rpc(SendTo.Server)]
-    public void RequestStopDefuseServerRpc(ulong requestingClientId)
+    public void ServerDefuse()
     {
-        if (bombState.Value == BombState.Defusing && defuserClientId.Value == requestingClientId)
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+        if (_syncedState != BombState.Planted && _syncedState != BombState.Defusing) return;
+
+        ApplySyncedBombState(BombState.Defused, NO_CARRIER_ID, transform.position, transform.rotation, _syncedPlantedTime, 2);
+        BroadcastToAllClients(2);
+
+        if (RoundManager.Instance != null)
         {
-            bombState.Value = BombState.Planted;
-            defuserClientId.Value = UNASSIGNED_CARRIER_ID;
-            _defuseStartTime = 0;
+            RoundManager.Instance.NotifyBombStateChangedServer(BombState.Defused);
         }
     }
 
-    [Rpc(SendTo.Server)]
-    public void RequestDefuseServerRpc(ulong requestingClientId)
+    public void ServerExplode()
     {
-        if (bombState.Value == BombState.Defusing && defuserClientId.Value == requestingClientId)
-        {
-            double elapsedDefuse = NetworkManager.Singleton.ServerTime.Time - _defuseStartTime;
-            if (elapsedDefuse < (_defuseDuration - DEFUSE_TOLERANCE_MARGIN)) return;
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
 
-            bombState.Value = BombState.Defused;
-            defuserClientId.Value = UNASSIGNED_CARRIER_ID;
-            SpawnDefuseVfxClientRpc(transform.position);
+        ApplySyncedBombState(BombState.Exploded, NO_CARRIER_ID, transform.position, transform.rotation, _syncedPlantedTime, 3);
+        BroadcastToAllClients(3);
+
+        if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.NotifyBombStateChangedServer(BombState.Exploded);
         }
     }
 
-    [Rpc(SendTo.ClientsAndHost)]
-    private void SpawnDropVfxClientRpc(Vector3 spawnPosition)
+    public void ServerResetBomb(Vector3 resetPosition)
     {
-        if (_dropVfxPrefab != null) Instantiate(_dropVfxPrefab, spawnPosition, Quaternion.identity);
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+
+        try { plantedSiteId.Value = string.Empty; } catch { }
+        ApplySyncedBombState(BombState.OnGround, NO_CARRIER_ID, resetPosition, Quaternion.identity, 0, 0);
+        BroadcastToAllClients(0);
     }
 
-    [Rpc(SendTo.ClientsAndHost)]
-    private void SpawnPlantVfxAndGlobalAudioClientRpc(Vector3 spawnPosition)
+    private void PlaySoundEffect(byte soundType)
     {
-        if (_plantVfxPrefab != null) Instantiate(_plantVfxPrefab, spawnPosition, Quaternion.identity);
+        if (soundType == 0 || _audioSource == null) return;
 
-        if (_globalPlantedClip != null)
+        if (soundType == 1 && _plantCompletedAudioClip != null) _audioSource.PlayOneShot(_plantCompletedAudioClip);
+        else if (soundType == 2 && _defusedAudioClip != null) _audioSource.PlayOneShot(_defusedAudioClip);
+        else if (soundType == 3)
         {
-            GameObject soundHostObject = new GameObject("GlobalBombPlantedAudio");
-            AudioSource temporaryAudioSource = soundHostObject.AddComponent<AudioSource>();
-
-            if (_bombAudioSource != null && _bombAudioSource.outputAudioMixerGroup != null)
-            {
-                temporaryAudioSource.outputAudioMixerGroup = _bombAudioSource.outputAudioMixerGroup;
-            }
-
-            temporaryAudioSource.spatialBlend = 0f;
-            temporaryAudioSource.volume = _globalPlantedVolume;
-            temporaryAudioSource.clip = _globalPlantedClip;
-            temporaryAudioSource.Play();
-            Destroy(soundHostObject, _globalPlantedClip.length + AUDIO_CLEANUP_EXTRA_DELAY);
+            if (_explosionAudioClip != null) _audioSource.PlayOneShot(_explosionAudioClip);
+            if (_explosionVfxPrefab != null) Instantiate(_explosionVfxPrefab, transform.position, Quaternion.identity);
         }
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    private void SpawnDefuseVfxClientRpc(Vector3 spawnPosition)
-    {
-        if (_defuseVfxPrefab != null) Instantiate(_defuseVfxPrefab, spawnPosition, Quaternion.identity);
-    }
-
-    private IEnumerator PlantedBeepLoop()
-    {
-        while (bombState.Value == BombState.Planted || bombState.Value == BombState.Defusing)
-        {
-            double elapsedServerSeconds = NetworkManager.Singleton.ServerTime.Time - plantedServerTime.Value;
-            float remainingDetonationSeconds = _detonationDuration - (float)elapsedServerSeconds;
-
-            if (remainingDetonationSeconds <= MIN_REMAINING_DETONATION_TIME)
-            {
-                StopBeepRoutine();
-
-                if (IsServer && bombState.Value != BombState.Defused)
-                {
-                    bombState.Value = BombState.Exploded;
-                    SpawnExplosionVfxClientRpc(transform.position);
-                }
-                yield break;
-            }
-
-            float progressionFactor = Mathf.Clamp(1f - (remainingDetonationSeconds / _detonationDuration), MIN_NORMALIZED_PROGRESS, MAX_NORMALIZED_PROGRESS);
-            float currentBeepInterval = Mathf.Lerp(_initialBeepInterval, _fastestBeepInterval, progressionFactor * progressionFactor);
-
-            if (_plantedBeepClip != null && _bombAudioSource != null)
-            {
-                _bombAudioSource.PlayOneShot(_plantedBeepClip, _beepVolume);
-            }
-
-            yield return new WaitForSeconds(currentBeepInterval);
-        }
-
-        _beepCoroutine = null;
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    private void SpawnExplosionVfxClientRpc(Vector3 spawnPosition)
-    {
-        UpdateRendererVisibility(false);
-        if (_explosionVfxPrefab != null) Instantiate(_explosionVfxPrefab, spawnPosition, Quaternion.identity);
-    }
-
-    private void StopBeepRoutine()
-    {
-        if (_beepCoroutine != null)
-        {
-            StopCoroutine(_beepCoroutine);
-            _beepCoroutine = null;
-        }
-
-        if (_bombAudioSource != null) _bombAudioSource.Stop();
-    }
-
-    public void ServerResetBomb(Vector3 targetResetPosition)
-    {
-        if (!IsServer) return;
-
-        StopBeepRoutine();
-
-        carrierClientId.Value = UNASSIGNED_CARRIER_ID;
-        defuserClientId.Value = UNASSIGNED_CARRIER_ID;
-        plantedServerTime.Value = 0;
-        _defuseStartTime = 0;
-
-        Vector3 groundSafePosition = targetResetPosition;
-        Vector3 rayStart = targetResetPosition + (Vector3.up * 1f);
-        if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 5f, ~0, QueryTriggerInteraction.Ignore))
-        {
-            groundSafePosition.y = hit.point.y + GROUND_OFFSET_Y;
-        }
-
-        transform.SetPositionAndRotation(groundSafePosition, Quaternion.identity);
-
-        if (_networkTransform != null)
-        {
-            _networkTransform.enabled = true;
-            _networkTransform.Teleport(groundSafePosition, Quaternion.identity, transform.localScale);
-        }
-
-        bombState.Value = BombState.Dropped;
-        ApplyPhysicsAndVisualState(BombState.Dropped);
-
-        ResetBombClientRpc(groundSafePosition);
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    private void ResetBombClientRpc(Vector3 targetResetPosition)
-    {
-        StopBeepRoutine();
-        transform.SetPositionAndRotation(targetResetPosition, Quaternion.identity);
-        ApplyPhysicsAndVisualState(BombState.Dropped);
     }
 }
