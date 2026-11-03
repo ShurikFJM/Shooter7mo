@@ -20,16 +20,20 @@ public class BombSite : NetworkBehaviour
         _zoneCollider.isTrigger = true;
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider otherCollider)
     {
-        if (other.CompareTag("Player"))
-            _playersInZone.Add(other);
+        if (otherCollider.CompareTag("Player"))
+        {
+            _playersInZone.Add(otherCollider);
+        }
     }
 
-    private void OnTriggerExit(Collider other)
+    private void OnTriggerExit(Collider otherCollider)
     {
-        if (other.CompareTag("Player"))
-            _playersInZone.Remove(other);
+        if (otherCollider.CompareTag("Player"))
+        {
+            _playersInZone.Remove(otherCollider);
+        }
     }
 
     public bool IsPositionInside(Vector3 worldPosition)
@@ -39,7 +43,7 @@ public class BombSite : NetworkBehaviour
 
     public bool HasAnyPlayerInside()
     {
-        _playersInZone.RemoveWhere(c => c == null);
+        _playersInZone.RemoveWhere(colliderElement => colliderElement == null);
         return _playersInZone.Count > 0;
     }
 
@@ -50,19 +54,19 @@ public class BombSite : NetworkBehaviour
 
     private void OnDrawGizmos()
     {
-        Collider col = GetComponent<Collider>();
-        if (col == null) return;
+        Collider siteCollider = GetComponent<Collider>();
+        if (siteCollider == null) return;
 
         Gizmos.color = new Color(1f, 0.5f, 0f, 0.35f);
         Gizmos.matrix = transform.localToWorldMatrix;
 
-        if (col is BoxCollider box)
+        if (siteCollider is BoxCollider boxCollider)
         {
-            Gizmos.DrawCube(box.center, box.size);
+            Gizmos.DrawCube(boxCollider.center, boxCollider.size);
         }
-        else if (col is SphereCollider sphere)
+        else if (siteCollider is SphereCollider sphereCollider)
         {
-            Gizmos.DrawSphere(sphere.center, sphere.radius);
+            Gizmos.DrawSphere(sphereCollider.center, sphereCollider.radius);
         }
     }
 }

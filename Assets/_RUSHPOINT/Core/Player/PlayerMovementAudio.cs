@@ -1,8 +1,5 @@
 using Unity.Netcode;
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem;
-#endif
 
 [RequireComponent(typeof(CharacterController), typeof(AudioSource))]
 public class PlayerMovementAudio : NetworkBehaviour
@@ -87,7 +84,7 @@ public class PlayerMovementAudio : NetworkBehaviour
 
         _lastGroundedPosition = currentPosition;
 
-        if (IsStealthKeyPressed())
+        if (IsStealthActive())
         {
             return;
         }
@@ -102,6 +99,21 @@ public class PlayerMovementAudio : NetworkBehaviour
                 PlayFootstepServerRpc();
             }
         }
+    }
+
+    private bool IsStealthActive()
+    {
+        if (_playerController != null)
+        {
+            if (_playerController.IsSlowWalking || _playerController.IsCrouching) return true;
+        }
+
+        if (InputManager.Instance != null && (InputManager.Instance.IsWalkPressed || InputManager.Instance.IsCrouchPressed))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private void CheckLandingAndAirState()
@@ -141,25 +153,6 @@ public class PlayerMovementAudio : NetworkBehaviour
 
         _highestAirPointY = transform.position.y;
         PlayJumpServerRpc();
-    }
-
-    private bool IsStealthKeyPressed()
-    {
-#if ENABLE_INPUT_SYSTEM
-        Keyboard currentKeyboard = Keyboard.current;
-        if (currentKeyboard == null)
-        {
-            return false;
-        }
-
-        bool shiftHeld = currentKeyboard.leftShiftKey.isPressed || currentKeyboard.rightShiftKey.isPressed;
-        bool ctrlHeld = currentKeyboard.leftCtrlKey.isPressed || currentKeyboard.rightCtrlKey.isPressed;
-        return shiftHeld || ctrlHeld;
-#else
-        bool shiftHeld = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-        bool ctrlHeld = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-        return shiftHeld || ctrlHeld;
-#endif
     }
 
     [Rpc(SendTo.Server)]

@@ -5,25 +5,22 @@ using UnityEngine.InputSystem;
 
 public class SpectatorManager : MonoBehaviour
 {
-    public static SpectatorManager Instance { get; private set; }
-
     private const float BACKUP_HEAD_HEIGHT = 1.6f;
 
-    [Header("Configuración de Espectador")]
-    [Tooltip("Permite alternar entre jugadores de ambos equipos (Rojo y Azul)")]
-    [SerializeField] private bool _allowSpectateAllTeams = true;
+    public static SpectatorManager Instance { get; private set; }
 
     private readonly List<NetworkPlayerController> _spectatablePlayers = new List<NetworkPlayerController>();
     private NetworkPlayerController _currentSpectatedPlayer;
     private Camera _localCamera;
     private Transform _originalCameraParent;
     private float _originalLocalY;
-    private int _spectatedIndex = 0;
-    private bool _isSpectating = false;
+    private int _spectatedIndex;
+    private bool _isSpectating;
     private Team _localTeam = Team.Neutral;
 
+    public bool IsSpectating => _isSpectating;
     public bool isSpectating => _isSpectating;
-    public NetworkPlayerController currentSpectatedPlayer => _currentSpectatedPlayer;
+    public NetworkPlayerController CurrentSpectatedPlayer => _currentSpectatedPlayer;
 
     private void Awake()
     {
@@ -78,7 +75,7 @@ public class SpectatorManager : MonoBehaviour
     {
         if (_localCamera != null && _originalCameraParent != null)
         {
-            _localCamera.transform.position = _originalCameraParent.position + Vector3.up * _originalLocalY;
+            _localCamera.transform.position = _originalCameraParent.position + (Vector3.up * _originalLocalY);
             _localCamera.transform.rotation = _originalCameraParent.rotation;
         }
     }
@@ -91,14 +88,12 @@ public class SpectatorManager : MonoBehaviour
         bool cycleNext = false;
         bool cyclePrev = false;
 
-        // Soporte para Mouse
         if (Mouse.current != null)
         {
             if (Mouse.current.leftButton.wasPressedThisFrame) cycleNext = true;
             if (Mouse.current.rightButton.wasPressedThisFrame) cyclePrev = true;
         }
 
-        // Soporte para Teclado (Flechas, A/D, Espacio)
         if (Keyboard.current != null)
         {
             if (Keyboard.current.rightArrowKey.wasPressedThisFrame || Keyboard.current.dKey.wasPressedThisFrame || Keyboard.current.spaceKey.wasPressedThisFrame)
@@ -121,33 +116,40 @@ public class SpectatorManager : MonoBehaviour
 
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsClient) return;
 
-        IReadOnlyList<NetworkClient> clients = NetworkManager.Singleton.ConnectedClientsList;
+        IReadOnlyList<NetworkClient> connectedClients = NetworkManager.Singleton.ConnectedClientsList;
 
-        for (int i = 0; i < clients.Count; i++)
+        for (int i = 0; i < connectedClients.Count; i++)
         {
-            NetworkClient client = clients[i];
+            NetworkClient client = connectedClients[i];
             if (client.PlayerObject == null) continue;
             if (client.ClientId == NetworkManager.Singleton.LocalClientId) continue;
 
-            NetworkPlayerController candidate = client.PlayerObject.GetComponent<NetworkPlayerController>();
+            NetworkPlayerController candidateController = client.PlayerObject.GetComponent<NetworkPlayerController>();
             PlayerTeam candidateTeam = client.PlayerObject.GetComponent<PlayerTeam>();
+            if (candidateTeam == null)
+            {
+                candidateTeam = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
+            }
+
             NetworkHealth candidateHealth = client.PlayerObject.GetComponent<NetworkHealth>();
+            if (candidateHealth == null)
+            {
+                candidateHealth = client.PlayerObject.GetComponentInChildren<NetworkHealth>();
+            }
 
-            if (candidate == null || candidateTeam == null || candidateHealth == null) continue;
+            if (candidateController == null || candidateTeam == null || candidateHealth == null) continue;
 
-            // Si _allowSpectateAllTeams está activo o somos Neutrales, se incluyen ambos bandos (Rojo y Azul)
-            if (!_allowSpectateAllTeams && _localTeam != Team.Neutral && candidateTeam.CurrentTeam.Value != _localTeam)
+            if (_localTeam != Team.Neutral && candidateTeam.CurrentTeam.Value != _localTeam)
             {
                 continue;
             }
 
-            // Solo añadir jugadores vivos
             if (!candidateHealth.IsAlive.Value || candidateHealth.CurrentHealth.Value <= 0f)
             {
                 continue;
             }
 
-            _spectatablePlayers.Add(candidate);
+            _spectatablePlayers.Add(candidateController);
         }
     }
 
@@ -179,6 +181,11 @@ public class SpectatorManager : MonoBehaviour
         }
 
         NetworkHealth targetHealth = _currentSpectatedPlayer.GetComponent<NetworkHealth>();
+        if (targetHealth == null)
+        {
+            targetHealth = _currentSpectatedPlayer.GetComponentInChildren<NetworkHealth>();
+        }
+
         if (targetHealth == null || !targetHealth.IsAlive.Value || targetHealth.CurrentHealth.Value <= 0f)
         {
             CycleNextPlayer(1);
@@ -187,16 +194,16 @@ public class SpectatorManager : MonoBehaviour
 
         if (_localCamera != null)
         {
-            Camera targetCam = _currentSpectatedPlayer.GetComponentInChildren<Camera>();
+            Camera targetCamera = _currentSpectatedPlayer.GetComponentInChildren<Camera>();
 
-            if (targetCam != null)
+            if (targetCamera != null)
             {
-                _localCamera.transform.position = targetCam.transform.position;
-                _localCamera.transform.rotation = targetCam.transform.rotation;
+                _localCamera.transform.position = targetCamera.transform.position;
+                _localCamera.transform.rotation = targetCamera.transform.rotation;
             }
             else
             {
-                _localCamera.transform.position = _currentSpectatedPlayer.transform.position + Vector3.up * BACKUP_HEAD_HEIGHT;
+                _localCamera.transform.position = _currentSpectatedPlayer.transform.position + (Vector3.up * BACKUP_HEAD_HEIGHT);
                 _localCamera.transform.rotation = _currentSpectatedPlayer.transform.rotation;
             }
         }

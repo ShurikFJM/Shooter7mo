@@ -7,6 +7,13 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Canvas))]
 public class LoadingScreen : MonoBehaviour
 {
+    private const string DEFAULT_MAP_NAME = "HEAVEN";
+    private const string DEFAULT_MODE_NAME = "SEARCH & DESTROY";
+    private const string TARGET_SCENE_NAME = "RUSPOINT";
+    private const float MAX_DURATION_TIMEOUT = 4.0f;
+    private const float DISMISS_HOLD_DELAY = 0.15f;
+    private const float SAFETY_CLEANUP_DELAY = 1.5f;
+
     public static LoadingScreen Instance { get; private set; }
 
     [SerializeField] private GameObject _loadingScreenRoot;
@@ -55,7 +62,7 @@ public class LoadingScreen : MonoBehaviour
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "RUSPOINT" && gameObject.activeInHierarchy)
+        if (scene.name == TARGET_SCENE_NAME && gameObject.activeInHierarchy)
         {
             StartCoroutine(SafetyDismissRoutine());
         }
@@ -63,7 +70,7 @@ public class LoadingScreen : MonoBehaviour
 
     private IEnumerator SafetyDismissRoutine()
     {
-        yield return new WaitForSecondsRealtime(1.5f);
+        yield return new WaitForSecondsRealtime(SAFETY_CLEANUP_DELAY);
         Dismiss();
     }
 
@@ -94,8 +101,8 @@ public class LoadingScreen : MonoBehaviour
             _canvasGroup.blocksRaycasts = true;
         }
 
-        if (_mapNameText != null) _mapNameText.text = "HEAVEN";
-        if (_modeNameText != null) _modeNameText.text = "SEARCH & DESTROY";
+        if (_mapNameText != null) _mapNameText.text = DEFAULT_MAP_NAME;
+        if (_modeNameText != null) _modeNameText.text = DEFAULT_MODE_NAME;
         if (_progressBar != null) _progressBar.value = 0f;
         if (_progressText != null) _progressText.text = "0%";
 
@@ -106,20 +113,19 @@ public class LoadingScreen : MonoBehaviour
 
     private IEnumerator MaxDurationWatchdogRoutine()
     {
-        // Si por cualquier motivo la red tarda mas de 4 segundos, se cierra sola sin bloquear la pantalla
-        yield return new WaitForSecondsRealtime(4.0f);
+        yield return new WaitForSecondsRealtime(MAX_DURATION_TIMEOUT);
         Dismiss();
     }
 
     private IEnumerator SimulateProgressRoutine()
     {
-        float progress = 0f;
-        while (_isLoading && progress < 0.95f)
+        float currentProgress = 0f;
+        while (_isLoading && currentProgress < 0.95f)
         {
-            progress += Time.unscaledDeltaTime * Random.Range(0.45f, 0.75f);
-            float clamped = Mathf.Clamp01(progress);
-            if (_progressBar != null) _progressBar.value = clamped;
-            if (_progressText != null) _progressText.text = $"{Mathf.RoundToInt(clamped * 100f)}%";
+            currentProgress += Time.unscaledDeltaTime * Random.Range(0.45f, 0.75f);
+            float clampedProgress = Mathf.Clamp01(currentProgress);
+            if (_progressBar != null) _progressBar.value = clampedProgress;
+            if (_progressText != null) _progressText.text = $"{Mathf.RoundToInt(clampedProgress * 100f)}%";
             yield return null;
         }
     }
@@ -142,15 +148,15 @@ public class LoadingScreen : MonoBehaviour
         if (_progressBar != null) _progressBar.value = 1f;
         if (_progressText != null) _progressText.text = "100%";
 
-        yield return new WaitForSecondsRealtime(0.15f);
+        yield return new WaitForSecondsRealtime(DISMISS_HOLD_DELAY);
 
         if (_canvasGroup != null)
         {
-            float elapsed = 0f;
-            while (elapsed < _fadeDuration)
+            float elapsedDuration = 0f;
+            while (elapsedDuration < _fadeDuration)
             {
-                elapsed += Time.unscaledDeltaTime;
-                _canvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / _fadeDuration);
+                elapsedDuration += Time.unscaledDeltaTime;
+                _canvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsedDuration / _fadeDuration);
                 yield return null;
             }
             _canvasGroup.alpha = 0f;

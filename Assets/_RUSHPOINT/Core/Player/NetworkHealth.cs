@@ -5,80 +5,89 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(NetworkObject))]
 public class NetworkHealth : NetworkBehaviour
 {
+    private const float CRITICAL_HEAD_DAMAGE_MULTIPLIER = 2.5f;
+    private const float LEG_DAMAGE_MULTIPLIER = 0.75f;
+    private const float ARMOR_ABSORPTION_RATE = 0.5f;
+    private const float SPECTATOR_CAMERA_VERTICAL_OFFSET = 1.6f;
+
     [SerializeField] private float _defaultMaxHealth = 100f;
     [SerializeField] private float _defaultMaxArmor = 100f;
     [SerializeField] private bool _enableFriendlyFire = false;
-
     [SerializeField] private GameObject _characterModelRoot;
 
-    public NetworkVariable<float> CurrentHealth = new NetworkVariable<float>(
+    private readonly NetworkVariable<float> _currentHealth = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    public NetworkVariable<float> MaxHealth = new NetworkVariable<float>(
+    private readonly NetworkVariable<float> _maxHealth = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    public NetworkVariable<float> CurrentArmor = new NetworkVariable<float>(
+    private readonly NetworkVariable<float> _currentArmor = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    public NetworkVariable<float> MaxArmor = new NetworkVariable<float>(
+    private readonly NetworkVariable<float> _maxArmor = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    public NetworkVariable<bool> IsAlive = new NetworkVariable<bool>(
+    private readonly NetworkVariable<bool> _isAlive = new NetworkVariable<bool>(
         true,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
+    public NetworkVariable<float> CurrentHealth => _currentHealth;
+    public NetworkVariable<float> MaxHealth => _maxHealth;
+    public NetworkVariable<float> CurrentArmor => _currentArmor;
+    public NetworkVariable<float> MaxArmor => _maxArmor;
+    public NetworkVariable<bool> IsAlive => _isAlive;
+
     public override void OnNetworkSpawn()
     {
-        IsAlive.OnValueChanged += HandleIsAliveChanged;
+        _isAlive.OnValueChanged += HandleLivingStateChanged;
 
         if (IsServer)
         {
             ResetHealthServer();
         }
 
-        ApplyLivingState(IsAlive.Value);
-    }
-
-    public void SetSpectatorStateServer()
-    {
-        if (!IsServer) return;
-        IsAlive.Value = false;
-        CurrentHealth.Value = 0f;
+        ApplyLivingState(_isAlive.Value);
     }
 
     public override void OnNetworkDespawn()
     {
-        IsAlive.OnValueChanged -= HandleIsAliveChanged;
+        _isAlive.OnValueChanged -= HandleLivingStateChanged;
     }
 
-    private void HandleIsAliveChanged(bool previousState, bool isAlive)
+    private void HandleLivingStateChanged(bool previousState, bool isAlive)
     {
         ApplyLivingState(isAlive);
     }
 
     private void ApplyLivingState(bool isAlive)
     {
-        CharacterController cc = GetComponent<CharacterController>();
-        if (cc != null) cc.enabled = isAlive;
-
-        Collider[] colliders = GetComponentsInChildren<Collider>(true);
-        for (int i = 0; i < colliders.Length; i++)
+        CharacterController characterController = GetComponent<CharacterController>();
+        if (characterController != null)
         {
-            if (colliders[i] != null) colliders[i].enabled = isAlive;
+            characterController.enabled = isAlive;
+        }
+
+        Collider[] bodyColliders = GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < bodyColliders.Length; i++)
+        {
+            if (bodyColliders[i] != null)
+            {
+                bodyColliders[i].enabled = isAlive;
+            }
         }
 
         if (_characterModelRoot != null)
@@ -87,41 +96,60 @@ public class NetworkHealth : NetworkBehaviour
         }
         else
         {
-            Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
-            for (int i = 0; i < renderers.Length; i++)
+            Renderer[] visualRenderers = GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < visualRenderers.Length; i++)
             {
-                if (renderers[i] is MeshRenderer || renderers[i] is SkinnedMeshRenderer)
+                if (visualRenderers[i] is MeshRenderer || visualRenderers[i] is SkinnedMeshRenderer)
                 {
-                    renderers[i].enabled = isAlive;
+                    visualRenderers[i].enabled = isAlive;
                 }
             }
         }
 
         if (IsOwner)
         {
-            PlayerInput input = GetComponent<PlayerInput>();
-            Camera playerCam = GetComponentInChildren<Camera>(true);
+            PlayerInput playerInput = GetComponent<PlayerInput>();
+            Camera playerCamera = GetComponentInChildren<Camera>(true);
 
             if (!isAlive)
             {
-                if (input != null) input.DeactivateInput();
-
-                PlayerTeam teamComp = GetComponent<PlayerTeam>();
-                Team myTeam = teamComp != null ? teamComp.CurrentTeam.Value : Team.Red;
-
-                if (SpectatorManager.Instance != null && playerCam != null)
+                if (playerInput != null)
                 {
-                    SpectatorManager.Instance.StartSpectating(myTeam, playerCam, transform, 1.6f);
+                    playerInput.DeactivateInput();
+                }
+
+                PlayerTeam playerTeamComponent = GetComponent<PlayerTeam>();
+                if (playerTeamComponent == null)
+                {
+                    playerTeamComponent = GetComponentInChildren<PlayerTeam>();
+                }
+
+                Team assignedTeam = playerTeamComponent != null ? playerTeamComponent.CurrentTeam.Value : Team.Red;
+
+                if (assignedTeam == Team.Neutral && CustomLobbyManager.SavedTeams != null)
+                {
+                    if (CustomLobbyManager.SavedTeams.TryGetValue(OwnerClientId, out Team savedLobbyTeam))
+                    {
+                        assignedTeam = savedLobbyTeam;
+                    }
+                }
+
+                if (SpectatorManager.Instance != null && playerCamera != null)
+                {
+                    SpectatorManager.Instance.StartSpectating(assignedTeam, playerCamera, transform, SPECTATOR_CAMERA_VERTICAL_OFFSET);
                 }
             }
             else
             {
-                if (SpectatorManager.Instance != null && SpectatorManager.Instance.isSpectating)
+                if (SpectatorManager.Instance != null && SpectatorManager.Instance.IsSpectating)
                 {
                     SpectatorManager.Instance.StopSpectating();
                 }
 
-                if (input != null) input.ActivateInput();
+                if (playerInput != null)
+                {
+                    playerInput.ActivateInput();
+                }
             }
         }
     }
@@ -130,11 +158,11 @@ public class NetworkHealth : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        MaxHealth.Value = _defaultMaxHealth;
-        CurrentHealth.Value = _defaultMaxHealth;
-        MaxArmor.Value = _defaultMaxArmor;
-        CurrentArmor.Value = _defaultMaxArmor;
-        IsAlive.Value = true;
+        _maxHealth.Value = _defaultMaxHealth;
+        _currentHealth.Value = _defaultMaxHealth;
+        _maxArmor.Value = _defaultMaxArmor;
+        _currentArmor.Value = _defaultMaxArmor;
+        _isAlive.Value = true;
     }
 
     public void SetMaxStatsServer(float maxHealth, float maxArmor)
@@ -144,44 +172,60 @@ public class NetworkHealth : NetworkBehaviour
         _defaultMaxHealth = maxHealth;
         _defaultMaxArmor = maxArmor;
 
-        MaxHealth.Value = maxHealth;
-        MaxArmor.Value = maxArmor;
-        CurrentHealth.Value = maxHealth;
-        CurrentArmor.Value = maxArmor;
-        IsAlive.Value = true;
+        _maxHealth.Value = maxHealth;
+        _maxArmor.Value = maxArmor;
+        _currentHealth.Value = maxHealth;
+        _currentArmor.Value = maxArmor;
+        _isAlive.Value = true;
+    }
+
+    public void SetSpectatorStateServer()
+    {
+        if (!IsServer) return;
+
+        _isAlive.Value = false;
+        _currentHealth.Value = 0f;
     }
 
     [Rpc(SendTo.Server)]
     public void HealServerRpc(float amount, RpcParams rpcParams = default)
     {
-        if (!IsServer || !IsAlive.Value) return;
-        CurrentHealth.Value = Mathf.Min(CurrentHealth.Value + amount, MaxHealth.Value);
+        if (!IsServer || !_isAlive.Value) return;
+
+        _currentHealth.Value = Mathf.Min(_currentHealth.Value + amount, _maxHealth.Value);
     }
 
     public void HealServer(float amount)
     {
-        if (!IsServer || !IsAlive.Value) return;
-        CurrentHealth.Value = Mathf.Min(CurrentHealth.Value + amount, MaxHealth.Value);
+        if (!IsServer || !_isAlive.Value) return;
+
+        _currentHealth.Value = Mathf.Min(_currentHealth.Value + amount, _maxHealth.Value);
     }
 
     public void ApplyDamageServer(float baseDamage, HitboxType hitboxType, ulong attackerClientId)
     {
-        if (!IsServer || !IsAlive.Value) return;
+        if (!IsServer || !_isAlive.Value) return;
 
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.ConnectedClients.TryGetValue(attackerClientId, out var attackerClient))
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.ConnectedClients.TryGetValue(attackerClientId, out NetworkClient attackerClient))
         {
             if (attackerClient.PlayerObject != null)
             {
-                PlayerTeam attackerTeamComp = attackerClient.PlayerObject.GetComponent<PlayerTeam>();
-                if (attackerTeamComp == null) attackerTeamComp = attackerClient.PlayerObject.GetComponentInChildren<PlayerTeam>();
-
-                PlayerTeam myTeamComp = GetComponent<PlayerTeam>();
-                if (myTeamComp == null) myTeamComp = GetComponentInChildren<PlayerTeam>();
-
-                if (attackerTeamComp != null && myTeamComp != null)
+                PlayerTeam attackerTeamComponent = attackerClient.PlayerObject.GetComponent<PlayerTeam>();
+                if (attackerTeamComponent == null)
                 {
-                    Team attackerTeam = attackerTeamComp.CurrentTeam.Value;
-                    Team victimTeam = myTeamComp.CurrentTeam.Value;
+                    attackerTeamComponent = attackerClient.PlayerObject.GetComponentInChildren<PlayerTeam>();
+                }
+
+                PlayerTeam victimTeamComponent = GetComponent<PlayerTeam>();
+                if (victimTeamComponent == null)
+                {
+                    victimTeamComponent = GetComponentInChildren<PlayerTeam>();
+                }
+
+                if (attackerTeamComponent != null && victimTeamComponent != null)
+                {
+                    Team attackerTeam = attackerTeamComponent.CurrentTeam.Value;
+                    Team victimTeam = victimTeamComponent.CurrentTeam.Value;
 
                     if (attackerTeam == victimTeam && attackerTeam != Team.Neutral && !_enableFriendlyFire)
                     {
@@ -194,27 +238,27 @@ public class NetworkHealth : NetworkBehaviour
         float calculatedDamage = baseDamage;
         if (hitboxType == HitboxType.Head)
         {
-            calculatedDamage *= 2.5f;
+            calculatedDamage *= CRITICAL_HEAD_DAMAGE_MULTIPLIER;
         }
         else if (hitboxType == HitboxType.Legs)
         {
-            calculatedDamage *= 0.75f;
+            calculatedDamage *= LEG_DAMAGE_MULTIPLIER;
         }
 
-        if (CurrentArmor.Value > 0f)
+        if (_currentArmor.Value > 0f)
         {
-            float armorAbsorption = calculatedDamage * 0.5f;
-            float armorToDeduct = Mathf.Min(CurrentArmor.Value, armorAbsorption);
+            float armorAbsorption = calculatedDamage * ARMOR_ABSORPTION_RATE;
+            float armorToDeduct = Mathf.Min(_currentArmor.Value, armorAbsorption);
 
-            CurrentArmor.Value -= armorToDeduct;
+            _currentArmor.Value -= armorToDeduct;
             calculatedDamage -= armorToDeduct;
         }
 
-        CurrentHealth.Value = Mathf.Max(0f, CurrentHealth.Value - calculatedDamage);
+        _currentHealth.Value = Mathf.Max(0f, _currentHealth.Value - calculatedDamage);
 
-        if (CurrentHealth.Value <= 0f)
+        if (_currentHealth.Value <= 0f)
         {
-            IsAlive.Value = false;
+            _isAlive.Value = false;
         }
     }
 }

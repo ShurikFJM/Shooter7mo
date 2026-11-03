@@ -1,15 +1,16 @@
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class RoundPlayerHUD : MonoBehaviour
 {
     private const string TIME_FORMAT = "{0:00}:{1:00}";
-    private const string TERRORISTS_WIN_TEXT = "TERRORISTS WIN";
-    private const string COUNTER_TERRORISTS_WIN_TEXT = "COUNTER-TERRORISTS WIN";
+    private const string TERRORISTS_WIN_TEXT = "ATTACKERS WIN";
+    private const string COUNTER_TERRORISTS_WIN_TEXT = "DEFENDERS WIN";
     private const string ROUND_OVER_TEXT = "ROUND OVER";
-    private const string TERRORISTS_MATCH_WIN_TEXT = "TERRORISTS WIN THE MATCH";
-    private const string COUNTER_TERRORISTS_MATCH_WIN_TEXT = "COUNTER-TERRORISTS WIN THE MATCH";
+    private const string TERRORISTS_MATCH_WIN_TEXT = "ATTACKERS WIN THE MATCH";
+    private const string COUNTER_TERRORISTS_MATCH_WIN_TEXT = "DEFENDERS WIN THE MATCH";
 
     [SerializeField] private TMP_Text _roundTimerText;
     [SerializeField] private TMP_Text _terroristScoreText;
@@ -22,24 +23,45 @@ public class RoundPlayerHUD : MonoBehaviour
     [SerializeField] private Color _terroristColor = new Color(0.85f, 0.15f, 0.15f);
     [SerializeField] private Color _counterTerroristColor = new Color(0.15f, 0.4f, 0.85f);
 
+    [SerializeField] private Image[] _redDiamondImages;
+    [SerializeField] private Image[] _blueDiamondImages;
+    [SerializeField] private Color _activeDiamondColor = Color.white;
+    [SerializeField] private Color _inactiveDiamondColor = new Color(1f, 1f, 1f, 0.2f);
+
+    private RoundManager _cachedRoundManager;
+
     private void Start()
     {
         HideResultUI();
+        LocateRoundManager();
     }
 
     private void Update()
     {
-        if (RoundManager.Instance == null || NetworkManager.Singleton == null || !NetworkManager.Singleton.IsClient)
+        LocateRoundManager();
+
+        if (_cachedRoundManager == null)
         {
             return;
         }
 
-        RoundManager roundManager = RoundManager.Instance;
+        UpdateTimer(_cachedRoundManager);
+        UpdateScore(_cachedRoundManager);
+        UpdateRoundNumber(_cachedRoundManager);
+        UpdateResultUI(_cachedRoundManager);
+    }
 
-        UpdateTimer(roundManager);
-        UpdateScore(roundManager);
-        UpdateRoundNumber(roundManager);
-        UpdateResultUI(roundManager);
+    private void LocateRoundManager()
+    {
+        if (_cachedRoundManager != null) return;
+
+        if (RoundManager.Instance != null)
+        {
+            _cachedRoundManager = RoundManager.Instance;
+            return;
+        }
+
+        _cachedRoundManager = FindAnyObjectByType<RoundManager>();
     }
 
     private void UpdateTimer(RoundManager roundManager)
@@ -58,15 +80,21 @@ public class RoundPlayerHUD : MonoBehaviour
 
     private void UpdateScore(RoundManager roundManager)
     {
+        int redScore = roundManager.RedScore.Value;
+        int blueScore = roundManager.BlueScore.Value;
+
         if (_terroristScoreText != null)
         {
-            _terroristScoreText.text = roundManager.RedScore.Value.ToString();
+            _terroristScoreText.text = redScore.ToString();
         }
 
         if (_counterTerroristScoreText != null)
         {
-            _counterTerroristScoreText.text = roundManager.BlueScore.Value.ToString();
+            _counterTerroristScoreText.text = blueScore.ToString();
         }
+
+        RefreshDiamonds(_redDiamondImages, redScore);
+        RefreshDiamonds(_blueDiamondImages, blueScore);
     }
 
     private void UpdateRoundNumber(RoundManager roundManager)
@@ -77,6 +105,19 @@ public class RoundPlayerHUD : MonoBehaviour
         }
 
         _roundNumberText.text = roundManager.RoundNumber.Value.ToString();
+    }
+
+    private void RefreshDiamonds(Image[] diamondArray, int filledCount)
+    {
+        if (diamondArray == null) return;
+
+        for (int i = 0; i < diamondArray.Length; i++)
+        {
+            if (diamondArray[i] != null)
+            {
+                diamondArray[i].color = (i < filledCount) ? _activeDiamondColor : _inactiveDiamondColor;
+            }
+        }
     }
 
     private void UpdateResultUI(RoundManager roundManager)

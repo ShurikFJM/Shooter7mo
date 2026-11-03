@@ -8,51 +8,84 @@ using UnityEngine;
 public class CustomLobbyManager : NetworkBehaviour
 {
     public const int MAX_PLAYERS_PER_TEAM = 5;
+    private const float DEFAULT_ROUND_DURATION = 90f;
+    private const int DEFAULT_ROUNDS_TO_WIN = 5;
+    private const string DEFAULT_MAP_SCENE_NAME = "RUSPOINT";
+    private const string PLAYER_PREFS_NAME_KEY = "PlayerName";
+    private const string DEFAULT_PLAYER_NAME_PREFIX = "Player_";
 
-    public static CustomLobbyManager Instance { get; private set; }
+    private static CustomLobbyManager _instance;
+    public static CustomLobbyManager Instance => _instance;
 
-    public static readonly Dictionary<ulong, Team> SavedTeams = new Dictionary<ulong, Team>();
-    public static readonly Dictionary<ulong, PlayerRoleType> SavedRoles = new Dictionary<ulong, PlayerRoleType>();
+    private static readonly Dictionary<ulong, Team> _savedTeams = new Dictionary<ulong, Team>();
+    public static Dictionary<ulong, Team> SavedTeams => _savedTeams;
+
+    private static readonly Dictionary<ulong, PlayerRoleType> _savedRoles = new Dictionary<ulong, PlayerRoleType>();
+    public static Dictionary<ulong, PlayerRoleType> SavedRoles => _savedRoles;
+
+    private static float _savedRoundDuration = DEFAULT_ROUND_DURATION;
+    public static float SavedRoundDuration
+    {
+        get => _savedRoundDuration;
+        set => _savedRoundDuration = value;
+    }
+
+    private static int _savedRoundsToWin = DEFAULT_ROUNDS_TO_WIN;
+    public static int SavedRoundsToWin
+    {
+        get => _savedRoundsToWin;
+        set => _savedRoundsToWin = value;
+    }
 
     public event Action OnLobbyDataUpdated;
 
-    [Header("Escena")]
-    [SerializeField] private string _gameSceneName = "RUSPOINT";
+    [SerializeField] private string _gameSceneName = DEFAULT_MAP_SCENE_NAME;
     public string GameSceneName => _gameSceneName;
 
-    [Header("UI Canvas")]
     [SerializeField] private GameObject _customLobbyCanvas;
     [SerializeField] private GameObject _roleSelectCanvas;
     [SerializeField] private GameObject _spectatorWaitCanvas;
 
-    public NetworkList<LobbyPlayerData> Players;
+    private NetworkList<LobbyPlayerData> _players;
+    public NetworkList<LobbyPlayerData> Players => _players;
 
-    public NetworkVariable<FixedString64Bytes> LobbyJoinCode = new NetworkVariable<FixedString64Bytes>(
+    private readonly NetworkVariable<FixedString64Bytes> _lobbyJoinCode = new NetworkVariable<FixedString64Bytes>(
         string.Empty,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+    public NetworkVariable<FixedString64Bytes> LobbyJoinCode => _lobbyJoinCode;
 
-    public NetworkVariable<float> SelectedRoundDuration = new NetworkVariable<float>(
-        115f,
+    private readonly NetworkVariable<float> _selectedRoundDuration = new NetworkVariable<float>(
+        DEFAULT_ROUND_DURATION,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+    public NetworkVariable<float> SelectedRoundDuration => _selectedRoundDuration;
 
-    public NetworkVariable<int> SelectedRoundsToWin = new NetworkVariable<int>(
-        13,
+    private readonly NetworkVariable<int> _selectedRoundsToWin = new NetworkVariable<int>(
+        DEFAULT_ROUNDS_TO_WIN,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+    public NetworkVariable<int> SelectedRoundsToWin => _selectedRoundsToWin;
+
+    public static void ClearLobbyData()
+    {
+        _savedTeams.Clear();
+        _savedRoles.Clear();
+        _savedRoundDuration = DEFAULT_ROUND_DURATION;
+        _savedRoundsToWin = DEFAULT_ROUNDS_TO_WIN;
+    }
 
     public bool CanStartMatch()
     {
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return false;
-        if (Players == null || Players.Count == 0) return true;
+        if (_players == null || _players.Count == 0) return true;
 
-        for (int i = 0; i < Players.Count; i++)
+        for (int i = 0; i < _players.Count; i++)
         {
-            if (Players[i].AssignedTeam != Team.Neutral && !Players[i].IsReady)
+            if (_players[i].AssignedTeam != Team.Neutral && !_players[i].IsReady)
             {
                 return false;
             }
@@ -62,15 +95,15 @@ public class CustomLobbyManager : NetworkBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (_instance != null && _instance != this)
         {
             Destroy(gameObject);
             return;
         }
 
-        Instance = this;
+        _instance = this;
 
-        Players = new NetworkList<LobbyPlayerData>(
+        _players = new NetworkList<LobbyPlayerData>(
             new List<LobbyPlayerData>(),
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
@@ -79,7 +112,7 @@ public class CustomLobbyManager : NetworkBehaviour
 
     public override void OnDestroy()
     {
-        if (Instance == this) Instance = null;
+        if (_instance == this) _instance = null;
         base.OnDestroy();
     }
 
@@ -90,13 +123,16 @@ public class CustomLobbyManager : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback += HandleClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
 
+            _savedRoundDuration = _selectedRoundDuration.Value;
+            _savedRoundsToWin = _selectedRoundsToWin.Value;
+
             HandleClientConnected(NetworkManager.Singleton.LocalClientId);
         }
 
-        Players.OnListChanged += (changeEvent) => OnLobbyDataUpdated?.Invoke();
-        LobbyJoinCode.OnValueChanged += (prev, curr) => OnLobbyDataUpdated?.Invoke();
-        SelectedRoundDuration.OnValueChanged += (prev, curr) => OnLobbyDataUpdated?.Invoke();
-        SelectedRoundsToWin.OnValueChanged += (prev, curr) => OnLobbyDataUpdated?.Invoke();
+        _players.OnListChanged += (changeEvent) => OnLobbyDataUpdated?.Invoke();
+        _lobbyJoinCode.OnValueChanged += (prev, curr) => OnLobbyDataUpdated?.Invoke();
+        _selectedRoundDuration.OnValueChanged += HandleRoundDurationNetworkChanged;
+        _selectedRoundsToWin.OnValueChanged += HandleRoundsToWinNetworkChanged;
 
         OnLobbyDataUpdated?.Invoke();
     }
@@ -108,25 +144,43 @@ public class CustomLobbyManager : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback -= HandleClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnected;
         }
+
+        _selectedRoundDuration.OnValueChanged -= HandleRoundDurationNetworkChanged;
+        _selectedRoundsToWin.OnValueChanged -= HandleRoundsToWinNetworkChanged;
     }
 
-  
+    private void HandleRoundDurationNetworkChanged(float previousValue, float currentValue)
+    {
+        if (IsServer)
+        {
+            _savedRoundDuration = currentValue;
+        }
+        OnLobbyDataUpdated?.Invoke();
+    }
 
+    private void HandleRoundsToWinNetworkChanged(int previousValue, int currentValue)
+    {
+        if (IsServer)
+        {
+            _savedRoundsToWin = currentValue;
+        }
+        OnLobbyDataUpdated?.Invoke();
+    }
 
     private void HandleClientConnected(ulong clientId)
     {
         if (!IsServer) return;
 
-        for (int i = 0; i < Players.Count; i++)
+        for (int i = 0; i < _players.Count; i++)
         {
-            if (Players[i].ClientId == clientId) return;
+            if (_players[i].ClientId == clientId) return;
         }
 
-        string defaultName = PlayerPrefs.GetString("PlayerName", $"Player_{clientId}");
+        string defaultName = PlayerPrefs.GetString(PLAYER_PREFS_NAME_KEY, string.Concat(DEFAULT_PLAYER_NAME_PREFIX, clientId));
         Team defaultTeam = Team.Neutral;
 
-        Players.Add(new LobbyPlayerData(clientId, defaultName, defaultTeam, false));
-        SavedTeams[clientId] = defaultTeam;
+        _players.Add(new LobbyPlayerData(clientId, defaultName, defaultTeam, false));
+        _savedTeams[clientId] = defaultTeam;
         OnLobbyDataUpdated?.Invoke();
     }
 
@@ -134,40 +188,40 @@ public class CustomLobbyManager : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        for (int i = 0; i < Players.Count; i++)
+        for (int i = 0; i < _players.Count; i++)
         {
-            if (Players[i].ClientId == clientId)
+            if (_players[i].ClientId == clientId)
             {
-                Players.RemoveAt(i);
+                _players.RemoveAt(i);
                 break;
             }
         }
 
-        SavedTeams.Remove(clientId);
-        SavedRoles.Remove(clientId);
+        _savedTeams.Remove(clientId);
+        _savedRoles.Remove(clientId);
         OnLobbyDataUpdated?.Invoke();
     }
 
     public static void SavePlayerData(ulong clientId, Team team, PlayerRoleType role)
     {
-        SavedTeams[clientId] = team;
-        SavedRoles[clientId] = role;
+        _savedTeams[clientId] = team;
+        _savedRoles[clientId] = role;
     }
 
     public Team GetPlayerAssignedTeam(ulong clientId)
     {
-        if (SavedTeams != null && SavedTeams.TryGetValue(clientId, out Team team))
+        if (_savedTeams != null && _savedTeams.TryGetValue(clientId, out Team team))
         {
             return team;
         }
 
-        if (Players != null)
+        if (_players != null)
         {
-            for (int i = 0; i < Players.Count; i++)
+            for (int i = 0; i < _players.Count; i++)
             {
-                if (Players[i].ClientId == clientId)
+                if (_players[i].ClientId == clientId)
                 {
-                    return Players[i].AssignedTeam;
+                    return _players[i].AssignedTeam;
                 }
             }
         }
@@ -179,7 +233,7 @@ public class CustomLobbyManager : NetworkBehaviour
     {
         if (IsServer)
         {
-            LobbyJoinCode.Value = code;
+            _lobbyJoinCode.Value = code;
             OnLobbyDataUpdated?.Invoke();
         }
         else
@@ -191,21 +245,51 @@ public class CustomLobbyManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void SetLobbyJoinCodeServerRpc(FixedString64Bytes code)
     {
-        LobbyJoinCode.Value = code;
+        _lobbyJoinCode.Value = code;
         OnLobbyDataUpdated?.Invoke();
+    }
+
+    public void SetRoundDuration(float duration)
+    {
+        if (IsServer)
+        {
+            _selectedRoundDuration.Value = duration;
+            _savedRoundDuration = duration;
+            OnLobbyDataUpdated?.Invoke();
+        }
+        else
+        {
+            SetRoundDurationServerRpc(duration);
+        }
     }
 
     [Rpc(SendTo.Server)]
     public void SetRoundDurationServerRpc(float duration)
     {
-        SelectedRoundDuration.Value = duration;
+        _selectedRoundDuration.Value = duration;
+        _savedRoundDuration = duration;
         OnLobbyDataUpdated?.Invoke();
+    }
+
+    public void SetRoundsToWin(int rounds)
+    {
+        if (IsServer)
+        {
+            _selectedRoundsToWin.Value = rounds;
+            _savedRoundsToWin = rounds;
+            OnLobbyDataUpdated?.Invoke();
+        }
+        else
+        {
+            SetRoundsToWinServerRpc(rounds);
+        }
     }
 
     [Rpc(SendTo.Server)]
     public void SetRoundsToWinServerRpc(int rounds)
     {
-        SelectedRoundsToWin.Value = rounds;
+        _selectedRoundsToWin.Value = rounds;
+        _savedRoundsToWin = rounds;
         OnLobbyDataUpdated?.Invoke();
     }
 
@@ -218,13 +302,13 @@ public class CustomLobbyManager : NetworkBehaviour
             targetId = NetworkManager.Singleton.LocalClientId;
         }
 
-        for (int i = 0; i < Players.Count; i++)
+        for (int i = 0; i < _players.Count; i++)
         {
-            if (Players[i].ClientId == targetId)
+            if (_players[i].ClientId == targetId)
             {
-                LobbyPlayerData updated = Players[i];
+                LobbyPlayerData updated = _players[i];
                 updated.PlayerName = newName;
-                Players[i] = updated;
+                _players[i] = updated;
                 break;
             }
         }
@@ -258,14 +342,14 @@ public class CustomLobbyManager : NetworkBehaviour
             targetId = NetworkManager.Singleton.LocalClientId;
         }
 
-        for (int i = 0; i < Players.Count; i++)
+        for (int i = 0; i < _players.Count; i++)
         {
-            if (Players[i].ClientId == targetId)
+            if (_players[i].ClientId == targetId)
             {
-                LobbyPlayerData updated = Players[i];
+                LobbyPlayerData updated = _players[i];
                 updated.AssignedTeam = newTeam;
-                Players[i] = updated;
-                SavedTeams[targetId] = newTeam;
+                _players[i] = updated;
+                _savedTeams[targetId] = newTeam;
                 break;
             }
         }
@@ -282,13 +366,13 @@ public class CustomLobbyManager : NetworkBehaviour
             targetId = NetworkManager.Singleton.LocalClientId;
         }
 
-        for (int i = 0; i < Players.Count; i++)
+        for (int i = 0; i < _players.Count; i++)
         {
-            if (Players[i].ClientId == targetId)
+            if (_players[i].ClientId == targetId)
             {
-                LobbyPlayerData updated = Players[i];
+                LobbyPlayerData updated = _players[i];
                 updated.IsReady = !updated.IsReady;
-                Players[i] = updated;
+                _players[i] = updated;
                 break;
             }
         }
@@ -306,6 +390,9 @@ public class CustomLobbyManager : NetworkBehaviour
     public void RequestStartGameServerRpc(RpcParams rpcParams = default)
     {
         if (!IsServer) return;
+
+        _savedRoundDuration = _selectedRoundDuration.Value;
+        _savedRoundsToWin = _selectedRoundsToWin.Value;
 
         StartRoleSelectionClientRpc();
     }

@@ -67,13 +67,100 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/KeyboardControlsView[0]"}'
+        count: 10
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/KeyboardControlsView[0]/Row_Fire[0]"}'
+        count: 9
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]"}'
+        count: 8
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/MainPausePanel[0]"}'
+        count: 4
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/GamepadControlsView[0]"}'
+        count: 4
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]"}'
+        count: 3
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/Button_Controls[0]"}'
+        count: 3
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/TitleText[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/Text_CurrentDevice[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+        - {fileID: 0}
       recentlyClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/KeyboardControlsView[0]/Row_Fire[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/KeyboardControlsView[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/Button_Controls[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/TitleText[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/Text_CurrentDevice[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/Text_CurrentDevice[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/GamepadControlsView[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/MainPausePanel[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/TitleText[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
@@ -81,7 +168,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 09:26 AM (October 30, 2026)
+    lastSaveTimePrint: 03:41 PM (November 3, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -95,16 +182,16 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 81
+    lastValidTabWidth: 0
     alreadyCalculatedHeight: 0
     lastKnownHeight: 0
     tabs:
-    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/KeyboardControlsView[0]/Row_Fire[0]"}'
       paths: []
       tabWidth: 0
-      name: RoundManager
-      icon: {fileID: 148978298399363526, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: RoundManager
+      name: Row_Fire
+      icon: {fileID: 7334568976493443608, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: Row_Fire
       filterString: 
       newTab: 0
       scrollPosition: 0
@@ -176,19 +263,37 @@ MonoBehaviour:
         hidden: 0
         componentName: 
         niceComponentName: 
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 0
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: 
-        niceComponentName: 
       historyPaths:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"RoundManager[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/KeyboardControlsView[0]/Row_Fire[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/KeyboardControlsView[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/Button_Controls[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/TitleText[0]"}'
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/Text_CurrentDevice[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/Text_CurrentDevice[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/GamepadControlsView[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/MainPausePanel[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/TitleText[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]"}'
         prefab: 0
       owner: {fileID: 0}
     closedTabs: []
@@ -218,7 +323,7 @@ MonoBehaviour:
       - 7a241e49bcdcf8a419ef451860429469
     targetObject: {fileID: 2100000, guid: 48274daa9c39edc48b50e2de7f606b80, type: 2}
     targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Shaders/EnvMat/EnvMat_MetalPlates_MAT.mat
+    lastSelectedAsset: 
     lastClickedTab: -1
     previousTab: 0
   - tracker:
@@ -258,7 +363,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: 7a241e49bcdcf8a419ef451860429469
     sceneName: MainMenu
-    lastSaveTimePrint: 09:02 AM (October 30, 2026)
+    lastSaveTimePrint: 03:16 PM (November 3, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -272,7 +377,7 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 81
+    lastValidTabWidth: 0
     alreadyCalculatedHeight: 0
     lastKnownHeight: 0
     tabs:
@@ -362,7 +467,7 @@ MonoBehaviour:
       - 7a241e49bcdcf8a419ef451860429469
     targetObject: {fileID: 2100000, guid: 48274daa9c39edc48b50e2de7f606b80, type: 2}
     targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Shaders/EnvMat/EnvMat_MetalPlates_MAT.mat
+    lastSelectedAsset: 
     lastClickedTab: -1
     previousTab: 0
   - tracker:
@@ -775,7 +880,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: 91539b0d54401974baf219f36a5d3390
     sceneName: IntroRushpoint
-    lastSaveTimePrint: 09:02 AM (October 30, 2026)
+    lastSaveTimePrint: 10:58 PM (November 2, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -789,7 +894,7 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 81
+    lastValidTabWidth: 0
     alreadyCalculatedHeight: 0
     lastKnownHeight: 0
     tabs:
@@ -879,9 +984,9 @@ MonoBehaviour:
       - 7a241e49bcdcf8a419ef451860429469
     targetObject: {fileID: 2100000, guid: 48274daa9c39edc48b50e2de7f606b80, type: 2}
     targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Shaders/EnvMat/EnvMat_MetalPlates_MAT.mat
+    lastSelectedAsset: 
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000010000000100000001000000010000000100000001000000010000000000000001000000000000000100000001000000010000000100000001000000010000000100000001000000000000000100000001000000000000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  tipsShown: 01000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000
   playModeStartScene: {}
   enteringPlayMode: 0

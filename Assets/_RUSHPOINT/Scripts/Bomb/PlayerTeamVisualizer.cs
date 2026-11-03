@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class PlayerTeamVisualizer : NetworkBehaviour
 {
@@ -63,8 +64,17 @@ public class PlayerTeamVisualizer : NetworkBehaviour
         {
             if (_teamMeshRenderers[i] != null)
             {
-                _teamMeshRenderers[i].enabled = true;
                 _teamMeshRenderers[i].material = targetMaterial;
+
+                if (IsOwner)
+                {
+                    _teamMeshRenderers[i].shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+                }
+                else
+                {
+                    _teamMeshRenderers[i].enabled = true;
+                    _teamMeshRenderers[i].shadowCastingMode = ShadowCastingMode.On;
+                }
             }
         }
     }
