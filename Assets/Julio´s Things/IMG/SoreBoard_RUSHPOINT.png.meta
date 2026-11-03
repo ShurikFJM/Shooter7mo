@@ -1,0 +1,1062 @@
+fileFormatVersion: 2
+guid: 81e54ee89b8276742b2f844990282670
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 882
+        width: 62
+        height: 59
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d5c9c391b82e87c48806c53df2373301
+      internalID: -1924757323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_1
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 656
+        width: 1547
+        height: 144
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ab25d10606dfc4942b4d6a27f93e62e0
+      internalID: 303493607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_2
+      rect:
+        serializedVersion: 2
+        x: 616
+        y: 915
+        width: 43
+        height: 19
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cfe94e7012f36ee4c98f2802c0200c2c
+      internalID: 740754589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_3
+      rect:
+        serializedVersion: 2
+        x: 835
+        y: 878
+        width: 65
+        height: 55
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 82bb1799dd577e14cb6af2e090f688ee
+      internalID: 121035904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_4
+      rect:
+        serializedVersion: 2
+        x: 923
+        y: 891
+        width: 27
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cfcc190c462e7894f82560de7d8a811a
+      internalID: 583647244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_5
+      rect:
+        serializedVersion: 2
+        x: 990
+        y: 925
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9cf1fc27e66343146b5ad023f42d90be
+      internalID: -2017467430
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_6
+      rect:
+        serializedVersion: 2
+        x: 1010
+        y: 913
+        width: 27
+        height: 28
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8cb36cde8a2fa0249b98162977176566
+      internalID: -120401646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_7
+      rect:
+        serializedVersion: 2
+        x: 1038
+        y: 927
+        width: 45
+        height: 14
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a76e3d2ea636c140bffc9778af33f38
+      internalID: -1023599348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_8
+      rect:
+        serializedVersion: 2
+        x: 1108
+        y: 892
+        width: 54
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 65ea98603f59ee94eaf27098d01fc5a6
+      internalID: -782279114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_9
+      rect:
+        serializedVersion: 2
+        x: 1132
+        y: 809
+        width: 249
+        height: 132
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 69187b97298919a4e98d17a615a87542
+      internalID: -1989156789
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_10
+      rect:
+        serializedVersion: 2
+        x: 1319
+        y: 890
+        width: 102
+        height: 51
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ef14bcfd1f8b0f439650508334f7c4b
+      internalID: -1780039191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_11
+      rect:
+        serializedVersion: 2
+        x: 1422
+        y: 898
+        width: 110
+        height: 43
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 71ccb012cc3b3004dba1e80906c10f52
+      internalID: 1498343982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_12
+      rect:
+        serializedVersion: 2
+        x: 1560
+        y: 876
+        width: 82
+        height: 53
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ca8964a2ce57264499c3165bafd43687
+      internalID: -359407985
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_13
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 900
+        width: 28
+        height: 24
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 280645ad13a22274491442231470152d
+      internalID: -557688386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_14
+      rect:
+        serializedVersion: 2
+        x: 274
+        y: 896
+        width: 24
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b392e15504bc1854e88ac311e7faf05b
+      internalID: 239643111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_15
+      rect:
+        serializedVersion: 2
+        x: 314
+        y: 892
+        width: 16
+        height: 14
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fefaf59b43a5ba64cb2da24cd63cf361
+      internalID: -1925308858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_16
+      rect:
+        serializedVersion: 2
+        x: 509
+        y: 907
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6d206bb37a663664f9c0344bb154374b
+      internalID: 227846889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_17
+      rect:
+        serializedVersion: 2
+        x: 519
+        y: 886
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da27c445a7187f546a2bb5048834d2b9
+      internalID: -1805600267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_18
+      rect:
+        serializedVersion: 2
+        x: 546
+        y: 902
+        width: 57
+        height: 20
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a08a42f476f5a546a110d9c72f2d180
+      internalID: 821609271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_19
+      rect:
+        serializedVersion: 2
+        x: 716
+        y: 908
+        width: 24
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dfea3356691b55e44b3a5be4629eed3f
+      internalID: -1094918163
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_20
+      rect:
+        serializedVersion: 2
+        x: 966
+        y: 908
+        width: 17
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e9ae99a8ec4665f4798c675397b2cda3
+      internalID: 1741603402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_21
+      rect:
+        serializedVersion: 2
+        x: 980
+        y: 873
+        width: 43
+        height: 45
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e14a08334e17e0440a0d8d28655a1ee0
+      internalID: 319132868
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_22
+      rect:
+        serializedVersion: 2
+        x: 1020
+        y: 890
+        width: 19
+        height: 21
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 128a0906a7ce8d548ac95c2cf35b8623
+      internalID: -1510652456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_23
+      rect:
+        serializedVersion: 2
+        x: 1042
+        y: 907
+        width: 19
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c773b49ee1e43024a846614a18db0a2b
+      internalID: 1422209441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_24
+      rect:
+        serializedVersion: 2
+        x: 1063
+        y: 909
+        width: 24
+        height: 15
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bce09a9617179424f88b58b7e435b262
+      internalID: -45179429
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_25
+      rect:
+        serializedVersion: 2
+        x: 1422
+        y: 897
+        width: 33
+        height: 27
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 70976d847bc5b664a948d005a9d93fd3
+      internalID: -687305932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_26
+      rect:
+        serializedVersion: 2
+        x: 1643
+        y: 852
+        width: 29
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c28bb4bb1acd0f6489388f44d449249f
+      internalID: 618191008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_27
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1658
+        height: 901
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b7bcb56660954d249bf51fe4d07876af
+      internalID: 2084315297
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_28
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 874
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e566c2dd0ecbfc8418f5f8014a71c01d
+      internalID: -1485486713
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_29
+      rect:
+        serializedVersion: 2
+        x: 909
+        y: 876
+        width: 5
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 857705df1ae50ce4ab5398d89ad08c47
+      internalID: -1230671846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_30
+      rect:
+        serializedVersion: 2
+        x: 1624
+        y: 870
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a12a5ef042eaef149a7b07c2af25e20b
+      internalID: -759876335
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_31
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 741
+        width: 31
+        height: 69
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f287d66baee0dee4292225dc833fff15
+      internalID: -1643290749
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_32
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 454
+        width: 7
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 95cc35565e659ce479fd4919b2870edb
+      internalID: -740852960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_33
+      rect:
+        serializedVersion: 2
+        x: 1655
+        y: 377
+        width: 16
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 528aa0fa9c0a4784fa4ae7ea016fe22a
+      internalID: -839681173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_34
+      rect:
+        serializedVersion: 2
+        x: 1631
+        y: 216
+        width: 23
+        height: 23
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d45a915395fb3f3499d2549cd56ce7d4
+      internalID: -1123272952
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_35
+      rect:
+        serializedVersion: 2
+        x: 31
+        y: 200
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b88ede0f8e76f204f864a614947de5a6
+      internalID: -827958547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_36
+      rect:
+        serializedVersion: 2
+        x: 39
+        y: 195
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a478f81a807ac4d42a546fb3ad1cab52
+      internalID: -252550982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_37
+      rect:
+        serializedVersion: 2
+        x: 1649
+        y: 177
+        width: 15
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ae5849dcc3c5584f9ef3a4fba64b1ec
+      internalID: 71530310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_38
+      rect:
+        serializedVersion: 2
+        x: 1631
+        y: 126
+        width: 21
+        height: 23
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 50628234db4b45547850934edb61da96
+      internalID: -1494535054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_39
+      rect:
+        serializedVersion: 2
+        x: 573
+        y: 34
+        width: 4
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3a0ad8369ad5ff946992199115741e2f
+      internalID: -147488431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SoreBoard_RUSHPOINT_40
+      rect:
+        serializedVersion: 2
+        x: 751
+        y: 36
+        width: 5
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b2e150c474a074141989025193da68ba
+      internalID: -1603689924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      SoreBoard_RUSHPOINT_0: -1924757323
+      SoreBoard_RUSHPOINT_1: 303493607
+      SoreBoard_RUSHPOINT_10: -1780039191
+      SoreBoard_RUSHPOINT_11: 1498343982
+      SoreBoard_RUSHPOINT_12: -359407985
+      SoreBoard_RUSHPOINT_13: -557688386
+      SoreBoard_RUSHPOINT_14: 239643111
+      SoreBoard_RUSHPOINT_15: -1925308858
+      SoreBoard_RUSHPOINT_16: 227846889
+      SoreBoard_RUSHPOINT_17: -1805600267
+      SoreBoard_RUSHPOINT_18: 821609271
+      SoreBoard_RUSHPOINT_19: -1094918163
+      SoreBoard_RUSHPOINT_2: 740754589
+      SoreBoard_RUSHPOINT_20: 1741603402
+      SoreBoard_RUSHPOINT_21: 319132868
+      SoreBoard_RUSHPOINT_22: -1510652456
+      SoreBoard_RUSHPOINT_23: 1422209441
+      SoreBoard_RUSHPOINT_24: -45179429
+      SoreBoard_RUSHPOINT_25: -687305932
+      SoreBoard_RUSHPOINT_26: 618191008
+      SoreBoard_RUSHPOINT_27: 2084315297
+      SoreBoard_RUSHPOINT_28: -1485486713
+      SoreBoard_RUSHPOINT_29: -1230671846
+      SoreBoard_RUSHPOINT_3: 121035904
+      SoreBoard_RUSHPOINT_30: -759876335
+      SoreBoard_RUSHPOINT_31: -1643290749
+      SoreBoard_RUSHPOINT_32: -740852960
+      SoreBoard_RUSHPOINT_33: -839681173
+      SoreBoard_RUSHPOINT_34: -1123272952
+      SoreBoard_RUSHPOINT_35: -827958547
+      SoreBoard_RUSHPOINT_36: -252550982
+      SoreBoard_RUSHPOINT_37: 71530310
+      SoreBoard_RUSHPOINT_38: -1494535054
+      SoreBoard_RUSHPOINT_39: -147488431
+      SoreBoard_RUSHPOINT_4: 583647244
+      SoreBoard_RUSHPOINT_40: -1603689924
+      SoreBoard_RUSHPOINT_5: -2017467430
+      SoreBoard_RUSHPOINT_6: -120401646
+      SoreBoard_RUSHPOINT_7: -1023599348
+      SoreBoard_RUSHPOINT_8: -782279114
+      SoreBoard_RUSHPOINT_9: -1989156789
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
