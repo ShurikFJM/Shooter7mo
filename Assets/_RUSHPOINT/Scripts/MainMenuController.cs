@@ -4,17 +4,20 @@ using UnityEngine.UI;
 
 public class MainMenuController : MonoBehaviour
 {
-    [SerializeField] private GameObject _settingsPanel;
-    [SerializeField] private GameObject _controlsPanel;
-
-    [SerializeField] private Button _playButton;
+    [SerializeField] private Button _customGameButton;
+    [SerializeField] private Button _searchAndDestroyButton;
+    [SerializeField] private Button _hardPointButton;
     [SerializeField] private Button _tutorialButton;
+
     [SerializeField] private Button _settingsButton;
     [SerializeField] private Button _controlsButton;
     [SerializeField] private Button _quitButton;
 
-    [SerializeField] private string _gameScene;
-    [SerializeField] private string _lobbyScene;
+    [SerializeField] private GameObject _mainMenuRootPanel;
+    [SerializeField] private GameObject _customGameConnectionPanel;
+    [SerializeField] private GameObject _settingsPanel;
+    [SerializeField] private GameObject _controlsPanel;
+
     [SerializeField] private string _tutorialScene;
 
     [SerializeField] private Button _backSettingsButton;
@@ -22,8 +25,11 @@ public class MainMenuController : MonoBehaviour
 
     private void Awake()
     {
-        if (_playButton != null) _playButton.onClick.AddListener(LoadGameScene);
+        if (_customGameButton != null) _customGameButton.onClick.AddListener(OpenCustomGameConnection);
+        if (_searchAndDestroyButton != null) _searchAndDestroyButton.onClick.AddListener(OnMatchmakingComingSoon);
+        if (_hardPointButton != null) _hardPointButton.onClick.AddListener(OnMatchmakingComingSoon);
         if (_tutorialButton != null) _tutorialButton.onClick.AddListener(LoadTutorialScene);
+
         if (_settingsButton != null) _settingsButton.onClick.AddListener(OpenSettings);
         if (_controlsButton != null) _controlsButton.onClick.AddListener(OpenControls);
         if (_quitButton != null) _quitButton.onClick.AddListener(QuitGame);
@@ -31,23 +37,34 @@ public class MainMenuController : MonoBehaviour
         if (_backSettingsButton != null) _backSettingsButton.onClick.AddListener(CloseSettings);
         if (_backControlsButton != null) _backControlsButton.onClick.AddListener(CloseControls);
 
+        if (_customGameConnectionPanel != null) _customGameConnectionPanel.SetActive(false);
         if (_settingsPanel != null) _settingsPanel.SetActive(false);
         if (_controlsPanel != null) _controlsPanel.SetActive(false);
     }
 
-    private void LoadGameScene()
+    public void OpenCustomGameConnection()
     {
-        SceneManager.LoadSceneAsync(_gameScene);
+        if (_mainMenuRootPanel != null) _mainMenuRootPanel.SetActive(false);
+        if (_customGameConnectionPanel != null) _customGameConnectionPanel.SetActive(true);
     }
 
-    private void LoadLobbyScene()
+    public void CloseCustomGameConnection()
     {
-        SceneManager.LoadSceneAsync(_lobbyScene);
+        if (_customGameConnectionPanel != null) _customGameConnectionPanel.SetActive(false);
+        if (_mainMenuRootPanel != null) _mainMenuRootPanel.SetActive(true);
+    }
+
+    private void OnMatchmakingComingSoon()
+    {
+        Debug.Log("[Matchmaking] Modo en desarrollo. Usa Custom Game para partidas privadas.");
     }
 
     private void LoadTutorialScene()
     {
-        SceneManager.LoadSceneAsync(_tutorialScene);
+        if (!string.IsNullOrEmpty(_tutorialScene))
+        {
+            SceneManager.LoadSceneAsync(_tutorialScene);
+        }
     }
 
     private void OpenSettings()
@@ -60,11 +77,6 @@ public class MainMenuController : MonoBehaviour
         if (_controlsPanel != null) _controlsPanel.SetActive(true);
     }
 
-    private void QuitGame()
-    {
-        Application.Quit();
-    }
-
     public void CloseSettings()
     {
         if (_settingsPanel != null) _settingsPanel.SetActive(false);
@@ -73,5 +85,10 @@ public class MainMenuController : MonoBehaviour
     public void CloseControls()
     {
         if (_controlsPanel != null) _controlsPanel.SetActive(false);
+    }
+
+    private void QuitGame()
+    {
+        Application.Quit();
     }
 }

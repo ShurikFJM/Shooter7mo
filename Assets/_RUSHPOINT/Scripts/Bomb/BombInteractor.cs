@@ -1,6 +1,6 @@
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class BombInteractor : NetworkBehaviour
 {
@@ -97,11 +97,26 @@ public class BombInteractor : NetworkBehaviour
             return;
         }
 
+        HandleInput();
         DetectNearbyDroppedBomb();
         DetectNearbyPlantedBomb();
         DetectCurrentBombSite();
         ExecutePlantingTimer();
         ExecuteDefusingTimer();
+    }
+
+    private void HandleInput()
+    {
+        if (InputManager.Instance == null) return;
+
+        if (InputManager.Instance.WasInteractTriggered)
+        {
+            ProcessInteractionInput();
+        }
+        else if (InputManager.Instance.WasInteractReleased)
+        {
+            CancelActions();
+        }
     }
 
     private void LocateSceneBomb()
@@ -192,20 +207,6 @@ public class BombInteractor : NetworkBehaviour
                 _currentSite = detectedSite;
                 break;
             }
-        }
-    }
-
-    public void OnInteract(InputValue value)
-    {
-        if (!IsOwner) return;
-
-        if (value.isPressed)
-        {
-            ProcessInteractionInput();
-        }
-        else
-        {
-            CancelActions();
         }
     }
 
@@ -326,11 +327,11 @@ public class BombInteractor : NetworkBehaviour
         }
 
         Quaternion playerFacingRotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
-        NetworkBehaviourReference siteReference = new NetworkBehaviourReference(_currentSite);
+        FixedString32Bytes siteIdentifier = new FixedString32Bytes(_currentSite.SiteId);
 
         _carriedBomb.RequestPlantServerRpc(
             NetworkManager.Singleton.LocalClientId,
-            siteReference,
+            siteIdentifier,
             groundPlantPosition,
             playerFacingRotation
         );

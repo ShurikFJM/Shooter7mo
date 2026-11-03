@@ -155,7 +155,7 @@ GameObject:
   - component: {fileID: 6514967389136861494}
   m_Layer: 11
   m_Name: NetworkPlayer
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -385,7 +385,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
-  m_Actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_Actions: {fileID: 0}
   m_NotificationBehavior: 0
   m_UIInputModule: {fileID: 0}
   m_DeviceLostEvent:
@@ -416,31 +416,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkHealth
   ShowTopMostFoldoutHeaderGroup: 1
-  _currentHealth:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 100
-  _currentArmor:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 50
-  _maxHealth:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 100
-  _maxArmor:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 50
-  _isAlive:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 1
+  _defaultMaxHealth: 100
+  _defaultMaxArmor: 100
+  _enableFriendlyFire: 1
+  _characterModelRoot: {fileID: 2470624848093030887}
 --- !u!114 &5862416640053250531
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -454,29 +433,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkPlayerController
   ShowTopMostFoldoutHeaderGroup: 1
-  _characterController: {fileID: 5092822756275291844}
-  _cameraRoot: {fileID: 2745469733686981276}
+  _walkSpeed: 5.5
+  _crouchSpeed: 2.8
+  _jumpHeight: 1.2
+  _crouchCameraDropOffset: 0.55
+  _crouchControllerHeightOffset: 0.6
+  _cameraAnchor: {fileID: 2745469733686981276}
   _playerCamera: {fileID: 6438023712298921843}
   _audioListener: {fileID: 3740326465607362252}
-  _mouseSensitivity: 0.15
-  _upDownLookLimit: 85
   _roleDatabase: {fileID: 11400000, guid: 42f8182d1a7df26418afbf0c38ab59c6, type: 2}
-  _firstPersonRoot: {fileID: 3973672152315432193}
-  _thirdPersonRoot: {fileID: 2470624848093030887}
-  _hitboxesRoot: {fileID: 146813479000506641}
-  _obstacleLayers:
-    serializedVersion: 2
-    m_Bits: 1
-  selectedRole:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 1
-  isCrouchedNet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
+  _thirdPersonBodyRoot: {fileID: 2470624848093030887}
 --- !u!114 &6838277383531517746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -575,11 +541,6 @@ MonoBehaviour:
   _tpPrimaryHolder: {fileID: 8348564869947469299}
   _tpSecondaryHolder: {fileID: 1707232488685436365}
   _defaultMeleePrefab: {fileID: 3113767334770155279, guid: e34e91b7615b6994297891fbb395bbb3, type: 3}
-  activeSlotNetworked:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 1
 --- !u!114 &3763993040339902959
 MonoBehaviour:
   m_ObjectHideFlags: 0

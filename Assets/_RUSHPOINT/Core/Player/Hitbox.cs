@@ -8,6 +8,7 @@ public enum HitboxType
     Legs
 }
 
+[RequireComponent(typeof(Collider))]
 public class Hitbox : MonoBehaviour
 {
     [SerializeField] private NetworkHealth _targetHealth;
@@ -18,13 +19,25 @@ public class Hitbox : MonoBehaviour
 
     private void Awake()
     {
+        ResolveTargetHealth();
+    }
+
+    private void OnValidate()
+    {
         if (_targetHealth == null)
         {
-            _targetHealth = GetComponentInParent<NetworkHealth>();
-            if (_targetHealth == null)
-            {
-                _targetHealth = transform.root.GetComponent<NetworkHealth>();
-            }
+            ResolveTargetHealth();
+        }
+    }
+
+    private void ResolveTargetHealth()
+    {
+        if (_targetHealth != null) return;
+
+        _targetHealth = GetComponentInParent<NetworkHealth>();
+        if (_targetHealth == null && transform.root != null)
+        {
+            _targetHealth = transform.root.GetComponentInChildren<NetworkHealth>(true);
         }
     }
 }

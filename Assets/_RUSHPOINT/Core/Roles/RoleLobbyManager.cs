@@ -1,16 +1,20 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
+[RequireComponent(typeof(NetworkObject))]
 public class RoleLobbyManager : NetworkBehaviour
 {
     public static RoleLobbyManager Instance { get; private set; }
 
-    [SerializeField] private GameObject _playerPrefab;
-    [SerializeField] private Transform[] _terroristSpawnPoints;
-    [SerializeField] private Transform[] _counterTerroristSpawnPoints;
+    [SerializeField] private Button _lockInButton;
+    [SerializeField] private GameObject _roleSelectCanvas;
 
-    private int _terroristSpawnIndex;
-    private int _counterTerroristSpawnIndex;
+    private readonly Dictionary<ulong, PlayerRoleType> _selectedRoles = new Dictionary<ulong, PlayerRoleType>();
+    private readonly Dictionary<ulong, Team> _selectedTeams = new Dictionary<ulong, Team>();
+    private readonly HashSet<ulong> _lockedInClients = new HashSet<ulong>();
+    private PlayerRoleType _localSelectedRole = PlayerRoleType.Assault;
 
     private void Awake()
     {
@@ -21,85 +25,143 @@ public class RoleLobbyManager : NetworkBehaviour
         }
 
         Instance = this;
+
+        if (_lockInButton != null)
+        {
+            _lockInButton.onClick.AddListener(OnLockInClicked);
+        }
+    }
+
+    public override void OnDestroy()
+    {
+        if (_lockInButton != null)
+        {
+            _lockInButton.onClick.RemoveListener(OnLockInClicked);
+        }
+
+        if (Instance == this) Instance = null;
+
+        base.OnDestroy();
+    }
+
+    public void SelectRole(PlayerRoleType role)
+    {
+        _localSelectedRole = role;
+    }
+
+    public void ConfirmRoleSelection(PlayerRoleType role, Team team)
+    {
+        _localSelectedRole = role;
+
+        if (_roleSelectCanvas != null)
+        {
+            _roleSelectCanvas.SetActive(false);
+        }
+
+        if (LoadingScreen.Instance != null)
+        {
+            LoadingScreen.Instance.ShowLoadingScreen();
+        }
+
+        if (NetworkManager.Singleton == null) return;
+
+        if (!IsSpawned)
+        {
+            if (NetworkManager.Singleton.IsServer)
+            {
+                StartGameSceneLoad();
+            }
+            return;
+        }
+
+        LockInRoleAndTeamServerRpc(role, team);
+    }
+
+    private void OnLockInClicked()
+    {
+        if (NetworkManager.Singleton == null) return;
+
+        if (_lockInButton != null)
+        {
+            _lockInButton.interactable = false;
+        }
+
+        Team localTeam = Team.Red;
+        if (CustomLobbyManager.Instance != null)
+        {
+            localTeam = CustomLobbyManager.Instance.GetPlayerAssignedTeam(NetworkManager.Singleton.LocalClientId);
+            if (localTeam == Team.Neutral) localTeam = Team.Red;
+        }
+
+        ConfirmRoleSelection(_localSelectedRole, localTeam);
     }
 
     [Rpc(SendTo.Server)]
     public void LockInRoleAndTeamServerRpc(PlayerRoleType role, Team team, RpcParams rpcParams = default)
     {
-        ulong senderId = rpcParams.Receive.SenderClientId;
+        ulong clientId = rpcParams.Receive.SenderClientId;
+        _selectedRoles[clientId] = role;
+        _selectedTeams[clientId] = team;
 
-        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(senderId, out NetworkClient client))
+        CustomLobbyManager.SavePlayerData(clientId, team, role);
+
+        if (!_lockedInClients.Contains(clientId))
         {
-            return;
+            _lockedInClients.Add(clientId);
         }
 
-        Transform targetSpawn = GetNextSpawnPoint(team);
-        Vector3 spawnPosition = targetSpawn != null ? targetSpawn.position : Vector3.zero;
-        Quaternion spawnRotation = targetSpawn != null ? targetSpawn.rotation : Quaternion.identity;
+        CheckAllActivePlayersLockedIn();
+    }
 
-        NetworkObject playerNetworkObject = client.PlayerObject;
+    private void CheckAllActivePlayersLockedIn()
+    {
+        if (!IsServer || NetworkManager.Singleton == null) return;
 
-        if (playerNetworkObject == null && _playerPrefab != null)
+        int requiredPlayers = 0;
+
+        foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
         {
-            GameObject spawnedPlayer = Instantiate(_playerPrefab, spawnPosition, spawnRotation);
-            playerNetworkObject = spawnedPlayer.GetComponent<NetworkObject>();
-            playerNetworkObject.SpawnAsPlayerObject(senderId, true);
-        }
+            ulong clientId = client.ClientId;
 
-        if (playerNetworkObject != null)
-        {
-            CharacterController characterController = playerNetworkObject.GetComponent<CharacterController>();
-            if (characterController != null) characterController.enabled = false;
-
-            playerNetworkObject.transform.SetPositionAndRotation(spawnPosition, spawnRotation);
-
-            if (characterController != null) characterController.enabled = true;
-
-            NetworkPlayerController controller = playerNetworkObject.GetComponent<NetworkPlayerController>();
-            if (controller != null)
+            Team assignedTeam = Team.Red;
+            if (CustomLobbyManager.Instance != null)
             {
-                controller.SetInitialRole(role);
+                assignedTeam = CustomLobbyManager.Instance.GetPlayerAssignedTeam(clientId);
             }
 
-            PlayerTeam playerTeam = playerNetworkObject.GetComponent<PlayerTeam>();
-            if (playerTeam != null)
+            if (assignedTeam != Team.Neutral)
             {
-                playerTeam.CurrentTeam.Value = team;
+                requiredPlayers++;
+                if (!_lockedInClients.Contains(clientId))
+                {
+                    return;
+                }
             }
         }
 
-        CloseRoleScreenForClientRpc(senderId);
-
-        if (RoundManager.Instance != null)
+        if (requiredPlayers > 0 || NetworkManager.Singleton.ConnectedClients.Count > 0)
         {
-            RoundManager.Instance.NotifyPlayerLockedInServerRpc(senderId);
+            StartGameSceneLoad();
         }
     }
 
-    private Transform GetNextSpawnPoint(Team team)
+    public void StartGameSceneLoad()
     {
-        Transform[] spawns = (team == Team.Red) ? _terroristSpawnPoints : _counterTerroristSpawnPoints;
-        if (spawns == null || spawns.Length == 0) return null;
+        if (!IsServer) return;
 
-        int index = (team == Team.Red) ? _terroristSpawnIndex++ : _counterTerroristSpawnIndex++;
-        return spawns[index % spawns.Length];
-    }
+        string sceneToLoad = CustomLobbyManager.Instance != null ? CustomLobbyManager.Instance.GameSceneName : "RUSPOINT";
 
-    [Rpc(SendTo.ClientsAndHost)]
-    private void CloseRoleScreenForClientRpc(ulong targetClientId)
-    {
-        if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
-
-        RoleSelectScreenUI roleUI = FindAnyObjectByType<RoleSelectScreenUI>();
-        if (roleUI != null)
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
         {
-            roleUI.CloseRoleScreen();
+            var status = NetworkManager.Singleton.SceneManager.LoadScene(sceneToLoad, UnityEngine.SceneManagement.LoadSceneMode.Single);
+            if (status != SceneEventProgressStatus.Started)
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadScene(sceneToLoad);
+            }
         }
-
-        GameObject lobbyCamera = GameObject.FindWithTag("LobbyCamera");
-        if (lobbyCamera != null)
+        else
         {
-            lobbyCamera.SetActive(false);
+            UnityEngine.SceneManagement.SceneManager.LoadScene(sceneToLoad);
         }
     }
 }

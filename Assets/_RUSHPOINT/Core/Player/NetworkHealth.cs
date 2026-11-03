@@ -1,66 +1,176 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(NetworkObject))]
 public class NetworkHealth : NetworkBehaviour
 {
-    private const float DEFAULT_MAX_HEALTH = 100f;
-    private const float DEFAULT_MAX_ARMOR = 50f;
+    private const float CRITICAL_HEAD_DAMAGE_MULTIPLIER = 2.5f;
+    private const float LEG_DAMAGE_MULTIPLIER = 0.75f;
+    private const float ARMOR_ABSORPTION_RATE = 0.5f;
+    private const float SPECTATOR_CAMERA_VERTICAL_OFFSET = 1.6f;
 
-    [SerializeField]
-    private NetworkVariable<float> _currentHealth = new NetworkVariable<float>(
-        DEFAULT_MAX_HEALTH,
+    [SerializeField] private float _defaultMaxHealth = 100f;
+    [SerializeField] private float _defaultMaxArmor = 100f;
+    [SerializeField] private bool _enableFriendlyFire = false;
+    [SerializeField] private GameObject _characterModelRoot;
+
+    private readonly NetworkVariable<float> _currentHealth = new NetworkVariable<float>(
+        100f,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    [SerializeField]
-    private NetworkVariable<float> _currentArmor = new NetworkVariable<float>(
-        DEFAULT_MAX_ARMOR,
+    private readonly NetworkVariable<float> _maxHealth = new NetworkVariable<float>(
+        100f,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    [SerializeField]
-    private NetworkVariable<float> _maxHealth = new NetworkVariable<float>(
-        DEFAULT_MAX_HEALTH,
+    private readonly NetworkVariable<float> _currentArmor = new NetworkVariable<float>(
+        100f,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    [SerializeField]
-    private NetworkVariable<float> _maxArmor = new NetworkVariable<float>(
-        DEFAULT_MAX_ARMOR,
+    private readonly NetworkVariable<float> _maxArmor = new NetworkVariable<float>(
+        100f,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    [SerializeField]
-    private NetworkVariable<bool> _isAlive = new NetworkVariable<bool>(
+    private readonly NetworkVariable<bool> _isAlive = new NetworkVariable<bool>(
         true,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
     public NetworkVariable<float> CurrentHealth => _currentHealth;
-    public NetworkVariable<float> CurrentArmor => _currentArmor;
-    public NetworkVariable<float> CurrentShield => _currentArmor;
     public NetworkVariable<float> MaxHealth => _maxHealth;
+    public NetworkVariable<float> CurrentArmor => _currentArmor;
     public NetworkVariable<float> MaxArmor => _maxArmor;
     public NetworkVariable<bool> IsAlive => _isAlive;
 
     public override void OnNetworkSpawn()
     {
+        _isAlive.OnValueChanged += HandleLivingStateChanged;
+
         if (IsServer)
         {
-            _currentHealth.Value = _maxHealth.Value;
-            _currentArmor.Value = _maxArmor.Value;
-            _isAlive.Value = true;
+            ResetHealthServer();
         }
+
+        ApplyLivingState(_isAlive.Value);
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        _isAlive.OnValueChanged -= HandleLivingStateChanged;
+    }
+
+    private void HandleLivingStateChanged(bool previousState, bool isAlive)
+    {
+        ApplyLivingState(isAlive);
+    }
+
+    private void ApplyLivingState(bool isAlive)
+    {
+        CharacterController characterController = GetComponent<CharacterController>();
+        if (characterController != null)
+        {
+            characterController.enabled = isAlive;
+        }
+
+        Collider[] bodyColliders = GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < bodyColliders.Length; i++)
+        {
+            if (bodyColliders[i] != null)
+            {
+                bodyColliders[i].enabled = isAlive;
+            }
+        }
+
+        if (_characterModelRoot != null)
+        {
+            _characterModelRoot.SetActive(isAlive);
+        }
+        else
+        {
+            Renderer[] visualRenderers = GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < visualRenderers.Length; i++)
+            {
+                if (visualRenderers[i] is MeshRenderer || visualRenderers[i] is SkinnedMeshRenderer)
+                {
+                    visualRenderers[i].enabled = isAlive;
+                }
+            }
+        }
+
+        if (IsOwner)
+        {
+            PlayerInput playerInput = GetComponent<PlayerInput>();
+            Camera playerCamera = GetComponentInChildren<Camera>(true);
+
+            if (!isAlive)
+            {
+                if (playerInput != null)
+                {
+                    playerInput.DeactivateInput();
+                }
+
+                PlayerTeam playerTeamComponent = GetComponent<PlayerTeam>();
+                if (playerTeamComponent == null)
+                {
+                    playerTeamComponent = GetComponentInChildren<PlayerTeam>();
+                }
+
+                Team assignedTeam = playerTeamComponent != null ? playerTeamComponent.CurrentTeam.Value : Team.Red;
+
+                if (assignedTeam == Team.Neutral && CustomLobbyManager.SavedTeams != null)
+                {
+                    if (CustomLobbyManager.SavedTeams.TryGetValue(OwnerClientId, out Team savedLobbyTeam))
+                    {
+                        assignedTeam = savedLobbyTeam;
+                    }
+                }
+
+                if (SpectatorManager.Instance != null && playerCamera != null)
+                {
+                    SpectatorManager.Instance.StartSpectating(assignedTeam, playerCamera, transform, SPECTATOR_CAMERA_VERTICAL_OFFSET);
+                }
+            }
+            else
+            {
+                if (SpectatorManager.Instance != null && SpectatorManager.Instance.IsSpectating)
+                {
+                    SpectatorManager.Instance.StopSpectating();
+                }
+
+                if (playerInput != null)
+                {
+                    playerInput.ActivateInput();
+                }
+            }
+        }
+    }
+
+    public void ResetHealthServer()
+    {
+        if (!IsServer) return;
+
+        _maxHealth.Value = _defaultMaxHealth;
+        _currentHealth.Value = _defaultMaxHealth;
+        _maxArmor.Value = _defaultMaxArmor;
+        _currentArmor.Value = _defaultMaxArmor;
+        _isAlive.Value = true;
     }
 
     public void SetMaxStatsServer(float maxHealth, float maxArmor)
     {
         if (!IsServer) return;
+
+        _defaultMaxHealth = maxHealth;
+        _defaultMaxArmor = maxArmor;
 
         _maxHealth.Value = maxHealth;
         _maxArmor.Value = maxArmor;
@@ -69,99 +179,86 @@ public class NetworkHealth : NetworkBehaviour
         _isAlive.Value = true;
     }
 
-    public void ResetHealthServer()
+    public void SetSpectatorStateServer()
     {
         if (!IsServer) return;
 
-        _currentHealth.Value = _maxHealth.Value;
-        _currentArmor.Value = _maxArmor.Value;
-        _isAlive.Value = true;
-
-        OnResetHealthClientRpc();
+        _isAlive.Value = false;
+        _currentHealth.Value = 0f;
     }
 
-    [Rpc(SendTo.ClientsAndHost)]
-    private void OnResetHealthClientRpc()
-    {
-        Collider[] colliders = GetComponentsInChildren<Collider>(true);
-        for (int i = 0; i < colliders.Length; i++)
-        {
-            colliders[i].enabled = true;
-        }
-
-        Hitbox[] hitboxes = GetComponentsInChildren<Hitbox>(true);
-        for (int i = 0; i < hitboxes.Length; i++)
-        {
-            hitboxes[i].gameObject.SetActive(true);
-            Collider hitboxCollider = hitboxes[i].GetComponent<Collider>();
-            if (hitboxCollider != null) hitboxCollider.enabled = true;
-        }
-
-        CharacterController characterController = GetComponent<CharacterController>();
-        if (characterController != null) characterController.enabled = true;
-
-        Transform tpModel = transform.Find("ThirdPersonModel");
-        if (tpModel != null && !IsOwner) tpModel.gameObject.SetActive(true);
-    }
-
-    public void ApplyDamageServer(float damage, HitboxType hitboxType, ulong attackerClientId)
+    [Rpc(SendTo.Server)]
+    public void HealServerRpc(float amount, RpcParams rpcParams = default)
     {
         if (!IsServer || !_isAlive.Value) return;
 
-        float remainingDamage = damage;
+        _currentHealth.Value = Mathf.Min(_currentHealth.Value + amount, _maxHealth.Value);
+    }
+
+    public void HealServer(float amount)
+    {
+        if (!IsServer || !_isAlive.Value) return;
+
+        _currentHealth.Value = Mathf.Min(_currentHealth.Value + amount, _maxHealth.Value);
+    }
+
+    public void ApplyDamageServer(float baseDamage, HitboxType hitboxType, ulong attackerClientId)
+    {
+        if (!IsServer || !_isAlive.Value) return;
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.ConnectedClients.TryGetValue(attackerClientId, out NetworkClient attackerClient))
+        {
+            if (attackerClient.PlayerObject != null)
+            {
+                PlayerTeam attackerTeamComponent = attackerClient.PlayerObject.GetComponent<PlayerTeam>();
+                if (attackerTeamComponent == null)
+                {
+                    attackerTeamComponent = attackerClient.PlayerObject.GetComponentInChildren<PlayerTeam>();
+                }
+
+                PlayerTeam victimTeamComponent = GetComponent<PlayerTeam>();
+                if (victimTeamComponent == null)
+                {
+                    victimTeamComponent = GetComponentInChildren<PlayerTeam>();
+                }
+
+                if (attackerTeamComponent != null && victimTeamComponent != null)
+                {
+                    Team attackerTeam = attackerTeamComponent.CurrentTeam.Value;
+                    Team victimTeam = victimTeamComponent.CurrentTeam.Value;
+
+                    if (attackerTeam == victimTeam && attackerTeam != Team.Neutral && !_enableFriendlyFire)
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
+        float calculatedDamage = baseDamage;
+        if (hitboxType == HitboxType.Head)
+        {
+            calculatedDamage *= CRITICAL_HEAD_DAMAGE_MULTIPLIER;
+        }
+        else if (hitboxType == HitboxType.Legs)
+        {
+            calculatedDamage *= LEG_DAMAGE_MULTIPLIER;
+        }
 
         if (_currentArmor.Value > 0f)
         {
-            if (_currentArmor.Value >= remainingDamage)
-            {
-                _currentArmor.Value -= remainingDamage;
-                remainingDamage = 0f;
-            }
-            else
-            {
-                remainingDamage -= _currentArmor.Value;
-                _currentArmor.Value = 0f;
-            }
+            float armorAbsorption = calculatedDamage * ARMOR_ABSORPTION_RATE;
+            float armorToDeduct = Mathf.Min(_currentArmor.Value, armorAbsorption);
+
+            _currentArmor.Value -= armorToDeduct;
+            calculatedDamage -= armorToDeduct;
         }
 
-        if (remainingDamage > 0f)
-        {
-            _currentHealth.Value = Mathf.Max(0f, _currentHealth.Value - remainingDamage);
-        }
+        _currentHealth.Value = Mathf.Max(0f, _currentHealth.Value - calculatedDamage);
 
         if (_currentHealth.Value <= 0f)
         {
             _isAlive.Value = false;
-            OnDeathClientRpc();
         }
-    }
-
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    public void HealServerRpc(float healAmount)
-    {
-        if (!_isAlive.Value) return;
-        _currentHealth.Value = Mathf.Min(_maxHealth.Value, _currentHealth.Value + healAmount);
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    private void OnDeathClientRpc()
-    {
-        Collider[] colliders = GetComponentsInChildren<Collider>(true);
-        for (int i = 0; i < colliders.Length; i++)
-        {
-            colliders[i].enabled = false;
-        }
-
-        Hitbox[] hitboxes = GetComponentsInChildren<Hitbox>(true);
-        for (int i = 0; i < hitboxes.Length; i++)
-        {
-            hitboxes[i].gameObject.SetActive(false);
-        }
-
-        CharacterController cc = GetComponent<CharacterController>();
-        if (cc != null) cc.enabled = false;
-
-        Transform tpModel = transform.Find("ThirdPersonModel");
-        if (tpModel != null) tpModel.gameObject.SetActive(false);
     }
 }

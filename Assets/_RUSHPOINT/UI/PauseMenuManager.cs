@@ -1,17 +1,13 @@
 using System.Collections;
-using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class PauseMenuManager : MonoBehaviour
 {
-    private const string _MAIN_MENU_SCENE_NAME = "MainMenu";
-    private const string _GAMEPAD_DEVICE_TEXT = "Dispositivo: Mando / Gamepad";
-    private const string _KEYBOARD_DEVICE_TEXT = "Dispositivo: Teclado y Ratón";
+    private const string MAIN_MENU_SCENE_NAME = "MainMenu";
 
     public static PauseMenuManager Instance { get; private set; }
 
@@ -28,10 +24,6 @@ public class PauseMenuManager : MonoBehaviour
     [SerializeField] private Button _closeControlsButton;
     [SerializeField] private Button _closeSettingsButton;
 
-    [SerializeField] private GameObject _keyboardControlsView;
-    [SerializeField] private GameObject _gamepadControlsView;
-    [SerializeField] private TMP_Text _currentDeviceText;
-
     private InputAction _pauseAction;
     private bool _isPaused;
 
@@ -46,7 +38,6 @@ public class PauseMenuManager : MonoBehaviour
         }
 
         Instance = this;
-
         ConfigureInputActions();
     }
 
@@ -65,13 +56,13 @@ public class PauseMenuManager : MonoBehaviour
 
     private void OnEnable()
     {
-        if (_pauseAction != null)
+        if (_pauseAction == null)
         {
-            _pauseAction.performed += HandlePausePerformed;
-            _pauseAction.Enable();
+            ConfigureInputActions();
         }
 
-        InputSystem.onEvent += HandleInputDeviceChanged;
+        _pauseAction.performed += HandlePausePerformed;
+        _pauseAction.Enable();
     }
 
     private void OnDisable()
@@ -81,8 +72,6 @@ public class PauseMenuManager : MonoBehaviour
             _pauseAction.performed -= HandlePausePerformed;
             _pauseAction.Disable();
         }
-
-        InputSystem.onEvent -= HandleInputDeviceChanged;
     }
 
     private void OnDestroy()
@@ -106,24 +95,6 @@ public class PauseMenuManager : MonoBehaviour
         }
 
         TogglePause();
-    }
-
-    private void HandleInputDeviceChanged(InputEventPtr eventPtr, InputDevice device)
-    {
-        if (!_isPaused || _controlsPanel == null || !_controlsPanel.activeSelf) return;
-
-        bool isGamepad = device is Gamepad;
-        bool isKeyboardOrMouse = device is Keyboard || device is Mouse;
-
-        if (!isGamepad && !isKeyboardOrMouse) return;
-
-        if (_keyboardControlsView != null) _keyboardControlsView.SetActive(!isGamepad);
-        if (_gamepadControlsView != null) _gamepadControlsView.SetActive(isGamepad);
-
-        if (_currentDeviceText != null)
-        {
-            _currentDeviceText.text = isGamepad ? _GAMEPAD_DEVICE_TEXT : _KEYBOARD_DEVICE_TEXT;
-        }
     }
 
     public void TogglePause()
@@ -199,14 +170,6 @@ public class PauseMenuManager : MonoBehaviour
     {
         if (_mainPausePanel != null) _mainPausePanel.SetActive(false);
         if (_controlsPanel != null) _controlsPanel.SetActive(true);
-
-        bool isGamepad = Gamepad.current != null;
-        if (_keyboardControlsView != null) _keyboardControlsView.SetActive(!isGamepad);
-        if (_gamepadControlsView != null) _gamepadControlsView.SetActive(isGamepad);
-        if (_currentDeviceText != null)
-        {
-            _currentDeviceText.text = isGamepad ? _GAMEPAD_DEVICE_TEXT : _KEYBOARD_DEVICE_TEXT;
-        }
     }
 
     private void OpenSettings()
@@ -239,7 +202,7 @@ public class PauseMenuManager : MonoBehaviour
             return;
         }
 
-        bool shouldKeepCursorUnlocked = ShouldKeepCursorUnlocked();
+        bool keepUnlocked = ShouldKeepCursorUnlocked();
 
         if (playerInput != null)
         {
@@ -248,7 +211,7 @@ public class PauseMenuManager : MonoBehaviour
 
         if (playerController != null)
         {
-            playerController.SetCursorLocked(!shouldKeepCursorUnlocked);
+            playerController.SetCursorLocked(!keepUnlocked);
         }
     }
 
@@ -278,6 +241,6 @@ public class PauseMenuManager : MonoBehaviour
             Destroy(NetworkManager.Singleton.gameObject);
         }
 
-        SceneManager.LoadScene(_MAIN_MENU_SCENE_NAME);
+        SceneManager.LoadScene(MAIN_MENU_SCENE_NAME);
     }
 }

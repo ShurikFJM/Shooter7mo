@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2734085280
+  GlobalObjectIdHash: 3042602793
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -267,7 +267,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2782518239
+  GlobalObjectIdHash: 3914212506
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -658,8 +658,12 @@ MonoBehaviour:
   _weaponAnimator: {fileID: 0}
   _hitLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 2057
   _returnSpeed: 10
+  _wallImpactParticlePrefab: {fileID: 0}
+  _playerImpactParticlePrefab: {fileID: 0}
+  _wallHitFallbackSound: {fileID: 0}
+  _playerHitFallbackSound: {fileID: 0}
 --- !u!1 &4653910448596576480 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -2944240825254529157, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
@@ -677,7 +681,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1711042481
+  GlobalObjectIdHash: 959758020
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -755,7 +759,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 457977298
+  GlobalObjectIdHash: 3301895561
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0

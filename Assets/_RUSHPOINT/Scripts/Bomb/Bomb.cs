@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Collections;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
@@ -278,18 +279,24 @@ public class Bomb : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    public void RequestPlantServerRpc(ulong requestingClientId, NetworkBehaviourReference bombSiteReference, Vector3 targetPlantPosition, Quaternion targetPlantRotation)
+    public void RequestPlantServerRpc(ulong requestingClientId, FixedString32Bytes siteIdentifier, Vector3 targetPlantPosition, Quaternion targetPlantRotation)
     {
         if (bombState.Value != BombState.Carried || carrierClientId.Value != requestingClientId) return;
 
-        if (bombSiteReference.TryGet(out BombSite site))
+        BombSite[] detectedSites = FindObjectsByType<BombSite>(FindObjectsSortMode.None);
+        bool isInsideValidSite = false;
+        string targetSiteString = siteIdentifier.ToString();
+
+        for (int i = 0; i < detectedSites.Length; i++)
         {
-            if (!site.IsPositionInside(targetPlantPosition)) return;
+            if (detectedSites[i].SiteId == targetSiteString && detectedSites[i].IsPositionInside(targetPlantPosition))
+            {
+                isInsideValidSite = true;
+                break;
+            }
         }
-        else
-        {
-            return;
-        }
+
+        if (!isInsideValidSite) return;
 
         carrierClientId.Value = UNASSIGNED_CARRIER_ID;
         transform.SetPositionAndRotation(targetPlantPosition, targetPlantRotation);

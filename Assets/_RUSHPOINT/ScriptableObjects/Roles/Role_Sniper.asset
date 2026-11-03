@@ -17,6 +17,9 @@ MonoBehaviour:
   roleDescription: 
   maxHealth: 80
   maxArmor: 25
-  walkSpeed: 4.6
-  sprintSpeed: 6.8
+  walkSpeed: 6
   jumpForce: 4.8
+  primaryWeaponPrefab: {fileID: 0}
+  secondaryWeaponPrefab: {fileID: 0}
+  tpPrimaryWeaponPrefab: {fileID: 0}
+  tpSecondaryWeaponPrefab: {fileID: 0}

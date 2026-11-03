@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -5,28 +6,71 @@ using UnityEngine.UI;
 
 public class TacticalHUD : MonoBehaviour
 {
-    private const string _NO_AMMO_STRING = "-";
-    private const string _SLASH_STRING = " / ";
-    private const string _RELOADING_LABEL = "RELOADING...";
+    private const string NO_AMMO_STRING = "-";
+    private const string SLASH_STRING = " / ";
+    private const string RELOADING_LABEL = "RELOADING...";
+    private const string DEFAULT_HALFTIME_MESSAGE = "SIDE SWITCH!\n<size=60%>SWITCHING SIDES</size>";
+    private const float DEFAULT_BANNER_DURATION = 4.5f;
+
+    private static TacticalHUD _instance;
+    public static TacticalHUD Instance => _instance;
 
     [SerializeField] private TMP_Text _healthText;
     [SerializeField] private TMP_Text _armorText;
+    [SerializeField] private Slider _healthSlider;
+    [SerializeField] private Slider _armorSlider;
+
     [SerializeField] private TMP_Text _ammoText;
     [SerializeField] private TMP_Text _currentAmmoText;
     [SerializeField] private TMP_Text _maxAmmoText;
-    [SerializeField] private Slider _healthSlider;
-    [SerializeField] private Slider _armorSlider;
 
     [SerializeField] private GameObject _reloadingPopupRoot;
     [SerializeField] private TMP_Text _reloadingPromptText;
     [SerializeField] private Image _reloadingProgressBar;
 
-    public NetworkHealth PlayerHealth { get; set; }
-    public WeaponInventory Inventory { get; set; }
+    [SerializeField] private GameObject _halftimeBannerRoot;
+    [SerializeField] private TMP_Text _halftimeBannerText;
+    [SerializeField] private float _bannerDisplayDuration = DEFAULT_BANNER_DURATION;
+
+    private NetworkHealth _playerHealth;
+    public NetworkHealth PlayerHealth
+    {
+        get => _playerHealth;
+        set => _playerHealth = value;
+    }
+
+    private WeaponInventory _weaponInventory;
+    public WeaponInventory Inventory
+    {
+        get => _weaponInventory;
+        set => _weaponInventory = value;
+    }
+
+    public WeaponInventory WeaponInventory
+    {
+        get => _weaponInventory;
+        set => _weaponInventory = value;
+    }
+
+    private Coroutine _bannerCoroutine;
 
     private void Awake()
     {
+        if (_instance != null && _instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        _instance = this;
+
         HideReloadingPopup();
+        HideBanner();
+    }
+
+    private void OnDestroy()
+    {
+        if (_instance == this) _instance = null;
     }
 
     private void Update()
@@ -36,102 +80,201 @@ public class TacticalHUD : MonoBehaviour
         UpdateAmmoDisplay();
     }
 
+    public void ShowHalftimeBanner()
+    {
+        DisplayCustomBanner(DEFAULT_HALFTIME_MESSAGE, _bannerDisplayDuration);
+    }
+
+    public void ShowRoundWinnerBanner(Team winningTeam)
+    {
+        string teamLabel = winningTeam == Team.Red ? "ATTACKERS" : "DEFENDERS";
+        string message = $"{teamLabel} WON THE ROUND";
+        DisplayCustomBanner(message, 3.5f);
+    }
+
+    public void ShowMatchWinnerBanner(Team winningTeam)
+    {
+        string teamLabel = winningTeam == Team.Red ? "ATTACKERS" : "DEFENDERS";
+        Team localTeam = ResolveLocalTeam();
+
+        string bannerMessage;
+        if (localTeam == Team.Neutral)
+        {
+            bannerMessage = $"{teamLabel} WON THE MATCH!\n<size=60%>MATCH FINISHED</size>";
+        }
+        else if (localTeam == winningTeam)
+        {
+            bannerMessage = $"VICTORY!\n<size=60%>{teamLabel} WON THE MATCH</size>";
+        }
+        else
+        {
+            bannerMessage = $"DEFEAT!\n<size=60%>{teamLabel} WON THE MATCH</size>";
+        }
+
+        DisplayCustomBanner(bannerMessage, 8f);
+    }
+
+    private Team ResolveLocalTeam()
+    {
+        if (_playerHealth != null)
+        {
+            PlayerTeam playerTeam = _playerHealth.GetComponent<PlayerTeam>();
+            if (playerTeam == null) playerTeam = _playerHealth.GetComponentInChildren<PlayerTeam>();
+            if (playerTeam != null) return playerTeam.CurrentTeam.Value;
+        }
+
+        if (NetworkManager.Singleton != null && CustomLobbyManager.SavedTeams != null)
+        {
+            if (CustomLobbyManager.SavedTeams.TryGetValue(NetworkManager.Singleton.LocalClientId, out Team saved))
+            {
+                return saved;
+            }
+        }
+
+        return Team.Neutral;
+    }
+
+    public void DisplayCustomBanner(string message, float duration)
+    {
+        if (_bannerCoroutine != null)
+        {
+            StopCoroutine(_bannerCoroutine);
+        }
+
+        _bannerCoroutine = StartCoroutine(BannerRoutine(message, duration));
+    }
+
+    private IEnumerator BannerRoutine(string message, float duration)
+    {
+        if (_halftimeBannerRoot != null)
+        {
+            _halftimeBannerRoot.SetActive(true);
+        }
+
+        if (_halftimeBannerText != null)
+        {
+            _halftimeBannerText.text = message;
+        }
+
+        yield return new WaitForSeconds(duration);
+
+        HideBanner();
+        _bannerCoroutine = null;
+    }
+
+    private void HideBanner()
+    {
+        if (_halftimeBannerRoot != null && _halftimeBannerRoot.activeSelf)
+        {
+            _halftimeBannerRoot.SetActive(false);
+        }
+    }
+
     private void EnsureLocalPlayerReferences()
     {
-        if (PlayerHealth != null && Inventory != null) return;
-
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsClient) return;
 
         NetworkObject localPlayer = NetworkManager.Singleton.LocalClient?.PlayerObject;
         if (localPlayer == null) return;
 
-        if (PlayerHealth == null)
+        if (_playerHealth == null || _playerHealth.gameObject != localPlayer.gameObject)
         {
-            PlayerHealth = localPlayer.GetComponent<NetworkHealth>();
+            _playerHealth = localPlayer.GetComponent<NetworkHealth>();
+            if (_playerHealth == null)
+            {
+                _playerHealth = localPlayer.GetComponentInChildren<NetworkHealth>(true);
+            }
         }
 
-        if (Inventory == null)
+        if (_weaponInventory == null || _weaponInventory.gameObject != localPlayer.gameObject)
         {
-            Inventory = localPlayer.GetComponent<WeaponInventory>();
-            if (Inventory == null)
+            _weaponInventory = localPlayer.GetComponent<WeaponInventory>();
+            if (_weaponInventory == null)
             {
-                Inventory = localPlayer.GetComponentInChildren<WeaponInventory>(true);
+                _weaponInventory = localPlayer.GetComponentInChildren<WeaponInventory>(true);
             }
         }
     }
 
     private void UpdateHealthAndArmor()
     {
-        if (PlayerHealth == null) return;
+        if (_playerHealth == null) return;
 
         if (_healthText != null)
         {
-            _healthText.text = Mathf.CeilToInt(PlayerHealth.CurrentHealth.Value).ToString();
+            _healthText.text = Mathf.CeilToInt(_playerHealth.CurrentHealth.Value).ToString();
         }
 
         if (_armorText != null)
         {
-            _armorText.text = Mathf.CeilToInt(PlayerHealth.CurrentArmor.Value).ToString();
+            _armorText.text = Mathf.CeilToInt(_playerHealth.CurrentArmor.Value).ToString();
         }
 
         if (_healthSlider != null)
         {
-            _healthSlider.maxValue = PlayerHealth.MaxHealth.Value;
-            _healthSlider.value = PlayerHealth.CurrentHealth.Value;
+            _healthSlider.maxValue = _playerHealth.MaxHealth.Value;
+            _healthSlider.value = _playerHealth.CurrentHealth.Value;
         }
 
         if (_armorSlider != null)
         {
-            _armorSlider.maxValue = PlayerHealth.MaxArmor.Value;
-            _armorSlider.value = PlayerHealth.CurrentArmor.Value;
+            _armorSlider.maxValue = _playerHealth.MaxArmor.Value;
+            _armorSlider.value = _playerHealth.CurrentArmor.Value;
         }
     }
 
     private void UpdateAmmoDisplay()
     {
-        if (Inventory == null)
+        if (_weaponInventory == null)
         {
             SetEmptyAmmoDisplay();
             HideReloadingPopup();
             return;
         }
 
-        WeaponBase weapon = Inventory.ActiveWeapon;
-        if (weapon == null)
+        if (_weaponInventory.ActiveSlotIndex == 3)
         {
             SetEmptyAmmoDisplay();
             HideReloadingPopup();
             return;
         }
 
-        if (weapon.IsReloading)
+        WeaponBase activeWeapon = _weaponInventory.ActiveWeapon;
+        if (activeWeapon == null)
         {
-            ShowReloadingPopup(weapon.ReloadProgressNormalized);
+            SetEmptyAmmoDisplay();
+            HideReloadingPopup();
+            return;
+        }
 
-            if (_ammoText != null) _ammoText.text = _RELOADING_LABEL;
-            if (_currentAmmoText != null) _currentAmmoText.text = _RELOADING_LABEL;
-            if (_maxAmmoText != null) _maxAmmoText.text = weapon.ReserveAmmo.ToString();
+        if (activeWeapon.IsReloading)
+        {
+            ShowReloadingPopup(activeWeapon.ReloadProgressNormalized);
+
+            if (_ammoText != null) _ammoText.text = RELOADING_LABEL;
+            if (_currentAmmoText != null) _currentAmmoText.text = RELOADING_LABEL;
+            if (_maxAmmoText != null) _maxAmmoText.text = activeWeapon.ReserveAmmo.ToString();
             return;
         }
 
         HideReloadingPopup();
 
-        string currentStr = weapon.CurrentAmmo.ToString();
-        string reserveStr = weapon.ReserveAmmo.ToString();
+        string currentAmmoString = activeWeapon.CurrentAmmo.ToString();
+        string reserveAmmoString = activeWeapon.ReserveAmmo.ToString();
 
         if (_ammoText != null)
         {
-            _ammoText.text = currentStr + _SLASH_STRING + reserveStr;
+            _ammoText.text = currentAmmoString + SLASH_STRING + reserveAmmoString;
         }
 
         if (_currentAmmoText != null)
         {
-            _currentAmmoText.text = currentStr;
+            _currentAmmoText.text = currentAmmoString;
         }
 
         if (_maxAmmoText != null)
         {
-            _maxAmmoText.text = reserveStr;
+            _maxAmmoText.text = reserveAmmoString;
         }
     }
 
@@ -144,7 +287,7 @@ public class TacticalHUD : MonoBehaviour
 
         if (_reloadingPromptText != null)
         {
-            _reloadingPromptText.text = _RELOADING_LABEL;
+            _reloadingPromptText.text = RELOADING_LABEL;
         }
 
         if (_reloadingProgressBar != null)
@@ -165,17 +308,17 @@ public class TacticalHUD : MonoBehaviour
     {
         if (_ammoText != null)
         {
-            _ammoText.text = _NO_AMMO_STRING + _SLASH_STRING + _NO_AMMO_STRING;
+            _ammoText.text = NO_AMMO_STRING + SLASH_STRING + NO_AMMO_STRING;
         }
 
         if (_currentAmmoText != null)
         {
-            _currentAmmoText.text = _NO_AMMO_STRING;
+            _currentAmmoText.text = NO_AMMO_STRING;
         }
 
         if (_maxAmmoText != null)
         {
-            _maxAmmoText.text = _NO_AMMO_STRING;
+            _maxAmmoText.text = NO_AMMO_STRING;
         }
     }
 }

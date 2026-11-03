@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class PlayerTeamVisualizer : NetworkBehaviour
 {
@@ -44,8 +45,19 @@ public class PlayerTeamVisualizer : NetworkBehaviour
 
     private void ApplyTeamVisuals(Team team)
     {
-        Material targetMaterial = team == Team.Red ? _terroristMaterial : _counterTerroristMaterial;
+        if (team == Team.Neutral)
+        {
+            if (_teamMeshRenderers != null)
+            {
+                for (int i = 0; i < _teamMeshRenderers.Length; i++)
+                {
+                    if (_teamMeshRenderers[i] != null) _teamMeshRenderers[i].enabled = false;
+                }
+            }
+            return;
+        }
 
+        Material targetMaterial = team == Team.Red ? _terroristMaterial : _counterTerroristMaterial;
         if (targetMaterial == null || _teamMeshRenderers == null) return;
 
         for (int i = 0; i < _teamMeshRenderers.Length; i++)
@@ -53,6 +65,16 @@ public class PlayerTeamVisualizer : NetworkBehaviour
             if (_teamMeshRenderers[i] != null)
             {
                 _teamMeshRenderers[i].material = targetMaterial;
+
+                if (IsOwner)
+                {
+                    _teamMeshRenderers[i].shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+                }
+                else
+                {
+                    _teamMeshRenderers[i].enabled = true;
+                    _teamMeshRenderers[i].shadowCastingMode = ShadowCastingMode.On;
+                }
             }
         }
     }
