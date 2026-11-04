@@ -5,7 +5,7 @@ using UnityEngine.UI;
 public class RebindMenuController : MonoBehaviour
 {
     private const string KEYBOARD_DEVICE_STRING = "Current Device: Keyboard and Mouse";
-    private const string GAMEPAD_DEVICE_STRING = "Current Device: Controller (Xbox)";
+    private const string GAMEPAD_DEVICE_STRING = "Current Device: Controller";
     private const string MOUSE_SENSITIVITY_FORMAT = "Mouse Sens: {0:F2}";
     private const string GAMEPAD_SENSITIVITY_FORMAT = "Controller Sens: {0:F0}";
 

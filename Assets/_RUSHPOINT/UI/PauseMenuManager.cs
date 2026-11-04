@@ -1,6 +1,7 @@
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -15,12 +16,10 @@ public class PauseMenuManager : MonoBehaviour
     [SerializeField] private GameObject _mainPausePanel;
     [SerializeField] private GameObject _settingsPanel;
     [SerializeField] private GameObject _controlsPanel;
-
     [SerializeField] private Button _resumeButton;
     [SerializeField] private Button _controlsButton;
     [SerializeField] private Button _settingsButton;
     [SerializeField] private Button _mainMenuButton;
-
     [SerializeField] private Button _closeControlsButton;
     [SerializeField] private Button _closeSettingsButton;
 
@@ -76,6 +75,7 @@ public class PauseMenuManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (Instance == this) Instance = null;
         _pauseAction?.Dispose();
     }
 
@@ -92,6 +92,16 @@ public class PauseMenuManager : MonoBehaviour
         if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
         {
             return;
+        }
+
+        if (_isPaused)
+        {
+            if ((_controlsPanel != null && _controlsPanel.activeSelf) ||
+                (_settingsPanel != null && _settingsPanel.activeSelf))
+            {
+                ShowMainPausePanel();
+                return;
+            }
         }
 
         TogglePause();
@@ -159,60 +169,77 @@ public class PauseMenuManager : MonoBehaviour
         if (_settingsPanel != null) _settingsPanel.SetActive(false);
     }
 
-    private void ShowMainPausePanel()
+    public void ShowMainPausePanel()
     {
         if (_mainPausePanel != null) _mainPausePanel.SetActive(true);
         if (_settingsPanel != null) _settingsPanel.SetActive(false);
         if (_controlsPanel != null) _controlsPanel.SetActive(false);
+
+        SelectUIElement(_resumeButton != null ? _resumeButton.gameObject : null);
     }
 
     private void OpenControls()
     {
         if (_mainPausePanel != null) _mainPausePanel.SetActive(false);
         if (_controlsPanel != null) _controlsPanel.SetActive(true);
+
+        SelectFirstSelectableInPanel(_controlsPanel, _closeControlsButton != null ? _closeControlsButton.gameObject : null);
     }
 
     private void OpenSettings()
     {
         if (_mainPausePanel != null) _mainPausePanel.SetActive(false);
         if (_settingsPanel != null) _settingsPanel.SetActive(true);
+
+        SelectFirstSelectableInPanel(_settingsPanel, _closeSettingsButton != null ? _closeSettingsButton.gameObject : null);
     }
 
     private void UpdateLocalPlayerInputState(bool enableInput)
     {
+        if (InputManager.Instance != null)
+        {
+            InputManager.Instance.SetGameplayInputActive(enableInput);
+        }
+
         if (NetworkManager.Singleton == null || NetworkManager.Singleton.SpawnManager == null) return;
 
         NetworkObject localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
         if (localPlayer == null) return;
 
         NetworkPlayerController playerController = localPlayer.GetComponent<NetworkPlayerController>();
-        PlayerInput playerInput = localPlayer.GetComponent<PlayerInput>();
-
-        if (!enableInput)
+        if (playerController != null)
         {
-            if (playerController != null)
-            {
-                playerController.SetCursorLocked(false);
-            }
+            bool keepUnlocked = !enableInput || ShouldKeepCursorUnlocked();
+            playerController.SetCursorLocked(!keepUnlocked);
+        }
+    }
 
-            if (playerInput != null)
-            {
-                playerInput.DeactivateInput();
-            }
+    private void SelectFirstSelectableInPanel(GameObject panel, GameObject fallbackElement)
+    {
+        if (panel == null)
+        {
+            SelectUIElement(fallbackElement);
             return;
         }
 
-        bool keepUnlocked = ShouldKeepCursorUnlocked();
-
-        if (playerInput != null)
+        Selectable[] selectables = panel.GetComponentsInChildren<Selectable>(true);
+        for (int i = 0; i < selectables.Length; i++)
         {
-            playerInput.ActivateInput();
+            if (selectables[i] != null && selectables[i].gameObject.activeInHierarchy && selectables[i].interactable)
+            {
+                SelectUIElement(selectables[i].gameObject);
+                return;
+            }
         }
 
-        if (playerController != null)
-        {
-            playerController.SetCursorLocked(!keepUnlocked);
-        }
+        SelectUIElement(fallbackElement);
+    }
+
+    public void SelectUIElement(GameObject target)
+    {
+        if (EventSystem.current == null || target == null) return;
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(target);
     }
 
     public void ReturnToMainMenu()

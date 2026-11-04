@@ -24,10 +24,17 @@ public class Bomb : NetworkBehaviour
 
     [SerializeField] private float _detonationTimeDuration = DEFAULT_DETONATION_TIME;
     [SerializeField] private AudioClip _beepAudioClip;
+    [SerializeField] private AudioClip _plantStartAudioClip;
     [SerializeField] private AudioClip _plantCompletedAudioClip;
+    [SerializeField] private AudioClip _defuseStartAudioClip;
     [SerializeField] private AudioClip _defusedAudioClip;
     [SerializeField] private AudioClip _explosionAudioClip;
     [SerializeField] private GameObject _explosionVfxPrefab;
+
+    [Header("Audio Balance")]
+    [SerializeField] private float _minSoundDistance = 8f;
+    [SerializeField] private float _maxSoundDistance = 75f;
+    [SerializeField] private float _audioSpatialBlend = 0.8f;
 
     public readonly NetworkVariable<BombState> bombState = new NetworkVariable<BombState>(
         BombState.OnGround,
@@ -77,10 +84,19 @@ public class Bomb : NetworkBehaviour
         _audioSource = GetComponent<AudioSource>();
         _renderers = GetComponentsInChildren<Renderer>(true);
 
-        if (_audioSource != null)
-        {
-            _audioSource.spatialBlend = 1f;
-        }
+        ConfigureAudioSource();
+    }
+
+    private void ConfigureAudioSource()
+    {
+        if (_audioSource == null) return;
+
+        _audioSource.spatialBlend = _audioSpatialBlend;
+        _audioSource.minDistance = _minSoundDistance;
+        _audioSource.maxDistance = _maxSoundDistance;
+        _audioSource.rolloffMode = AudioRolloffMode.Linear;
+        _audioSource.volume = 1.0f;
+        _audioSource.playOnAwake = false;
     }
 
     private void LateUpdate()
@@ -243,7 +259,7 @@ public class Bomb : NetworkBehaviour
 
         if (_beepAudioClip != null && _audioSource != null)
         {
-            _audioSource.PlayOneShot(_beepAudioClip);
+            _audioSource.PlayOneShot(_beepAudioClip, 1.15f);
         }
 
         _nextBeepTime = Time.time + _beepInterval;
@@ -317,16 +333,32 @@ public class Bomb : NetworkBehaviour
         BroadcastToAllClients(0);
     }
 
-    private void PlaySoundEffect(byte soundType)
+    public void PlaySoundEffect(byte soundType)
     {
         if (soundType == 0 || _audioSource == null) return;
 
-        if (soundType == 1 && _plantCompletedAudioClip != null) _audioSource.PlayOneShot(_plantCompletedAudioClip);
-        else if (soundType == 2 && _defusedAudioClip != null) _audioSource.PlayOneShot(_defusedAudioClip);
+        if (soundType == 1 && _plantCompletedAudioClip != null)
+        {
+            _audioSource.PlayOneShot(_plantCompletedAudioClip, 1.4f);
+        }
+        else if (soundType == 2 && _defusedAudioClip != null)
+        {
+            _audioSource.PlayOneShot(_defusedAudioClip, 1.3f);
+        }
         else if (soundType == 3)
         {
-            if (_explosionAudioClip != null) _audioSource.PlayOneShot(_explosionAudioClip);
+            if (_explosionAudioClip != null) _audioSource.PlayOneShot(_explosionAudioClip, 1.6f);
             if (_explosionVfxPrefab != null) Instantiate(_explosionVfxPrefab, transform.position, Quaternion.identity);
+        }
+        else if (soundType == 4)
+        {
+            AudioClip clip = _plantStartAudioClip != null ? _plantStartAudioClip : _beepAudioClip;
+            if (clip != null) _audioSource.PlayOneShot(clip, 1.25f);
+        }
+        else if (soundType == 5)
+        {
+            AudioClip clip = _defuseStartAudioClip != null ? _defuseStartAudioClip : _defusedAudioClip;
+            if (clip != null) _audioSource.PlayOneShot(clip, 1.25f);
         }
     }
 }

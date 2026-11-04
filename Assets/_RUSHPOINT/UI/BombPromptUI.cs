@@ -11,10 +11,10 @@ public class BombPromptUI : MonoBehaviour
     [SerializeField] private Image _progressFill;
     [SerializeField] private TMP_Text _progressLabel;
 
-    [SerializeField] private string _pickupPrompt = "Press [E] to pick up bomb";
-    [SerializeField] private string _dropPrompt = "Press [E] to drop bomb";
-    [SerializeField] private string _plantPrompt = "Hold [E] to plant bomb";
-    [SerializeField] private string _defusePrompt = "Hold [E] to defuse bomb";
+    [SerializeField] private string _pickupPrompt = "Press [{0}] to pick up bomb";
+    [SerializeField] private string _dropPrompt = "Press [{0}] to drop bomb";
+    [SerializeField] private string _plantPrompt = "Hold [{0}] to plant bomb";
+    [SerializeField] private string _defusePrompt = "Hold [{0}] to defuse bomb";
     [SerializeField] private string _plantingLabel = "Planting...";
     [SerializeField] private string _defusingLabel = "Defusing...";
 
@@ -45,6 +45,36 @@ public class BombPromptUI : MonoBehaviour
         _localInteractor = localPlayerObject.GetComponent<BombInteractor>();
     }
 
+    private string GetActionKeyName(string actionName, string fallbackKey)
+    {
+        if (InputManager.Instance == null) return fallbackKey;
+
+        bool isGamepad = InputManager.Instance.IsGamepadActive;
+        int bindingIndex = InputManager.Instance.GetBindingIndex(actionName, isGamepad);
+
+        if (bindingIndex >= 0)
+        {
+            string display = InputManager.Instance.GetBindingDisplayString(actionName, bindingIndex);
+            if (!string.IsNullOrEmpty(display)) return display;
+        }
+
+        if (isGamepad)
+        {
+            if (actionName == "Interact") return "Y";
+            if (actionName == "Drop") return "D-Pad Down";
+        }
+
+        return fallbackKey;
+    }
+
+    private string FormatPrompt(string template, string keyName)
+    {
+        if (template.Contains("{0}")) return string.Format(template, keyName);
+        if (template.Contains("[E]")) return template.Replace("[E]", $"[{keyName}]");
+        if (template.Contains("[G]")) return template.Replace("[G]", $"[{keyName}]");
+        return $"{template} [{keyName}]";
+    }
+
     private void RefreshUserInterface()
     {
         if (_localInteractor.IsPlanting)
@@ -63,17 +93,23 @@ public class BombPromptUI : MonoBehaviour
 
         HideProgressDisplay();
 
+        string interactKey = GetActionKeyName("Interact", "E");
+        string dropKey = GetActionKeyName("Drop", "G");
+
         if (_localInteractor.IsCarryingBomb)
         {
-            ShowActionPrompt(_localInteractor.IsInSite ? _plantPrompt : _dropPrompt);
+            string prompt = _localInteractor.IsInSite
+                ? FormatPrompt(_plantPrompt, interactKey)
+                : FormatPrompt(_dropPrompt, dropKey);
+            ShowActionPrompt(prompt);
         }
         else if (_localInteractor.HasNearbyPlantedBomb)
         {
-            ShowActionPrompt(_defusePrompt);
+            ShowActionPrompt(FormatPrompt(_defusePrompt, interactKey));
         }
         else if (_localInteractor.HasNearbyBomb)
         {
-            ShowActionPrompt(_pickupPrompt);
+            ShowActionPrompt(FormatPrompt(_pickupPrompt, interactKey));
         }
         else
         {

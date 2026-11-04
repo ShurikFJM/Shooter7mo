@@ -14,7 +14,7 @@ public class ScoreboardUI : MonoBehaviour
     [SerializeField] private TMP_Text _defenderScoreText;
     [SerializeField] private TMP_Text _roundNumberText;
     [SerializeField] private bool _debugLogs = true;
-    [SerializeField] private bool _debugOverlay = true;
+    [SerializeField] private bool _debugOverlay = false;
 
     private struct ScoreRow
     {
@@ -35,8 +35,7 @@ public class ScoreboardUI : MonoBehaviour
     {
         if (_scoreboardRootPanel != null && transform.IsChildOf(_scoreboardRootPanel.transform))
         {
-            Debug.LogError("[ScoreboardUI] Este script está dentro de _scoreboardRootPanel (o es el propio panel). " +
-                           "Al ocultar el panel el script se desactiva. Muévelo a un objeto que siempre esté activo (p. ej. el Canvas).", this);
+            Debug.LogError("[ScoreboardUI] Este script está dentro de _scoreboardRootPanel. Muévelo a un objeto que siempre esté activo (Canvas).", this);
         }
 
         if (_scoreboardRootPanel != null) _scoreboardRootPanel.SetActive(false);
@@ -59,17 +58,27 @@ public class ScoreboardUI : MonoBehaviour
             TryBindToManager();
         }
 
-        if (Keyboard.current == null || _scoreboardRootPanel == null) return;
+        if (_scoreboardRootPanel == null) return;
 
-        bool isTabPressed = Keyboard.current.tabKey.isPressed;
+        bool isScoreboardRequested = false;
 
-        if (_scoreboardRootPanel.activeSelf != isTabPressed)
+        if (InputManager.Instance != null)
         {
-            _scoreboardRootPanel.SetActive(isTabPressed);
-            if (isTabPressed) RefreshScoreboard();
+            isScoreboardRequested = InputManager.Instance.IsScoreboardPressed;
+        }
+        else
+        {
+            if (Keyboard.current != null && Keyboard.current.tabKey.isPressed) isScoreboardRequested = true;
+            if (Gamepad.current != null && Gamepad.current.selectButton.isPressed) isScoreboardRequested = true;
         }
 
-        if (isTabPressed) UpdateRoundInfo();
+        if (_scoreboardRootPanel.activeSelf != isScoreboardRequested)
+        {
+            _scoreboardRootPanel.SetActive(isScoreboardRequested);
+            if (isScoreboardRequested) RefreshScoreboard();
+        }
+
+        if (isScoreboardRequested) UpdateRoundInfo();
     }
 
     private void TryBindToManager()
@@ -81,7 +90,7 @@ public class ScoreboardUI : MonoBehaviour
         manager.PlayerStats.OnListChanged += HandleScoreboardChanged;
         manager.OnStatsReady += RefreshScoreboard;
 
-        if (_debugLogs) Debug.Log($"[ScoreboardUI] Enlazado al ScoreboardManager | IsSpawned={manager.IsSpawned} | jugadores en NetworkList={manager.PlayerStats.Count}");
+        if (_debugLogs) Debug.Log($"[ScoreboardUI] Enlazado al ScoreboardManager | IsSpawned={manager.IsSpawned} | jugadores={manager.PlayerStats.Count}");
         RefreshScoreboard();
     }
 
@@ -154,6 +163,7 @@ public class ScoreboardUI : MonoBehaviour
                 });
             }
         }
+
         ScoreboardManager manager = ScoreboardManager.Instance;
         if (manager != null && manager.PlayerStats != null)
         {
@@ -175,6 +185,7 @@ public class ScoreboardUI : MonoBehaviour
                 else _rows.Add(row);
             }
         }
+
         _rows.Sort((a, b) =>
         {
             int byKills = b.Kills.CompareTo(a.Kills);
@@ -188,14 +199,6 @@ public class ScoreboardUI : MonoBehaviour
         HideSlots(_attackerSlots);
         HideSlots(_defenderSlots);
 
-        if (_debugLogs)
-        {
-            int bridgeCount = MatchDataBridge.PlayersCache != null ? MatchDataBridge.PlayersCache.Count : 0;
-            int listCount = (ScoreboardManager.Instance != null && ScoreboardManager.Instance.PlayerStats != null)
-                ? ScoreboardManager.Instance.PlayerStats.Count : 0;
-            Debug.Log($"[ScoreboardUI] Refresh: {_rows.Count} filas (lobby={bridgeCount}, NetworkList={listCount})");
-        }
-
         int attackerIndex = 0;
         int defenderIndex = 0;
 
@@ -205,16 +208,17 @@ public class ScoreboardUI : MonoBehaviour
 
             if (row.Team == Team.Red)
             {
-                FillSlot(_attackerSlots, attackerIndex, row, "atacantes");
+                FillSlot(_attackerSlots, attackerIndex, row);
                 attackerIndex++;
             }
             else if (row.Team == Team.Blue)
             {
-                FillSlot(_defenderSlots, defenderIndex, row, "defensores");
+                FillSlot(_defenderSlots, defenderIndex, row);
                 defenderIndex++;
             }
         }
     }
+
     private static void HideSlots(ScoreboardSlotUI[] slots)
     {
         if (slots == null) return;
@@ -228,10 +232,9 @@ public class ScoreboardUI : MonoBehaviour
         }
     }
 
-    private void FillSlot(ScoreboardSlotUI[] slots, int index, ScoreRow row, string teamLabel)
+    private void FillSlot(ScoreboardSlotUI[] slots, int index, ScoreRow row)
     {
-        if (slots == null || index >= slots.Length) return;
-        if (slots[index] == null) return;
+        if (slots == null || index >= slots.Length || slots[index] == null) return;
         slots[index].gameObject.SetActive(true);
         slots[index].SetData(row.Name, row.Kills, row.Assists, row.Deaths);
     }
@@ -248,19 +251,23 @@ public class ScoreboardUI : MonoBehaviour
     private void OnGUI()
     {
         if (!_debugOverlay) return;
-        if (Keyboard.current == null || !Keyboard.current.tabKey.isPressed) return;
+
+        bool isPressed = (InputManager.Instance != null && InputManager.Instance.IsScoreboardPressed) ||
+                         (Keyboard.current != null && Keyboard.current.tabKey.isPressed) ||
+                         (Gamepad.current != null && Gamepad.current.selectButton.isPressed);
+
+        if (!isPressed) return;
 
         ScoreboardManager manager = ScoreboardManager.Instance;
 
         GUILayout.BeginArea(new Rect(10, 10, 560, 360), GUI.skin.box);
-        GUILayout.Label("DEBUG SCOREBOARD (filas que se pintan)");
-        GUILayout.Label($"Lobby local: {(MatchDataBridge.PlayersCache != null ? MatchDataBridge.PlayersCache.Count : 0)} | " +
-                        $"ScoreboardManager: {(manager == null ? "NULL" : "OK, NetworkList=" + manager.PlayerStats.Count)}");
+        GUILayout.Label("DEBUG SCOREBOARD");
+        GUILayout.Label($"ScoreboardManager: {(manager == null ? "NULL" : "OK, Count=" + manager.PlayerStats.Count)}");
 
         for (int i = 0; i < _rows.Count; i++)
         {
             ScoreRow r = _rows[i];
-            GUILayout.Label($"[{r.ClientId}] {r.Name} | Equipo: {r.Team} | K {r.Kills}  A {r.Assists}  D {r.Deaths}");
+            GUILayout.Label($"[{r.ClientId}] {r.Name} | {r.Team} | K:{r.Kills} A:{r.Assists} D:{r.Deaths}");
         }
 
         GUILayout.EndArea();

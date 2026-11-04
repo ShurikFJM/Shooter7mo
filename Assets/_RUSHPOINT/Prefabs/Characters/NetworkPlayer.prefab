@@ -434,6 +434,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NetworkPlayerController
   ShowTopMostFoldoutHeaderGroup: 1
   _walkSpeed: 5.5
+  _slowWalkSpeed: 2.8
   _crouchSpeed: 2.8
   _jumpHeight: 1.2
   _crouchCameraDropOffset: 0.55
@@ -476,19 +477,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BombInteractor
   ShowTopMostFoldoutHeaderGroup: 1
   _interactOrigin: {fileID: 2745469733686981276}
-  _interactRange: 3
   _bombLayer:
     serializedVersion: 2
     m_Bits: 128
   _siteLayer:
     serializedVersion: 2
     m_Bits: 64
-  _plantHoldTime: 4
-  _defuseHoldTime: 5
   _playerTeam: {fileID: 219256414515823687}
-  _interactorAudioSource: {fileID: 388002039263190882}
-  _startPlantingClip: {fileID: 8300000, guid: 1e7d60d320c503e42a4d7569ab16ec92, type: 3}
-  _startDefusingClip: {fileID: 8300000, guid: ba41196db5683f145b436727bb01e81f, type: 3}
+  _plantDuration: 3.5
+  _defuseDuration: 5
 --- !u!114 &219256414515823687
 MonoBehaviour:
   m_ObjectHideFlags: 0

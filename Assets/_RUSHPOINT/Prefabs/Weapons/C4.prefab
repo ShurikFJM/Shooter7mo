@@ -108,7 +108,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3427704091
+  GlobalObjectIdHash: 1693040567
   InScenePlacedSourceGlobalObjectIdHash: 1366868768
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -138,10 +138,15 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _detonationTimeDuration: 40
   _beepAudioClip: {fileID: 8300000, guid: b9dcaceb890d30a42b10612af0430ba8, type: 3}
+  _plantStartAudioClip: {fileID: 8300000, guid: 1e7d60d320c503e42a4d7569ab16ec92, type: 3}
   _plantCompletedAudioClip: {fileID: 8300000, guid: ad71a4e14ac42f84e9cb6473357af1c9, type: 3}
+  _defuseStartAudioClip: {fileID: 0}
   _defusedAudioClip: {fileID: 8300000, guid: ba41196db5683f145b436727bb01e81f, type: 3}
   _explosionAudioClip: {fileID: 8300000, guid: 8e8e99f27a7ba3246b0b54dfff1d6141, type: 3}
   _explosionVfxPrefab: {fileID: 0}
+  _minSoundDistance: 8
+  _maxSoundDistance: 75
+  _audioSpatialBlend: 0.8
 --- !u!65 &3217160544809793302
 BoxCollider:
   m_ObjectHideFlags: 0

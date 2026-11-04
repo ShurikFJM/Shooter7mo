@@ -505,15 +505,17 @@ public class WeaponBase : NetworkBehaviour
         return _loadedPlayerVfx;
     }
 
-    private IEnumerator RenderTracerRoutine(Vector3 start, Vector3 end)
+    private IEnumerator RenderTracerRoutine(Vector3 startPoint, Vector3 endPoint)
     {
         if (PoolManager.Instance == null) yield break;
 
         LineRenderer tracer = PoolManager.Instance.GetTracer(null);
         if (tracer == null) yield break;
 
-        tracer.SetPosition(0, start);
-        tracer.SetPosition(1, start);
+        tracer.enabled = true;
+        tracer.positionCount = 2;
+        tracer.SetPosition(0, startPoint);
+        tracer.SetPosition(1, startPoint);
 
         float duration = TRACER_DURATION;
         float elapsedTime = 0f;
@@ -521,14 +523,29 @@ public class WeaponBase : NetworkBehaviour
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
-            Vector3 currentPos = Vector3.Lerp(start, end, elapsedTime / duration);
-            tracer.SetPosition(1, currentPos);
+            Vector3 currentPos = Vector3.Lerp(startPoint, endPoint, elapsedTime / duration);
+
+            if (tracer != null && tracer.positionCount >= 2)
+            {
+                tracer.SetPosition(1, currentPos);
+            }
+
             yield return null;
         }
 
-        tracer.SetPosition(1, end);
-        yield return new WaitForSeconds(0.05f);
-        PoolManager.Instance.ReturnTracer(tracer);
+        if (tracer != null)
+        {
+            if (tracer.positionCount >= 2)
+            {
+                tracer.SetPosition(1, endPoint);
+            }
+
+            yield return new WaitForSeconds(0.02f);
+
+            tracer.positionCount = 0;
+            tracer.enabled = false;
+            PoolManager.Instance.ReturnTracer(tracer);
+        }
     }
 
     public void Reload()
@@ -591,6 +608,22 @@ public class WeaponBase : NetworkBehaviour
         if (_weaponAnimator != null)
         {
             _weaponAnimator.ResetTrigger(_reloadTriggerHash);
+        }
+    }
+
+    [RequireComponent(typeof(Collider))]
+    public class TutorialTargetBridge : MonoBehaviour
+    {
+        [SerializeField] private TutorialTarget _parentTarget;
+
+        private void Awake()
+        {
+            if (_parentTarget == null) _parentTarget = GetComponentInParent<TutorialTarget>();
+        }
+
+        public void ApplyDamage(float amount)
+        {
+            if (_parentTarget != null) _parentTarget.TakeDamage(amount);
         }
     }
 }

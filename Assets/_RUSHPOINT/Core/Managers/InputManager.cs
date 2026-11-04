@@ -25,6 +25,8 @@ public class InputManager : MonoBehaviour
     private const string ACTION_SLOT_2 = "Slot2";
     private const string ACTION_SLOT_3 = "Slot3";
     private const string ACTION_PAUSE = "Pause";
+    private const string ACTION_SCOREBOARD = "Scoreboard";
+    private const string ACTION_CHAT = "Chat";
 
     private static InputManager _instance;
     public static InputManager Instance => _instance;
@@ -47,6 +49,8 @@ public class InputManager : MonoBehaviour
     private InputAction _slot2Action;
     private InputAction _slot3Action;
     private InputAction _pauseAction;
+    private InputAction _scoreboardAction;
+    private InputAction _chatAction;
 
     private InputActionRebindingExtensions.RebindingOperation _rebindOperation;
     private bool _isGamepadActive;
@@ -104,12 +108,35 @@ public class InputManager : MonoBehaviour
     public bool WasInteractReleased => _interactAction != null && _interactAction.WasReleasedThisFrame();
     public bool WasJumpTriggered => _jumpAction != null && _jumpAction.WasPressedThisFrame();
     public bool IsCrouchPressed => _crouchAction != null && _crouchAction.IsPressed();
-    public bool IsWalkPressed => _walkAction != null && _walkAction.IsPressed();
+
+    public bool IsWalkPressed
+    {
+        get
+        {
+            if (_walkAction != null && _walkAction.IsPressed()) return true;
+            if (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed) return true;
+            if (Gamepad.current != null && Gamepad.current.leftStickButton.isPressed) return true;
+            return false;
+        }
+    }
+
     public bool WasDropTriggered => _dropAction != null && _dropAction.WasPressedThisFrame();
     public bool WasSlot1Triggered => _slot1Action != null && _slot1Action.WasPressedThisFrame();
     public bool WasSlot2Triggered => _slot2Action != null && _slot2Action.WasPressedThisFrame();
     public bool WasSlot3Triggered => _slot3Action != null && _slot3Action.WasPressedThisFrame();
     public bool WasPauseTriggered => _pauseAction != null && _pauseAction.WasPressedThisFrame();
+    public bool WasChatTriggered => _chatAction != null && _chatAction.WasPressedThisFrame();
+
+    public bool IsScoreboardPressed
+    {
+        get
+        {
+            if (_scoreboardAction != null && _scoreboardAction.IsPressed()) return true;
+            if (Keyboard.current != null && Keyboard.current.tabKey.isPressed) return true;
+            if (Gamepad.current != null && Gamepad.current.selectButton.isPressed) return true;
+            return false;
+        }
+    }
 
     private void Awake()
     {
@@ -201,7 +228,6 @@ public class InputManager : MonoBehaviour
 
         InputAction crouch = playerMap.AddAction(ACTION_CROUCH, InputActionType.Button);
         crouch.AddBinding("<Keyboard>/leftCtrl");
-        crouch.AddBinding("<Keyboard>/c");
         crouch.AddBinding("<Gamepad>/buttonEast");
 
         InputAction walk = playerMap.AddAction(ACTION_WALK, InputActionType.Button);
@@ -226,8 +252,14 @@ public class InputManager : MonoBehaviour
 
         InputAction pause = playerMap.AddAction(ACTION_PAUSE, InputActionType.Button);
         pause.AddBinding("<Keyboard>/escape");
-        pause.AddBinding("<Keyboard>/p");
         pause.AddBinding("<Gamepad>/start");
+
+        InputAction scoreboard = playerMap.AddAction(ACTION_SCOREBOARD, InputActionType.Button);
+        scoreboard.AddBinding("<Keyboard>/tab");
+        scoreboard.AddBinding("<Gamepad>/select");
+
+        InputAction chat = playerMap.AddAction(ACTION_CHAT, InputActionType.Button);
+        chat.AddBinding("<Keyboard>/t");
     }
 
     private void CacheActionReferences()
@@ -254,6 +286,8 @@ public class InputManager : MonoBehaviour
         _slot2Action = SafeGetAction(map, ACTION_SLOT_2);
         _slot3Action = SafeGetAction(map, ACTION_SLOT_3);
         _pauseAction = SafeGetAction(map, ACTION_PAUSE);
+        _scoreboardAction = SafeGetAction(map, ACTION_SCOREBOARD);
+        _chatAction = SafeGetAction(map, ACTION_CHAT);
     }
 
     private InputAction SafeGetAction(InputActionMap map, string primaryName, string secondaryName = null)
@@ -273,6 +307,15 @@ public class InputManager : MonoBehaviour
         {
             action.AddBinding("<Keyboard>/leftShift");
             action.AddBinding("<Gamepad>/leftStickPress");
+        }
+        else if (primaryName == ACTION_SCOREBOARD)
+        {
+            action.AddBinding("<Keyboard>/tab");
+            action.AddBinding("<Gamepad>/select");
+        }
+        else if (primaryName == ACTION_CHAT)
+        {
+            action.AddBinding("<Keyboard>/t");
         }
         else if (primaryName == ACTION_SLOT_1)
         {
@@ -465,4 +508,19 @@ public class InputManager : MonoBehaviour
             _inputActions.LoadBindingOverridesFromJson(overridesJson);
         }
     }
+
+    public void SetGameplayInputActive(bool active)
+    {
+        if (_inputActions == null) return;
+
+        if (active)
+        {
+            EnableAllGameplayActions();
+        }
+        else
+        {
+            DisableAllGameplayActions();
+        }
+    }
+
 }

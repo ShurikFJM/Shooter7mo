@@ -6,7 +6,6 @@ public class BombInteractor : NetworkBehaviour
     private const float DEFAULT_PLANT_DURATION = 3.5f;
     private const float DEFAULT_DEFUSE_DURATION = 5.0f;
     private const float INTERACTION_DISTANCE = 3.5f;
-    private const float AUTO_PICKUP_RADIUS = 2.2f;
 
     [SerializeField] private Camera _interactOrigin;
     [SerializeField] private LayerMask _bombLayer;
@@ -17,15 +16,16 @@ public class BombInteractor : NetworkBehaviour
     [SerializeField] private float _defuseDuration = DEFAULT_DEFUSE_DURATION;
 
     private Bomb _activeBomb;
+    private BombSite _currentSite;
     private string _currentSiteId = string.Empty;
     private bool _isPlanting;
     private bool _isDefusing;
     private float _currentInteractionTimer;
-    private float _lastPickupRequestTime;
+    private float _pickupCooldownTime;
 
     public bool HasBomb => _activeBomb != null && _activeBomb.CurrentState == BombState.Carried && _activeBomb.CurrentCarrierId == OwnerClientId;
     public bool IsCarryingBomb => HasBomb;
-    public bool IsInSite => !string.IsNullOrEmpty(_currentSiteId);
+    public bool IsInSite => !string.IsNullOrEmpty(_currentSiteId) && _currentSite != null;
     public bool IsPlanting => _isPlanting;
     public bool IsDefusing => _isDefusing;
     public bool IsInteracting => _isPlanting || _isDefusing;
@@ -63,7 +63,18 @@ public class BombInteractor : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+        ResetSiteState();
         LocateSceneBomb();
+    }
+
+    private void OnEnable()
+    {
+        ResetSiteState();
+    }
+
+    private void OnDisable()
+    {
+        ResetSiteState();
     }
 
     private void Update()
@@ -71,10 +82,44 @@ public class BombInteractor : NetworkBehaviour
         if (!IsOwner) return;
 
         LocateSceneBomb();
-        CheckAutoPickup();
+        ValidateCurrentSite();
         HandleManualPickup();
         HandleDropInput();
         HandlePlantAndDefuse();
+    }
+
+    public void ResetSiteState()
+    {
+        _currentSite = null;
+        _currentSiteId = string.Empty;
+        CancelInteraction();
+    }
+
+    private void ValidateCurrentSite()
+    {
+        if (_currentSite == null)
+        {
+            if (!string.IsNullOrEmpty(_currentSiteId))
+            {
+                _currentSiteId = string.Empty;
+            }
+            return;
+        }
+
+        Collider siteCol = _currentSite.GetComponent<Collider>();
+        if (siteCol == null || !siteCol.enabled || !siteCol.gameObject.activeInHierarchy)
+        {
+            ResetSiteState();
+            return;
+        }
+
+        Vector3 closestPoint = siteCol.ClosestPoint(transform.position);
+        float sqrDistanceToSite = (closestPoint - transform.position).sqrMagnitude;
+
+        if (sqrDistanceToSite > 1.0f)
+        {
+            ResetSiteState();
+        }
     }
 
     private void LocateSceneBomb()
@@ -92,30 +137,14 @@ public class BombInteractor : NetworkBehaviour
         return (dx * dx) + (dz * dz);
     }
 
-    private void CheckAutoPickup()
-    {
-        if (_activeBomb == null || HasBomb) return;
-        if (_playerTeam == null || _playerTeam.CurrentTeam.Value != Team.Red) return;
-        if (Time.time - _lastPickupRequestTime < 0.25f) return;
-
-        if (_activeBomb.CurrentState == BombState.OnGround)
-        {
-            float horizontalDistSqr = GetHorizontalDistanceSqr(transform.position, _activeBomb.transform.position);
-            if (horizontalDistSqr <= (AUTO_PICKUP_RADIUS * AUTO_PICKUP_RADIUS))
-            {
-                _lastPickupRequestTime = Time.time;
-                RequestPickupBombServerRpc();
-            }
-        }
-    }
-
     private void HandleManualPickup()
     {
         if (HasBomb || !HasNearbyBomb || InputManager.Instance == null) return;
+        if (Time.time < _pickupCooldownTime) return;
 
         if (InputManager.Instance.WasInteractTriggered)
         {
-            _lastPickupRequestTime = Time.time;
+            _pickupCooldownTime = Time.time + 0.4f;
             RequestPickupBombServerRpc();
         }
     }
@@ -126,6 +155,7 @@ public class BombInteractor : NetworkBehaviour
 
         if (InputManager.Instance != null && InputManager.Instance.WasDropTriggered)
         {
+            _pickupCooldownTime = Time.time + 0.8f;
             Vector3 dropPos = transform.position + (transform.forward * 1.2f) + (Vector3.up * 0.1f);
             RequestDropBombServerRpc(dropPos, transform.rotation);
         }
@@ -137,11 +167,17 @@ public class BombInteractor : NetworkBehaviour
 
         bool isHoldingInteract = InputManager.Instance.IsInteractPressed;
 
-        if (HasBomb && !string.IsNullOrEmpty(_currentSiteId) && _playerTeam != null && _playerTeam.CurrentTeam.Value == Team.Red)
+        if (HasBomb && IsInSite && _playerTeam != null && _playerTeam.CurrentTeam.Value == Team.Red)
         {
             if (isHoldingInteract)
             {
-                _isPlanting = true;
+                if (!_isPlanting)
+                {
+                    _isPlanting = true;
+                    _currentInteractionTimer = 0f;
+                    RequestStartPlantAudioServerRpc();
+                }
+
                 _currentInteractionTimer += Time.deltaTime;
 
                 if (_currentInteractionTimer >= _plantDuration)
@@ -160,7 +196,13 @@ public class BombInteractor : NetworkBehaviour
             float horizontalDistSqr = GetHorizontalDistanceSqr(transform.position, _activeBomb.transform.position);
             if (horizontalDistSqr <= (INTERACTION_DISTANCE * INTERACTION_DISTANCE) && isHoldingInteract)
             {
-                _isDefusing = true;
+                if (!_isDefusing)
+                {
+                    _isDefusing = true;
+                    _currentInteractionTimer = 0f;
+                    RequestStartDefuseAudioServerRpc();
+                }
+
                 _currentInteractionTimer += Time.deltaTime;
 
                 if (_currentInteractionTimer >= _defuseDuration)
@@ -190,6 +232,7 @@ public class BombInteractor : NetworkBehaviour
         BombSite site = other.GetComponent<BombSite>();
         if (site != null)
         {
+            _currentSite = site;
             _currentSiteId = site.SiteId;
         }
     }
@@ -199,8 +242,31 @@ public class BombInteractor : NetworkBehaviour
         BombSite site = other.GetComponent<BombSite>();
         if (site != null && _currentSiteId == site.SiteId)
         {
+            _currentSite = null;
             _currentSiteId = string.Empty;
             if (_isPlanting) CancelInteraction();
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestStartPlantAudioServerRpc()
+    {
+        BroadcastBombSoundClientRpc(4);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestStartDefuseAudioServerRpc()
+    {
+        BroadcastBombSoundClientRpc(5); 
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void BroadcastBombSoundClientRpc(byte soundType)
+    {
+        LocateSceneBomb();
+        if (_activeBomb != null)
+        {
+            _activeBomb.PlaySoundEffect(soundType);
         }
     }
 
@@ -238,6 +304,32 @@ public class BombInteractor : NetworkBehaviour
     {
         LocateSceneBomb();
         if (_activeBomb == null) return;
+
+        BombSite[] allSites = FindObjectsByType<BombSite>(FindObjectsSortMode.None);
+        bool isValidSite = false;
+
+        for (int i = 0; i < allSites.Length; i++)
+        {
+            if (allSites[i] != null && allSites[i].SiteId == siteId)
+            {
+                Collider col = allSites[i].GetComponent<Collider>();
+                if (col != null)
+                {
+                    float distSqr = (col.ClosestPoint(plantPosition) - plantPosition).sqrMagnitude;
+                    if (distSqr <= 1.5f)
+                    {
+                        isValidSite = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!isValidSite)
+        {
+            Debug.LogWarning($"[Bomb] Rechazado intento de plantado ilegal fuera de la zona {siteId} en {plantPosition}");
+            return;
+        }
 
         _activeBomb.ServerPlant(siteId, plantPosition, plantRotation);
     }
