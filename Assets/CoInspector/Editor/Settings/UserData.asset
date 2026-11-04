@@ -65,13 +65,93 @@ MonoBehaviour:
   generalScrollSpeed: 18
   sessions:
   - tracker:
-      mostClicked: []
-      recentlyClicked: []
+      mostClicked:
+      - paths:
+        - 
+        count: 36
+        gameObjects: []
+      - paths:
+        - 
+        count: 22
+        gameObjects: []
+      - paths:
+        - 
+        count: 16
+        gameObjects: []
+      - paths:
+        - 
+        count: 12
+        gameObjects: []
+      - paths:
+        - 
+        count: 9
+        gameObjects: []
+      - paths:
+        - 
+        count: 9
+        gameObjects: []
+      - paths:
+        - 
+        count: 8
+        gameObjects: []
+      - paths:
+        - 
+        - 
+        count: 8
+        gameObjects: []
+      - paths:
+        - 
+        count: 7
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      recentlyClicked:
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 04:36 PM (November 3, 2026)
+    lastSaveTimePrint: 01:42 AM (November 4, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -85,32 +165,32 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 64
+    lastValidTabWidth: 95
     alreadyCalculatedHeight: 0
     lastKnownHeight: 0
     tabs:
-    - path: 
+    - path: '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_HUD[0]"}'
       paths: []
-      tabWidth: 61
-      name: 
-      icon: {fileID: 0}
-      shortName: New Tab
+      tabWidth: 92
+      name: Canvas_HUD
+      icon: {fileID: 6918890264710435130, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: Canvas_HUD
       filterString: 
-      newTab: 1
+      newTab: 0
       scrollPosition: 0
       isSelected: 0
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: New Tab
+        m_Text: Canvas_HUD
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "New Tab\u200B"
+        m_TextWithWhitespace: "Canvas_HUD\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
-      previewHeight: 150
+      previewHeight: 13
       debug: 0
       filtering: 0
       prefab: 0
@@ -145,12 +225,102 @@ MonoBehaviour:
       savePlayModeTransform: 0
       index: 0
       historyPosition: 0
-      componentMaps: []
-      historyPaths: []
+      componentMaps:
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: recttransform
+        niceComponentName: rect transform
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: canvasrenderer
+        niceComponentName: canvas renderer
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: textmeshprougui
+        niceComponentName: text mesh pro ugui
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 1
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      historyPaths:
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_HUD[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/MainPausePanel[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/TXT_Mouse_Sensitivity[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/Gamepad_Sensivity_Slider[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/KeyboardControlsViewPanel[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/Mouse_Sensitivity_Slider[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause[0]/PauseMenuManager[0]/PauseMenuRoot[0]/ControlsPanel[0]/Mouse_Sensitivity_Slider[0]/Handle
+          Slide Area[0]"}'
+        prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
+    - assetGUIDs:
+      - 7a241e49bcdcf8a419ef451860429469
+    - assetGUIDs:
+      - cbd1e98022ebdc14ba3e5de535a5fdb6
+      - ecd8756e363dd774dad633a9ffbff3c8
+    - assetGUIDs:
+      - cbd1e98022ebdc14ba3e5de535a5fdb6
+    - assetGUIDs:
+      - ecd8756e363dd774dad633a9ffbff3c8
+    - assetGUIDs:
+      - 620450683c1ebd14184f9cfc53cae58c
+      - 3c2cd5403745811498d5f420cbadf9b7
+    - assetGUIDs:
+      - 620450683c1ebd14184f9cfc53cae58c
+    - assetGUIDs:
+      - 3c2cd5403745811498d5f420cbadf9b7
     - assetGUIDs:
       - dc1ac7c7748377c41a9f0ae32fa541c7
     - assetGUIDs:
@@ -159,23 +329,9 @@ MonoBehaviour:
       - b9dcaceb890d30a42b10612af0430ba8
     - assetGUIDs:
       - 1e7d60d320c503e42a4d7569ab16ec92
-    - assetGUIDs:
-      - 8e8e99f27a7ba3246b0b54dfff1d6141
-    - assetGUIDs:
-      - ba41196db5683f145b436727bb01e81f
-    - assetGUIDs:
-      - ad71a4e14ac42f84e9cb6473357af1c9
-    - assetGUIDs:
-      - 1cb266b2e58f6e64386e17188e527d7c
-    - assetGUIDs:
-      - 077e6706d5672024c8e30ba7a6937f6d
-    - assetGUIDs:
-      - a78fb2409d867404fbee4a2e6ce9abf3
-    - assetGUIDs:
-      - db0dc0af79cf470459007ddda960ca5d
-    targetObject: {fileID: 11500000, guid: dc1ac7c7748377c41a9f0ae32fa541c7, type: 3}
+    targetObject: {fileID: 102900000, guid: 7a241e49bcdcf8a419ef451860429469, type: 3}
     targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Core/GameMode/RoundManager.cs
+    lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Lobby/MainMenu.unity
     lastClickedTab: -1
     previousTab: 0
   - tracker:
@@ -215,7 +371,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: 7a241e49bcdcf8a419ef451860429469
     sceneName: MainMenu
-    lastSaveTimePrint: 04:31 PM (November 3, 2026)
+    lastSaveTimePrint: 01:43 AM (November 4, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -229,13 +385,13 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 64
+    lastValidTabWidth: 63
     alreadyCalculatedHeight: 0
     lastKnownHeight: 0
     tabs:
     - path: 
       paths: []
-      tabWidth: 61
+      tabWidth: 0
       name: 
       icon: {fileID: 0}
       shortName: New Tab
@@ -247,10 +403,10 @@ MonoBehaviour:
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: New Tab
+        m_Text: 
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "New Tab\u200B"
+        m_TextWithWhitespace: 
       multiEditMode: 0
       locked: 0
       hasPreview: 0
@@ -296,6 +452,22 @@ MonoBehaviour:
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
+      - 7a241e49bcdcf8a419ef451860429469
+    - assetGUIDs:
+      - cbd1e98022ebdc14ba3e5de535a5fdb6
+      - ecd8756e363dd774dad633a9ffbff3c8
+    - assetGUIDs:
+      - cbd1e98022ebdc14ba3e5de535a5fdb6
+    - assetGUIDs:
+      - ecd8756e363dd774dad633a9ffbff3c8
+    - assetGUIDs:
+      - 620450683c1ebd14184f9cfc53cae58c
+      - 3c2cd5403745811498d5f420cbadf9b7
+    - assetGUIDs:
+      - 620450683c1ebd14184f9cfc53cae58c
+    - assetGUIDs:
+      - 3c2cd5403745811498d5f420cbadf9b7
+    - assetGUIDs:
       - dc1ac7c7748377c41a9f0ae32fa541c7
     - assetGUIDs:
       - c000273e43838594b97148ea2cdbee9a
@@ -303,23 +475,9 @@ MonoBehaviour:
       - b9dcaceb890d30a42b10612af0430ba8
     - assetGUIDs:
       - 1e7d60d320c503e42a4d7569ab16ec92
-    - assetGUIDs:
-      - 8e8e99f27a7ba3246b0b54dfff1d6141
-    - assetGUIDs:
-      - ba41196db5683f145b436727bb01e81f
-    - assetGUIDs:
-      - ad71a4e14ac42f84e9cb6473357af1c9
-    - assetGUIDs:
-      - 1cb266b2e58f6e64386e17188e527d7c
-    - assetGUIDs:
-      - 077e6706d5672024c8e30ba7a6937f6d
-    - assetGUIDs:
-      - a78fb2409d867404fbee4a2e6ce9abf3
-    - assetGUIDs:
-      - db0dc0af79cf470459007ddda960ca5d
-    targetObject: {fileID: 11500000, guid: dc1ac7c7748377c41a9f0ae32fa541c7, type: 3}
+    targetObject: {fileID: 102900000, guid: 7a241e49bcdcf8a419ef451860429469, type: 3}
     targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Core/GameMode/RoundManager.cs
+    lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Lobby/MainMenu.unity
     lastClickedTab: -1
     previousTab: 0
   - tracker:
@@ -732,7 +890,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: 91539b0d54401974baf219f36a5d3390
     sceneName: IntroRushpoint
-    lastSaveTimePrint: 04:31 PM (November 3, 2026)
+    lastSaveTimePrint: 11:19 PM (November 3, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -746,13 +904,13 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 64
+    lastValidTabWidth: 63
     alreadyCalculatedHeight: 0
     lastKnownHeight: 0
     tabs:
     - path: 
       paths: []
-      tabWidth: 61
+      tabWidth: 60
       name: 
       icon: {fileID: 0}
       shortName: New Tab
@@ -839,6 +997,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/_RUSHPOINT/Core/GameMode/RoundManager.cs
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000000000000000000001000000000000000000000000000000000000000100000000000000010000000100000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000100000000000000000000000000000001000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  tipsShown: 01000000000000000100000001000000000000000100000000000000000000000100000001000000010000000100000001000000000000000100000000000000010000000000000000000000010000000100000000000000010000000000000000000000010000000100000000000000000000000000000001000000010000000000000001000000000000000000000000000000000000000000000000000000010000000000000000000000010000000000000000000000
   playModeStartScene: {}
   enteringPlayMode: 0
