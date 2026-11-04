@@ -15,23 +15,18 @@ public class CustomLobbyUI : MonoBehaviour
     [SerializeField] private TMP_Text _lobbyCodeText;
     [SerializeField] private Button _copyCodeButton;
     [SerializeField] private Button _backButton;
-
     [SerializeField] private TMP_Dropdown _mapDropdown;
     [SerializeField] private TMP_Dropdown _modeDropdown;
     [SerializeField] private TMP_Dropdown _roundTimeDropdown;
     [SerializeField] private TMP_Dropdown _roundsDropdown;
-
     [SerializeField] private TMP_Text _attackersCountText;
     [SerializeField] private Button _joinAttackersButton;
     [SerializeField] private TMP_Text[] _attackerSlotTexts;
-
     [SerializeField] private TMP_Text _defendersCountText;
     [SerializeField] private Button _joinDefendersButton;
     [SerializeField] private TMP_Text[] _defenderSlotTexts;
-
     [SerializeField] private Button _joinSpectatorsButton;
     [SerializeField] private TMP_Text[] _spectatorSlotTexts;
-
     [SerializeField] private Button _actionButton;
     [SerializeField] private TMP_Text _actionButtonText;
 
@@ -103,9 +98,11 @@ public class CustomLobbyUI : MonoBehaviour
         {
             localName = PlayerPrefs.GetString("Rushpoint_PlayerName", $"Player_{NetworkManager.Singleton.LocalClientId + 1}");
         }
+        var fixedName = new FixedString32Bytes();
+        fixedName.CopyFromTruncated(localName);
 
         CustomLobbyManager.Instance.RequestUpdatePlayerNameServerRpc(
-            new FixedString32Bytes(localName),
+            fixedName,
             NetworkManager.Singleton.LocalClientId
         );
     }
@@ -183,6 +180,7 @@ public class CustomLobbyUI : MonoBehaviour
         {
             if (CustomLobbyManager.Instance.CanStartMatch())
             {
+                SaveDataToBridge();
                 CustomLobbyManager.Instance.RequestStartGameServerRpc();
             }
             else
@@ -194,6 +192,29 @@ public class CustomLobbyUI : MonoBehaviour
         {
             CustomLobbyManager.Instance.ToggleReadyServerRpc(NetworkManager.Singleton.LocalClientId);
         }
+    }
+
+    private void SaveDataToBridge()
+    {
+        var lobby = CustomLobbyManager.Instance;
+        if (lobby == null || lobby.Players.Count == 0)
+        {
+            Debug.LogError("[Lobby] No hay jugadores en el lobby: no se guardó nada en MatchDataBridge.");
+            return;
+        }
+
+        MatchDataBridge.PlayersCache.Clear();
+        for (int i = 0; i < lobby.Players.Count; i++)
+        {
+            LobbyPlayerData player = lobby.Players[i];
+            MatchDataBridge.PlayersCache[player.ClientId] = new MatchDataBridge.PlayerLobbyData
+            {
+                Name = player.PlayerName.ToString(),
+                SelectedTeam = player.AssignedTeam
+            };
+        }
+
+        Debug.Log($"[Lobby] Guardados {MatchDataBridge.PlayersCache.Count} jugadores en MatchDataBridge.");
     }
 
     private void OnCopyCodeClicked()
@@ -323,14 +344,17 @@ public class CustomLobbyUI : MonoBehaviour
             _actionButtonText.text = localIsReady ? "CANCEL READY" : "READY";
         }
     }
-
     private void ClearSlotTexts()
     {
         if (_attackerSlotTexts != null)
         {
             for (int i = 0; i < _attackerSlotTexts.Length; i++)
             {
-                if (_attackerSlotTexts[i] != null) _attackerSlotTexts[i].text = "Empty Slot";
+                if (_attackerSlotTexts[i] != null)
+                {
+                    _attackerSlotTexts[i].text = "";
+                    _attackerSlotTexts[i].gameObject.SetActive(false);
+                }
             }
         }
 
@@ -338,7 +362,11 @@ public class CustomLobbyUI : MonoBehaviour
         {
             for (int i = 0; i < _defenderSlotTexts.Length; i++)
             {
-                if (_defenderSlotTexts[i] != null) _defenderSlotTexts[i].text = "Empty Slot";
+                if (_defenderSlotTexts[i] != null)
+                {
+                    _defenderSlotTexts[i].text = "";
+                    _defenderSlotTexts[i].gameObject.SetActive(false);
+                }
             }
         }
 
@@ -346,7 +374,11 @@ public class CustomLobbyUI : MonoBehaviour
         {
             for (int i = 0; i < _spectatorSlotTexts.Length; i++)
             {
-                if (_spectatorSlotTexts[i] != null) _spectatorSlotTexts[i].text = "";
+                if (_spectatorSlotTexts[i] != null)
+                {
+                    _spectatorSlotTexts[i].text = "";
+                    _spectatorSlotTexts[i].gameObject.SetActive(false);
+                }
             }
         }
     }

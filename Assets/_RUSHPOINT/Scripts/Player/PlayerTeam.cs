@@ -15,18 +15,24 @@ public class PlayerTeam : NetworkBehaviour
 
         if (IsServer)
         {
-            if (CustomLobbyManager.Instance != null)
-            {
-                Team lobbyAssignedTeam = CustomLobbyManager.Instance.GetPlayerAssignedTeam(OwnerClientId);
-                if (lobbyAssignedTeam != Team.Neutral)
-                {
-                    CurrentTeam.Value = lobbyAssignedTeam;
-                }
-            }
+            string playerName;
 
-            if (CurrentTeam.Value == Team.Neutral)
+            if (MatchDataBridge.PlayersCache.TryGetValue(OwnerClientId, out var playerData))
             {
-                CurrentTeam.Value = Team.Red;
+                CurrentTeam.Value = playerData.SelectedTeam;
+                playerName = playerData.Name;
+            }
+            else
+            {
+                if (CurrentTeam.Value == Team.Neutral)
+                {
+                    CurrentTeam.Value = Team.Red;
+                }
+                playerName = $"Player_{OwnerClientId}";
+            }
+            if (ScoreboardManager.Instance != null)
+            {
+                ScoreboardManager.Instance.RegisterPlayerServer(OwnerClientId, playerName, CurrentTeam.Value);
             }
         }
 
@@ -43,6 +49,11 @@ public class PlayerTeam : NetworkBehaviour
     private void HandleTeamChanged(Team previousTeam, Team newTeam)
     {
         CheckIfSpectator(newTeam);
+
+        if (IsServer && ScoreboardManager.Instance != null)
+        {
+            ScoreboardManager.Instance.UpdatePlayerTeamServer(OwnerClientId, newTeam);
+        }
     }
 
     private void CheckIfSpectator(Team team)
@@ -69,12 +80,6 @@ public class PlayerTeam : NetworkBehaviour
     public void AssignTeam(Team team)
     {
         if (!IsServer) return;
-        CurrentTeam.Value = team;
-    }
-
-    [Rpc(SendTo.Server)]
-    public void DebugSetTeamServerRpc(Team team)
-    {
         CurrentTeam.Value = team;
     }
 }
