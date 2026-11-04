@@ -259,14 +259,6 @@ public class NetworkHealth : NetworkBehaviour
         if (_currentHealth.Value <= 0f)
         {
             _isAlive.Value = false;
-            if (ScoreboardManager.Instance != null)
-            {
-                ScoreboardManager.Instance.RegisterKillAndDeathServer(attackerClientId, OwnerClientId);
-            }
-            if (KillFeedManager.Instance != null)
-            {
-                KillFeedManager.Instance.BroadcastKillServer(attackerClientId, OwnerClientId);
-            }
         }
     }
 }
