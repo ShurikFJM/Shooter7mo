@@ -1,8 +1,12 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Collider))]
 public class TutorialTarget : MonoBehaviour
 {
+    [Header("Target Health")]
     [SerializeField] private float _maxHealth = 50f;
+
+    [Header("Feedback Effects")]
     [SerializeField] private GameObject _hitParticles;
     [SerializeField] private AudioClip _hitSound;
     [SerializeField] private AudioClip _destroySound;
@@ -15,8 +19,12 @@ public class TutorialTarget : MonoBehaviour
     {
         _currentHealth = _maxHealth;
         _audioSource = GetComponent<AudioSource>();
-        if (_audioSource == null) _audioSource = gameObject.AddComponent<AudioSource>();
+        if (_audioSource == null)
+        {
+            _audioSource = gameObject.AddComponent<AudioSource>();
+        }
         _audioSource.spatialBlend = 1f;
+        _audioSource.playOnAwake = false;
     }
 
     public void TakeDamage(float damageAmount)

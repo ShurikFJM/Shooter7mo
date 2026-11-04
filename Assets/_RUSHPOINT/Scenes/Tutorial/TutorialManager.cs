@@ -2,9 +2,9 @@ using System.Collections;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 
 public enum TutorialStep
 {
@@ -20,18 +20,24 @@ public class TutorialManager : MonoBehaviour
 {
     public static TutorialManager Instance { get; private set; }
 
+    [Header("UI References")]
     [SerializeField] private GameObject _tutorialUIRoot;
     [SerializeField] private TMP_Text _stepTitleText;
     [SerializeField] private TMP_Text _stepDescriptionText;
     [SerializeField] private TMP_Text _stepProgressText;
     [SerializeField] private GameObject _completionPanel;
     [SerializeField] private Button _returnToMenuButton;
+
+    [Header("Targets / Shooting Range")]
     [SerializeField] private GameObject _targetsContainer;
     [SerializeField] private int _requiredTargetsHit = 3;
+
+    [Header("Bomb & Objectives")]
     [SerializeField] private GameObject _tutorialBombPrefab;
     [SerializeField] private Transform _bombSpawnPoint;
     [SerializeField] private Transform _plantSiteIndicator;
 
+    [Header("Player Spawn")]
     [SerializeField] private Transform _playerSpawnPoint;
 
     private TutorialStep _currentStep = TutorialStep.Movement;
@@ -135,7 +141,7 @@ public class TutorialManager : MonoBehaviour
             if (actionName == "Shoot") return "RT";
             if (actionName == "Reload") return "X";
             if (actionName == "Interact") return "Y";
-            if (actionName == "Slot1" || actionName == "Slot2") return "D-Pad";
+            if (actionName == "Slot1" || actionName == "Slot2" || actionName == "Slot3") return "D-Pad";
         }
 
         return fallback;
@@ -148,39 +154,39 @@ public class TutorialManager : MonoBehaviour
         switch (step)
         {
             case TutorialStep.Movement:
-                _stepTitleText.text = "FASE 1: MOVIMIENTO BÁSICO";
-                _stepDescriptionText.text = $"Usa [{GetKey("Move", "WASD")}] para desplazarte y [{GetKey("Jump", "Espacio")}] para saltar.";
-                _stepProgressText.text = "Muévete por el área";
+                if (_stepTitleText != null) _stepTitleText.text = "FASE 1: MOVIMIENTO BÁSICO";
+                if (_stepDescriptionText != null) _stepDescriptionText.text = $"Usa [{GetKey("Move", "WASD")}] para desplazarte y [{GetKey("Jump", "Espacio")}] para saltar.";
+                if (_stepProgressText != null) _stepProgressText.text = "Muévete por el área";
                 break;
 
             case TutorialStep.AimAndShoot:
                 if (_targetsContainer != null) _targetsContainer.SetActive(true);
                 _targetsHitCount = 0;
-                _stepTitleText.text = "FASE 2: COMBATE Y DISPARO";
-                _stepDescriptionText.text = $"Apunta con la cámara y dispara con [{GetKey("Shoot", "Click Izquierdo")}] a las dianas.";
+                if (_stepTitleText != null) _stepTitleText.text = "FASE 2: COMBATE Y DISPARO";
+                if (_stepDescriptionText != null) _stepDescriptionText.text = $"Apunta con la cámara y dispara con [{GetKey("Shoot", "Click Izquierdo")}] a las dianas.";
                 UpdateTargetsProgress();
                 break;
 
             case TutorialStep.WeaponHandling:
                 _hasSwitchedWeapon = false;
                 _hasReloaded = false;
-                _stepTitleText.text = "FASE 3: GESTIÓN DE ARMAS";
-                _stepDescriptionText.text = $"Cambia de arma usando [{GetKey("Slot2", "1/2/3")}] y recarga con [{GetKey("Reload", "R")}].";
-                _stepProgressText.text = "0/2 Acciones completadas";
+                if (_stepTitleText != null) _stepTitleText.text = "FASE 3: GESTIÓN DE ARMAS";
+                if (_stepDescriptionText != null) _stepDescriptionText.text = $"Cambia de arma usando [{GetKey("Slot2", "1/2/3")}] y recarga con [{GetKey("Reload", "R")}].";
+                if (_stepProgressText != null) _stepProgressText.text = "0/2 Acciones completadas";
                 break;
 
             case TutorialStep.PickupBomb:
                 SpawnTutorialBomb();
-                _stepTitleText.text = "FASE 4: EL EXPLOSIVO C4";
-                _stepDescriptionText.text = $"Acércate al artefacto y pulsa [{GetKey("Interact", "E")}] para recoger la bomba.";
-                _stepProgressText.text = "Bomba en el suelo";
+                if (_stepTitleText != null) _stepTitleText.text = "FASE 4: EL EXPLOSIVO C4";
+                if (_stepDescriptionText != null) _stepDescriptionText.text = $"Acércate al artefacto y pulsa [{GetKey("Interact", "E")}] para recoger la bomba.";
+                if (_stepProgressText != null) _stepProgressText.text = "Bomba en el suelo";
                 break;
 
             case TutorialStep.PlantBomb:
                 if (_plantSiteIndicator != null) _plantSiteIndicator.gameObject.SetActive(true);
-                _stepTitleText.text = "FASE 5: PLANTADO EN EL ZONA A";
-                _stepDescriptionText.text = $"Entra en la zona marcada y mantén presionado [{GetKey("Interact", "E")}] hasta armar el explosivo.";
-                _stepProgressText.text = "Dirígete a la zona de plantado";
+                if (_stepTitleText != null) _stepTitleText.text = "FASE 5: PLANTADO EN LA ZONA A";
+                if (_stepDescriptionText != null) _stepDescriptionText.text = $"Entra en la zona marcada y mantén presionado [{GetKey("Interact", "E")}] hasta armar el explosivo.";
+                if (_stepProgressText != null) _stepProgressText.text = "Dirígete a la zona de plantado";
                 break;
 
             case TutorialStep.Completed:
@@ -228,7 +234,10 @@ public class TutorialManager : MonoBehaviour
 
     private void UpdateTargetsProgress()
     {
-        _stepProgressText.text = $"Dianas destruidas: {_targetsHitCount} / {_requiredTargetsHit}";
+        if (_stepProgressText != null)
+        {
+            _stepProgressText.text = $"Dianas destruidas: {_targetsHitCount} / {_requiredTargetsHit}";
+        }
     }
 
     private void CheckWeaponHandlingStep()
@@ -246,7 +255,10 @@ public class TutorialManager : MonoBehaviour
         }
 
         int count = (_hasSwitchedWeapon ? 1 : 0) + (_hasReloaded ? 1 : 0);
-        _stepProgressText.text = $"{count}/2 Acciones completadas";
+        if (_stepProgressText != null)
+        {
+            _stepProgressText.text = $"{count}/2 Acciones completadas";
+        }
 
         if (_hasSwitchedWeapon && _hasReloaded)
         {
@@ -285,7 +297,10 @@ public class TutorialManager : MonoBehaviour
 
     private IEnumerator TransitionDelay(TutorialStep nextStep)
     {
-        _stepProgressText.text = "<color=#00FF66>¡Completado!</color>";
+        if (_stepProgressText != null)
+        {
+            _stepProgressText.text = "<color=#00FF66>¡Completado!</color>";
+        }
         yield return new WaitForSeconds(1.2f);
         SetTutorialStep(nextStep);
     }
