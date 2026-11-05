@@ -1,10 +1,4 @@
 using UnityEngine;
-
-/// <summary>
-/// Manager persistente del filtro de daltonismo. Se crea solo al iniciar el juego
-/// y sobrevive a los cambios de escena. Requiere un Material en:
-///   Assets/Resources/ColorBlindMaterial.mat   (shader ColorBlind_URP o ColorBlind_BuiltIn)
-/// </summary>
 public class ColorBlindManager : MonoBehaviour
 {
     public enum FilterMode { Normal = 0, Protanopia = 1, Deuteranopia = 2, Tritanopia = 3, Acromatopsia = 4 }
@@ -21,7 +15,7 @@ public class ColorBlindManager : MonoBehaviour
     static readonly int StrengthId = Shader.PropertyToID("_Strength");
     static readonly int CorrectId = Shader.PropertyToID("_Correct");
 
-    // Se ejecuta automáticamente al arrancar el juego, sin poner nada en la escena
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Bootstrap()
     {
@@ -63,7 +57,7 @@ public class ColorBlindManager : MonoBehaviour
         PlayerPrefs.SetInt(KeyCorrect, Correct ? 1 : 0);
     }
 
-    // Solo al cerrar el juego: deja el asset neutro para que no quede modificado en el editor
+    
     void OnApplicationQuit()
     {
         if (Material != null) Material.SetFloat(ModeId, 0f);
