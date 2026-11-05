@@ -217,6 +217,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -5176219720295892811, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: -1064451724702449605, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
       propertyPath: m_Layer
       value: 0
@@ -468,11 +472,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
   ShowTopMostFoldoutHeaderGroup: 1
   weaponData: {fileID: 11400000, guid: 7cfe7f91b1b9ec34d9ae422b379a66c7, type: 2}
-  muzzleFlashPrefab: {fileID: 8145397067916315718, guid: 7d4bc57696068d8409901c49cca44d94, type: 3}
+  muzzleFlashPrefab: {fileID: 3554205152219781041, guid: 1528b682d16df25418a61fb0294bdf33, type: 3}
   bulletTracerPrefab: {fileID: 7680071452175567256, guid: 5f905e88f05ce4547811846a4c8ac8cb, type: 3}
   _firePoint: {fileID: 7104995611434977514}
   _weaponModelTransform: {fileID: 6332633925144325434}
-  _weaponAnimator: {fileID: 481511074118910174}
+  _weaponAnimator: {fileID: 0}
   _hitLayers:
     serializedVersion: 2
     m_Bits: 2057

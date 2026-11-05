@@ -382,11 +382,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 190fd6fcc4d0a064cb4b5eb620507af2, type: 3}
       propertyPath: m_LocalPosition.z
@@ -651,7 +651,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
   ShowTopMostFoldoutHeaderGroup: 1
   weaponData: {fileID: 11400000, guid: 1562786dfff06f94790af949b3c096ae, type: 2}
-  muzzleFlashPrefab: {fileID: 8145397067916315718, guid: 7d4bc57696068d8409901c49cca44d94, type: 3}
+  muzzleFlashPrefab: {fileID: 3554205152219781041, guid: 1528b682d16df25418a61fb0294bdf33, type: 3}
   bulletTracerPrefab: {fileID: 7680071452175567256, guid: 5f905e88f05ce4547811846a4c8ac8cb, type: 3}
   _firePoint: {fileID: 231782551315511889}
   _weaponModelTransform: {fileID: 1170741331068106864}

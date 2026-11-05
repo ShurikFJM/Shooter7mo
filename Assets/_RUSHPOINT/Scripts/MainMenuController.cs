@@ -9,6 +9,7 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private Button _searchAndDestroyButton;
     [SerializeField] private Button _hardPointButton;
     [SerializeField] private Button _tutorialButton;
+    [SerializeField] private Button _creditsButton;
 
     [SerializeField] private Button _settingsButton;
     [SerializeField] private Button _audioSettingsButton;
@@ -20,10 +21,12 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private GameObject _settingsPanel;
     [SerializeField] private GameObject _audioSettingsPanel;
     [SerializeField] private GameObject _controlsPanel;
+    [SerializeField] private GameObject _creditsPanel;
 
     [SerializeField] private Button _backSettingsButton;
     [SerializeField] private Button _backAudioSettingsButton;
     [SerializeField] private Button _backControlsButton;
+    [SerializeField] private Button _backCreditsButton;
 
     [SerializeField] private string _tutorialScene;
 
@@ -36,6 +39,7 @@ public class MainMenuController : MonoBehaviour
         if (_searchAndDestroyButton != null) _searchAndDestroyButton.onClick.AddListener(OnMatchmakingComingSoon);
         if (_hardPointButton != null) _hardPointButton.onClick.AddListener(OnMatchmakingComingSoon);
         if (_tutorialButton != null) _tutorialButton.onClick.AddListener(LoadTutorialScene);
+        if (_creditsButton != null) _creditsButton.onClick.AddListener(OpenCredits);
 
         if (_settingsButton != null) _settingsButton.onClick.AddListener(OpenSettings);
         if (_audioSettingsButton != null) _audioSettingsButton.onClick.AddListener(OpenAudioSettings);
@@ -45,6 +49,7 @@ public class MainMenuController : MonoBehaviour
         if (_backSettingsButton != null) _backSettingsButton.onClick.AddListener(CloseSettings);
         if (_backAudioSettingsButton != null) _backAudioSettingsButton.onClick.AddListener(CloseAudioSettings);
         if (_backControlsButton != null) _backControlsButton.onClick.AddListener(CloseControls);
+        if (_backCreditsButton != null) _backCreditsButton.onClick.AddListener(CloseCredits);
 
         ShowExclusivePanel(_mainMenuRootPanel, _customGameButton != null ? _customGameButton.gameObject : null);
     }
@@ -54,7 +59,6 @@ public class MainMenuController : MonoBehaviour
         SelectUIElement(_customGameButton != null ? _customGameButton.gameObject : null);
     }
 
-
     private void ShowExclusivePanel(GameObject targetPanel, GameObject preferredFocusElement = null)
     {
         if (_mainMenuRootPanel != null) _mainMenuRootPanel.SetActive(false);
@@ -62,12 +66,23 @@ public class MainMenuController : MonoBehaviour
         if (_settingsPanel != null) _settingsPanel.SetActive(false);
         if (_audioSettingsPanel != null) _audioSettingsPanel.SetActive(false);
         if (_controlsPanel != null) _controlsPanel.SetActive(false);
+        if (_creditsPanel != null) _creditsPanel.SetActive(false);
 
         if (targetPanel != null)
         {
             targetPanel.SetActive(true);
             SelectFirstInPanel(targetPanel, preferredFocusElement);
         }
+    }
+
+    public void OpenCredits()
+    {
+        ShowExclusivePanel(_creditsPanel, _backCreditsButton != null ? _backCreditsButton.gameObject : null);
+    }
+
+    public void CloseCredits()
+    {
+        ShowExclusivePanel(_mainMenuRootPanel, _creditsButton != null ? _creditsButton.gameObject : null);
     }
 
     public void OpenCustomGameConnection()

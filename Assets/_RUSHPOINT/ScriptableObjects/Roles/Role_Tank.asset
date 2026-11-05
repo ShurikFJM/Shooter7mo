@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoleDataSO
   roleType: 0
   roleName: Tanque
-  roleDescription: Eres el tanque
+  roleDescription: "Especialista en absorci\xF3n de da\xF1o y apertura de brechas.
+    Su reserva aumentada de salud y blindaje le permite resistir fuego pesado y liderar
+    la entrada a los puntos de plantado, sacrificando agilidad y velocidad de movimiento."
   maxHealth: 120
   maxArmor: 80
   walkSpeed: 5
