@@ -15,7 +15,9 @@ public class RoleDataSO : ScriptableObject
 {
     public PlayerRoleType roleType;
     public string roleName;
-    [TextArea] public string roleDescription;
+
+    [TextArea(3, 6)]
+    public string roleDescription;
 
     public float maxHealth = 100f;
     public float maxArmor = 50f;

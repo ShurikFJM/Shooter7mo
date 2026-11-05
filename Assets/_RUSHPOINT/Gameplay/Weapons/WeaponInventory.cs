@@ -360,28 +360,29 @@ public class WeaponInventory : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void BroadcastShootClientRpc(Vector3 hitPoint, Vector3 hitNormal, byte impactType)
     {
+        // El tirador local ya dibujó su propio trazador, sonido e impactos en WeaponBase.Shoot()
+        if (IsOwner) return;
+
         WeaponData activeWeaponData = GetActiveWeaponDataSynced();
         if (activeWeaponData == null && ActiveWeapon != null) activeWeaponData = ActiveWeapon.WeaponData;
+        if (activeWeaponData == null) return;
 
-        if (!IsOwner && activeWeaponData != null)
+        AudioClip[] audioClips = activeWeaponData.shootSounds;
+        if (audioClips != null && audioClips.Length > 0)
         {
-            AudioClip[] audioClips = activeWeaponData.shootSounds;
-            if (audioClips != null && audioClips.Length > 0)
-            {
-                AudioClip selectedClip = audioClips[Random.Range(0, audioClips.Length)];
-                GameObject soundObject = new GameObject("NetworkShotAudio");
-                soundObject.transform.position = transform.position + (Vector3.up * 1.5f);
-                AudioSource audioSource = soundObject.AddComponent<AudioSource>();
-                audioSource.spatialBlend = 1f;
-                audioSource.minDistance = 3f;
-                audioSource.maxDistance = 50f;
-                audioSource.clip = selectedClip;
-                audioSource.Play();
-                Destroy(soundObject, selectedClip.length + 0.1f);
-            }
+            AudioClip selectedClip = audioClips[Random.Range(0, audioClips.Length)];
+            GameObject soundObject = new GameObject("NetworkShotAudio");
+            soundObject.transform.position = transform.position + (Vector3.up * 1.5f);
+            AudioSource audioSource = soundObject.AddComponent<AudioSource>();
+            audioSource.spatialBlend = 1f;
+            audioSource.minDistance = 3f;
+            audioSource.maxDistance = 50f;
+            audioSource.clip = selectedClip;
+            audioSource.Play();
+            Destroy(soundObject, selectedClip.length + 0.1f);
         }
 
-        if (activeWeaponData != null && PoolManager.Instance != null)
+        if (PoolManager.Instance != null)
         {
             SurfaceImpactType surface = (SurfaceImpactType)impactType;
             if (surface == SurfaceImpactType.Wall && activeWeaponData.wallImpactVfxPrefab != null)
@@ -396,30 +397,11 @@ public class WeaponInventory : NetworkBehaviour
             }
         }
 
-        Vector3 tracerStart;
+        int slot = _activeSlotNetworked.Value;
+        Transform thirdPersonWeapon = slot == 1 ? (_currentTpPrimary != null ? _currentTpPrimary.transform : null) :
+                                      slot == 2 ? (_currentTpSecondary != null ? _currentTpSecondary.transform : null) : null;
 
-        if (IsOwner)
-        {
-            if (_firstPersonWeaponHolder != null)
-            {
-                tracerStart = _firstPersonWeaponHolder.position;
-            }
-            else
-            {
-                Camera playerCamera = GetComponentInChildren<Camera>(true);
-                tracerStart = playerCamera != null
-                    ? playerCamera.transform.position + (playerCamera.transform.forward * 0.4f) + (playerCamera.transform.right * 0.15f) - (playerCamera.transform.up * 0.1f)
-                    : transform.position + (Vector3.up * 1.5f);
-            }
-        }
-        else
-        {
-            int slot = _activeSlotNetworked.Value;
-            Transform thirdPersonWeapon = slot == 1 ? (_currentTpPrimary != null ? _currentTpPrimary.transform : null) :
-                                          slot == 2 ? (_currentTpSecondary != null ? _currentTpSecondary.transform : null) : null;
-
-            tracerStart = thirdPersonWeapon != null ? thirdPersonWeapon.position : (transform.position + (Vector3.up * 1.5f));
-        }
+        Vector3 tracerStart = thirdPersonWeapon != null ? thirdPersonWeapon.position : (transform.position + (Vector3.up * 1.5f));
 
         if (PoolManager.Instance != null)
         {

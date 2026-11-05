@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoleDataSO
   roleType: 1
   roleName: Asalto
-  roleDescription: Eres el rol el cual esta en la infanteria dandolo todo
+  roleDescription: "Combatiente de primera l\xEDnea con balance perfecto entre resistencia
+    y cadencia de fuego. Dise\xF1ado para tomar duelos directos a media distancia,
+    castigar rotaciones enemigas y asegurar las primeras bajas de la ronda."
   maxHealth: 100
   maxArmor: 50
   walkSpeed: 6

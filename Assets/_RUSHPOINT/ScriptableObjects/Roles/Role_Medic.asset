@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoleDataSO
   roleType: 2
   roleName: Medico
-  roleDescription: 
+  roleDescription: "Operador de asistencia vital en combate. Equipado para restaurar
+    la salud de los aliados heridos en plena escaramuza mediante su pistola m\xE9dica,
+    manteniendo al escuadr\xF3n operativo durante ejecuciones prolongadas."
   maxHealth: 90
   maxArmor: 40
   walkSpeed: 6
