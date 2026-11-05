@@ -327,6 +327,17 @@ public class WeaponBase : NetworkBehaviour
             targetPoint = hit.point;
             hitNormal = hit.normal;
 
+            // Dianas del tutorial (locales, no son NetworkObject)
+            TutorialTargetBridge targetBridge = hit.collider.GetComponentInParent<TutorialTargetBridge>();
+            if (targetBridge != null)
+            {
+                impactType = SurfaceImpactType.Wall;
+                CreateImpactVisual(hit);
+                PlayImpactSound(hit.point, false);
+                targetBridge.ApplyDamage(weaponData != null ? weaponData.damage : 0f);
+                break;
+            }
+
             NetworkHealth victimHealth = hit.collider.GetComponentInParent<NetworkHealth>();
             NetworkObject victimObj = hit.collider.GetComponentInParent<NetworkObject>();
 
@@ -608,22 +619,6 @@ public class WeaponBase : NetworkBehaviour
         if (_weaponAnimator != null)
         {
             _weaponAnimator.ResetTrigger(_reloadTriggerHash);
-        }
-    }
-
-    [RequireComponent(typeof(Collider))]
-    public class TutorialTargetBridge : MonoBehaviour
-    {
-        [SerializeField] private TutorialTarget _parentTarget;
-
-        private void Awake()
-        {
-            if (_parentTarget == null) _parentTarget = GetComponentInParent<TutorialTarget>();
-        }
-
-        public void ApplyDamage(float amount)
-        {
-            if (_parentTarget != null) _parentTarget.TakeDamage(amount);
         }
     }
 }

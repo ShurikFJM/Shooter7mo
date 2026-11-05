@@ -18,6 +18,8 @@ public enum TutorialStep
 
 public class TutorialManager : MonoBehaviour
 {
+    private const float AUTO_SPAWN_WAIT_SECONDS = 0.5f;
+
     public static TutorialManager Instance { get; private set; }
 
     [Header("UI References")]
@@ -38,6 +40,8 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private Transform _plantSiteIndicator;
 
     [Header("Player Spawn")]
+    [Tooltip("Prefab del jugador. Si queda vacío se usa el Player Prefab del NetworkManager.")]
+    [SerializeField] private GameObject _playerPrefab;
     [SerializeField] private Transform _playerSpawnPoint;
 
     private TutorialStep _currentStep = TutorialStep.Movement;
@@ -72,29 +76,99 @@ public class TutorialManager : MonoBehaviour
 
     private IEnumerator Start()
     {
-        if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsListening)
+        if (NetworkManager.Singleton == null)
+        {
+            Debug.LogError("[TutorialManager] No hay NetworkManager en la escena.");
+            yield break;
+        }
+
+        if (!NetworkManager.Singleton.IsListening)
         {
             NetworkManager.Singleton.StartHost();
         }
 
-        while (NetworkManager.Singleton == null ||
-               NetworkManager.Singleton.SpawnManager == null ||
-               NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject() == null)
+        while (!NetworkManager.Singleton.IsListening || NetworkManager.Singleton.SpawnManager == null)
         {
             yield return null;
         }
 
-        GameObject localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject().gameObject;
+        // Damos unos instantes a que el NetworkManager cree el jugador por su cuenta
+        float waited = 0f;
+        while (NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject() == null && waited < AUTO_SPAWN_WAIT_SECONDS)
+        {
+            waited += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        NetworkObject playerObject = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+        bool spawnedManually = false;
+
+        if (playerObject == null)
+        {
+            playerObject = SpawnPlayerManually();
+            spawnedManually = true;
+        }
+
+        if (playerObject == null)
+        {
+            Debug.LogError("[TutorialManager] No se pudo crear el jugador. Asigna _playerPrefab o el Player Prefab del NetworkManager.");
+            yield break;
+        }
+
+        // Dejamos pasar un frame para que OnNetworkSpawn y los Awake del jugador terminen
+        yield return null;
+
+        GameObject localPlayer = playerObject.gameObject;
         _localBombInteractor = localPlayer.GetComponent<BombInteractor>();
         _localWeaponInventory = localPlayer.GetComponent<WeaponInventory>();
 
-        if (_playerSpawnPoint != null)
+        NetworkPlayerController playerController = localPlayer.GetComponent<NetworkPlayerController>();
+
+        // Si lo creó el NetworkManager hay que moverlo al spawn; si lo creamos nosotros ya nace ahí
+        if (!spawnedManually && _playerSpawnPoint != null)
         {
-            localPlayer.transform.position = _playerSpawnPoint.position;
-            localPlayer.transform.rotation = _playerSpawnPoint.rotation;
+            if (playerController != null)
+            {
+                playerController.RespawnPlayer(_playerSpawnPoint.position, _playerSpawnPoint.rotation);
+            }
+            else
+            {
+                localPlayer.transform.SetPositionAndRotation(_playerSpawnPoint.position, _playerSpawnPoint.rotation);
+            }
+        }
+
+        // Auto-seleccionar rol Asalto para el tutorial
+        if (playerController != null)
+        {
+            playerController.SetInitialRole(PlayerRoleType.Assault);
         }
 
         SetTutorialStep(TutorialStep.Movement);
+    }
+
+    private NetworkObject SpawnPlayerManually()
+    {
+        GameObject prefab = _playerPrefab != null
+            ? _playerPrefab
+            : NetworkManager.Singleton.NetworkConfig.PlayerPrefab;
+
+        if (prefab == null) return null;
+
+        Vector3 spawnPosition = _playerSpawnPoint != null ? _playerSpawnPoint.position : Vector3.zero;
+        Quaternion spawnRotation = _playerSpawnPoint != null ? _playerSpawnPoint.rotation : Quaternion.identity;
+
+        GameObject instance = Instantiate(prefab, spawnPosition, spawnRotation);
+        NetworkObject networkObject = instance.GetComponent<NetworkObject>();
+
+        if (networkObject == null)
+        {
+            Debug.LogError("[TutorialManager] El prefab del jugador no tiene NetworkObject.");
+            Destroy(instance);
+            return null;
+        }
+
+        networkObject.SpawnAsPlayerObject(NetworkManager.Singleton.LocalClientId, true);
+        return networkObject;
     }
 
     private void Update()
