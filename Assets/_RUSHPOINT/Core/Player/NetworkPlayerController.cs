@@ -1,487 +1,796 @@
+using System.Collections;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
-[RequireComponent(typeof(CharacterController), typeof(NetworkObject))]
+[RequireComponent(typeof(CharacterController))]
 public class NetworkPlayerController : NetworkBehaviour
 {
-    private const float _GRAVITY = -19.62f;
-    private const float _HEAD_ROTATION_LIMIT_UP = -89f;
-    private const float _HEAD_ROTATION_LIMIT_DOWN = 89f;
+    private const float GRAVITY = -19.62f;
+    private const float DEFAULT_WALK_SPEED = 5.5f;
+    private const float DEFAULT_JUMP_FORCE = 1.6f;
+    private const float CROUCH_HEIGHT = 1f;
+    private const float STANDING_HEIGHT = 2f;
+    private const float CROUCH_SPEED_RATIO = 0.5f;
+    private const float WALK_SLOW_RATIO = 0.5f;
+    private const float CROUCH_TRANSITION_SPEED = 12f;
+    private const float MIN_MOVE_MAGNITUDE_SQR = 0.005f;
+    private const float CAMERA_PLANE_DISTANCE = 1f;
+    private const string LOBBY_CAMERA_TAG = "LobbyCamera";
+    private const string MAIN_MENU_SCENE_NAME = "MainMenu";
 
-    [SerializeField] private float _walkSpeed = 5.5f;
-    [SerializeField] private float _slowWalkSpeed = 2.8f;
-    [SerializeField] private float _crouchSpeed = 2.4f;
-    [SerializeField] private float _jumpHeight = 1.2f;
-    [SerializeField] private float _crouchCameraDropOffset = 0.55f;
-    [SerializeField] private float _crouchControllerHeightOffset = 0.6f;
-    [SerializeField] private Transform _cameraAnchor;
+    [SerializeField] private CharacterController _characterController;
+    [SerializeField] private Transform _cameraRoot;
     [SerializeField] private Camera _playerCamera;
     [SerializeField] private AudioListener _audioListener;
+    [SerializeField] private float _mouseSensitivity = 0.15f;
+    [SerializeField] private float _upDownLookLimit = 85f;
     [SerializeField] private RoleDatabaseSO _roleDatabase;
-    [SerializeField] private GameObject _thirdPersonBodyRoot;
+    [SerializeField] private GameObject _firstPersonRoot;
+    [SerializeField] private GameObject _thirdPersonRoot;
+    [SerializeField] private Transform _hitboxesRoot;
+    [SerializeField] private LayerMask _obstacleLayers;
 
-    private CharacterController _characterController;
-    private WeaponInventory _weaponInventory;
-    private NetworkHealth _networkHealth;
-    private BombInteractor _bombInteractor;
-
-    private Vector3 _velocity;
-    private float _verticalLookRotation;
-    private bool _isCrouching;
-    private bool _isSlowWalking;
-    private bool _isMoving;
-    private RoleDataSO _activeRole;
-
-    private Vector3 _defaultCameraLocalPosition;
-    private float _defaultControllerHeight;
-    private Vector3 _defaultControllerCenter;
-
-    private readonly NetworkVariable<float> _networkLookPitch = new NetworkVariable<float>(
-        0f,
+    public NetworkVariable<PlayerRoleType> selectedRole = new NetworkVariable<PlayerRoleType>(
+        PlayerRoleType.Assault,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
+        NetworkVariableWritePermission.Server
     );
 
-    private readonly NetworkVariable<bool> _networkIsCrouching = new NetworkVariable<bool>(
+    public NetworkVariable<bool> isCrouchedNet = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
+        NetworkVariableWritePermission.Server
     );
 
-    public RoleDataSO ActiveRole => _activeRole;
     public Camera PlayerCamera => _playerCamera;
-    public bool IsMoving => _isMoving;
-    public bool IsSlowWalking => _isSlowWalking;
-    public bool IsCrouching => _networkIsCrouching.Value;
     public bool IsGrounded => _characterController != null && _characterController.isGrounded;
+    public bool IsMoving => _currentMoveInput.sqrMagnitude > MIN_MOVE_MAGNITUDE_SQR;
+    public bool IsWalkingSlow => _isWalkingSlow;
+    public bool IsSlowWalking => _isWalkingSlow;
+    public bool IsCrouching => _isCrouching;
+    public RoleDataSO ActiveRole => _activeRole;
+
+    private RoleDataSO _activeRole;
+    private NetworkHealth _networkHealth;
+    private PlayerTeam _playerTeam;
+    private WeaponInventory _weaponInventory;
+    private PlayerMovementAudio _playerMovementAudio;
+    private float _verticalVelocity;
+    private Vector2 _eventMoveInput;
+    private Vector2 _eventLookInput;
+    private Vector2 _currentMoveInput;
+    private Vector2 _currentLookRotation;
+    private bool _isWalkingSlow;
+    private bool _isCrouching;
+    private bool _jumpRequested;
+    private bool _isFirePressed;
+    private float _cameraPitch;
+    private float _defaultCameraLocalY;
+    private bool _hasInitiatedSpectate;
+    private PlayerRoleType _lastAppliedRole = (PlayerRoleType)(-1);
 
     private void Awake()
     {
-        _characterController = GetComponent<CharacterController>();
-        _weaponInventory = GetComponent<WeaponInventory>();
+        if (_characterController == null) _characterController = GetComponent<CharacterController>();
+        if (_playerCamera == null) _playerCamera = GetComponentInChildren<Camera>(true);
+        if (_cameraRoot == null) _cameraRoot = _playerCamera != null ? _playerCamera.transform : transform;
+        if (_cameraRoot != null) _defaultCameraLocalY = _cameraRoot.localPosition.y;
+        if (_audioListener == null && _playerCamera != null) _audioListener = _playerCamera.GetComponent<AudioListener>();
+
         _networkHealth = GetComponent<NetworkHealth>();
-        _bombInteractor = GetComponent<BombInteractor>();
+        _playerTeam = GetComponent<PlayerTeam>();
+        _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
+        _playerMovementAudio = GetComponent<PlayerMovementAudio>();
 
-        if (_playerCamera == null)
+        EnsureRoleDatabaseReference();
+    }
+
+    private void EnsureRoleDatabaseReference()
+    {
+        if (_roleDatabase != null) return;
+
+        if (RoleSelectScreenUI.instance != null && RoleSelectScreenUI.instance.RoleDatabase != null)
         {
-            _playerCamera = GetComponentInChildren<Camera>(true);
+            _roleDatabase = RoleSelectScreenUI.instance.RoleDatabase;
+            return;
         }
 
-        if (_cameraAnchor == null && _playerCamera != null)
+        RoleDatabaseSO[] found = Resources.FindObjectsOfTypeAll<RoleDatabaseSO>();
+        if (found != null && found.Length > 0)
         {
-            _cameraAnchor = _playerCamera.transform;
-        }
-
-        if (_cameraAnchor != null)
-        {
-            _defaultCameraLocalPosition = _cameraAnchor.localPosition;
-        }
-
-        if (_characterController != null)
-        {
-            _defaultControllerHeight = _characterController.height;
-            _defaultControllerCenter = _characterController.center;
-        }
-
-        if (_audioListener == null && _playerCamera != null)
-        {
-            _audioListener = _playerCamera.GetComponent<AudioListener>();
+            _roleDatabase = found[0];
         }
     }
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+        EnsureRoleDatabaseReference();
 
-        bool isLocalPlayer = IsOwner;
+        selectedRole.OnValueChanged += HandleRoleChanged;
+        if (_weaponInventory == null) _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
 
-        if (_playerCamera != null)
+        if (_networkHealth != null) _networkHealth.CurrentHealth.OnValueChanged += HandleHealthChanged;
+
+        Canvas localPlayerCanvas = GetComponentInChildren<Canvas>(true);
+
+        if (IsOwner)
         {
-            _playerCamera.enabled = isLocalPlayer;
-        }
+            if (_characterController != null) _characterController.enabled = true;
 
-        if (_audioListener != null)
-        {
-            _audioListener.enabled = isLocalPlayer;
-        }
-
-        _networkIsCrouching.OnValueChanged += HandleNetworkCrouchChanged;
-
-        if (isLocalPlayer)
-        {
-            if (LoadingScreen.Instance != null)
+            PlayerInput playerInput = GetComponent<PlayerInput>();
+            if (playerInput != null)
             {
-                LoadingScreen.Instance.Dismiss();
+                playerInput.enabled = true;
+                playerInput.ActivateInput();
             }
 
-            SetCursorLocked(true);
-            ConfigureLocalOwnerMeshShadows();
+            if (_playerCamera != null) _playerCamera.gameObject.SetActive(true);
+            if (_audioListener != null) _audioListener.enabled = true;
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(true);
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(false);
+            if (localPlayerCanvas != null) localPlayerCanvas.gameObject.SetActive(false);
 
-            if (TacticalHUD.Instance != null)
+            if (CursorStateManager.Instance != null)
             {
-                TacticalHUD.Instance.PlayerHealth = _networkHealth;
-                TacticalHUD.Instance.Inventory = _weaponInventory;
-            }
-        }
-        else
-        {
-            ApplyRemoteCrouchVisuals(_networkIsCrouching.Value);
-        }
-    }
-
-    public override void OnNetworkDespawn()
-    {
-        _networkIsCrouching.OnValueChanged -= HandleNetworkCrouchChanged;
-        base.OnNetworkDespawn();
-    }
-
-    private void ConfigureLocalOwnerMeshShadows()
-    {
-        GameObject bodyContainer = _thirdPersonBodyRoot != null ? _thirdPersonBodyRoot : gameObject;
-        Renderer[] allRenderers = bodyContainer.GetComponentsInChildren<Renderer>(true);
-
-        for (int i = 0; i < allRenderers.Length; i++)
-        {
-            if (allRenderers[i] == null) continue;
-            if (_weaponInventory != null && allRenderers[i].transform.IsChildOf(_weaponInventory.transform)) continue;
-
-            allRenderers[i].shadowCastingMode = ShadowCastingMode.ShadowsOnly;
-        }
-    }
-
-    private void Update()
-    {
-        if (!IsOwner)
-        {
-            ApplyRemotePitchAndPosition();
-            return;
-        }
-
-        if (_networkHealth != null && !_networkHealth.IsAlive.Value) return;
-        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused) return;
-
-        HandleRotation();
-
-        bool isRoundActive = RoundManager.Instance == null || RoundManager.Instance.SyncedPhase == RoundPhase.InProgress;
-        if (!isRoundActive)
-        {
-            _isMoving = false;
-            _isSlowWalking = false;
-            ApplyGravityOnly();
-            return;
-        }
-
-        if (_bombInteractor != null && _bombInteractor.IsInteracting)
-        {
-            _isMoving = false;
-            _isSlowWalking = false;
-            ApplyGravityOnly();
-            return;
-        }
-
-        HandleCrouch();
-        HandleMovement();
-        HandleCombatActions();
-    }
-
-    private void ApplyGravityOnly()
-    {
-        if (_characterController != null && !_characterController.isGrounded)
-        {
-            _velocity.y += _GRAVITY * Time.deltaTime;
-            _characterController.Move(_velocity * Time.deltaTime);
-        }
-    }
-
-    private void ApplyRemotePitchAndPosition()
-    {
-        if (_cameraAnchor != null)
-        {
-            _cameraAnchor.localRotation = Quaternion.Euler(_networkLookPitch.Value, 0f, 0f);
-        }
-    }
-
-    private void HandleRotation()
-    {
-        if (InputManager.Instance == null || _cameraAnchor == null) return;
-
-        Vector2 lookDelta = InputManager.Instance.LookInput;
-
-        transform.Rotate(Vector3.up * lookDelta.x);
-
-        _verticalLookRotation -= lookDelta.y;
-        _verticalLookRotation = Mathf.Clamp(_verticalLookRotation, _HEAD_ROTATION_LIMIT_UP, _HEAD_ROTATION_LIMIT_DOWN);
-        _cameraAnchor.localRotation = Quaternion.Euler(_verticalLookRotation, 0f, 0f);
-
-        _networkLookPitch.Value = _verticalLookRotation;
-    }
-
-    private void HandleMovement()
-    {
-        if (InputManager.Instance == null || _characterController == null) return;
-
-        bool isGrounded = _characterController.isGrounded;
-        if (isGrounded && _velocity.y < 0f)
-        {
-            _velocity.y = -2f;
-        }
-
-        Vector2 moveInput = InputManager.Instance.MovementInput;
-        Vector3 moveDirection = (transform.right * moveInput.x) + (transform.forward * moveInput.y);
-        moveDirection = Vector3.ClampMagnitude(moveDirection, 1f);
-
-        _isMoving = moveInput.sqrMagnitude > 0.01f;
-
-        bool wantsToSlowWalk = InputManager.Instance.IsWalkPressed;
-        _isSlowWalking = wantsToSlowWalk && !_isCrouching && _isMoving;
-
-        float currentSpeed = _walkSpeed;
-        if (_isCrouching)
-        {
-            currentSpeed = _crouchSpeed;
-        }
-        else if (wantsToSlowWalk)
-        {
-            currentSpeed = _slowWalkSpeed;
-        }
-
-        _characterController.Move(moveDirection * (currentSpeed * Time.deltaTime));
-
-        if (isGrounded && InputManager.Instance.WasJumpTriggered && !_isCrouching)
-        {
-            _velocity.y = Mathf.Sqrt(_jumpHeight * -2f * _GRAVITY);
-        }
-
-        _velocity.y += _GRAVITY * Time.deltaTime;
-        _characterController.Move(_velocity * Time.deltaTime);
-    }
-
-    private void HandleCrouch()
-    {
-        if (InputManager.Instance == null || _characterController == null || _cameraAnchor == null) return;
-
-        bool wantsToCrouch = InputManager.Instance.IsCrouchPressed;
-
-        if (wantsToCrouch != _isCrouching)
-        {
-            _isCrouching = wantsToCrouch;
-            _networkIsCrouching.Value = _isCrouching;
-
-            ApplyLocalCrouchState(_isCrouching);
-        }
-    }
-
-    private void ApplyLocalCrouchState(bool crouching)
-    {
-        float targetHeight = crouching ? (_defaultControllerHeight - _crouchControllerHeightOffset) : _defaultControllerHeight;
-        _characterController.height = targetHeight;
-
-        Vector3 targetCenter = crouching
-            ? _defaultControllerCenter - new Vector3(0f, _crouchControllerHeightOffset * 0.5f, 0f)
-            : _defaultControllerCenter;
-        _characterController.center = targetCenter;
-
-        Vector3 targetAnchorPos = crouching
-            ? _defaultCameraLocalPosition - new Vector3(0f, _crouchCameraDropOffset, 0f)
-            : _defaultCameraLocalPosition;
-        _cameraAnchor.localPosition = targetAnchorPos;
-    }
-
-    private void HandleNetworkCrouchChanged(bool previous, bool current)
-    {
-        if (!IsOwner)
-        {
-            ApplyRemoteCrouchVisuals(current);
-        }
-    }
-
-    private void ApplyRemoteCrouchVisuals(bool crouching)
-    {
-        if (_characterController != null)
-        {
-            _characterController.height = crouching ? (_defaultControllerHeight - _crouchControllerHeightOffset) : _defaultControllerHeight;
-            _characterController.center = crouching
-                ? _defaultControllerCenter - new Vector3(0f, _crouchControllerHeightOffset * 0.5f, 0f)
-                : _defaultControllerCenter;
-        }
-
-        if (_thirdPersonBodyRoot != null)
-        {
-            _thirdPersonBodyRoot.transform.localScale = crouching ? new Vector3(1f, 0.65f, 1f) : Vector3.one;
-            _thirdPersonBodyRoot.transform.localPosition = crouching ? new Vector3(0f, -0.35f, 0f) : Vector3.zero;
-        }
-    }
-
-    private void HandleCombatActions()
-    {
-        if (InputManager.Instance == null || _weaponInventory == null) return;
-
-        if (InputManager.Instance.WasSlot1Triggered) _weaponInventory.SwitchSlot(1);
-        else if (InputManager.Instance.WasSlot2Triggered) _weaponInventory.SwitchSlot(2);
-        else if (InputManager.Instance.WasSlot3Triggered) _weaponInventory.SwitchSlot(3);
-
-        WeaponBase activeWeapon = _weaponInventory.ActiveWeapon;
-        if (activeWeapon != null)
-        {
-            if (activeWeapon.WeaponData != null && activeWeapon.WeaponData.isAutomatic)
-            {
-                if (InputManager.Instance.IsFirePressed)
-                {
-                    activeWeapon.Fire();
-                }
+                CursorStateManager.Instance.OnCursorLockStateChanged += HandleCursorLockStateChanged;
+                CursorStateManager.Instance.ForceEvaluateState();
             }
             else
             {
-                if (InputManager.Instance.WasFireTriggered)
+                SetCursorLocked(true);
+            }
+
+            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include);
+            foreach (Canvas canvas in allCanvases)
+            {
+                if (canvas.renderMode == RenderMode.ScreenSpaceCamera && _playerCamera != null)
                 {
-                    activeWeapon.Fire();
+                    canvas.worldCamera = _playerCamera;
+                    canvas.planeDistance = CAMERA_PLANE_DISTANCE;
                 }
             }
 
-            if (InputManager.Instance.WasReloadTriggered)
+            TacticalHUD tacticalHud = FindAnyObjectByType<TacticalHUD>();
+            if (tacticalHud != null)
             {
-                activeWeapon.Reload();
+                tacticalHud.PlayerHealth = GetComponent<NetworkHealth>();
+                tacticalHud.Inventory = _weaponInventory;
             }
+
+            Camera lobbyCamera = GameObject.FindWithTag(LOBBY_CAMERA_TAG)?.GetComponent<Camera>();
+            if (lobbyCamera != null) lobbyCamera.gameObject.SetActive(false);
+
+            // Reclamar el rol seleccionado previamente en la UI si aún no coincide
+            PlayerRoleType intendedRole = selectedRole.Value;
+            if (RoleSelectScreenUI.instance != null && RoleSelectScreenUI.instance.hasLockedIn)
+            {
+                intendedRole = RoleSelectScreenUI.instance.SelectedRole;
+            }
+            else if (CustomLobbyManager.SavedRoles != null && CustomLobbyManager.SavedRoles.TryGetValue(NetworkManager.Singleton.LocalClientId, out PlayerRoleType savedRole))
+            {
+                intendedRole = savedRole;
+            }
+
+            RequestSelectRoleServerRpc(intendedRole);
         }
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    public void SyncRoundStateClientRpc(int roundTime, int redScore, int blueScore, int roundNumber, byte phaseByte, byte winnerByte)
-    {
-        if (LoadingScreen.Instance != null)
+        else
         {
-            LoadingScreen.Instance.Dismiss();
-        }
+            if (localPlayerCanvas != null) localPlayerCanvas.gameObject.SetActive(false);
+            if (_characterController != null) _characterController.enabled = false;
 
-        RoundManager manager = RoundManager.Instance != null ? RoundManager.Instance : FindAnyObjectByType<RoundManager>();
-        if (manager != null)
-        {
-            manager.ApplyClientSyncedState(roundTime, redScore, blueScore, roundNumber, (RoundPhase)phaseByte, (Team)winnerByte);
-        }
-    }
+            PlayerInput playerInput = GetComponent<PlayerInput>();
+            if (playerInput != null) playerInput.enabled = false;
 
-    [Rpc(SendTo.ClientsAndHost)]
-    public void TeleportAndResetClientRpc(Vector3 spawnPosition, Quaternion spawnRotation)
-    {
-        if (!IsOwner) return;
+            if (_playerCamera != null) _playerCamera.gameObject.SetActive(false);
+            if (_audioListener != null) _audioListener.enabled = false;
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
 
-        if (LoadingScreen.Instance != null)
-        {
-            LoadingScreen.Instance.Dismiss();
-        }
-
-        RespawnPlayer(spawnPosition, spawnRotation);
-
-        if (_weaponInventory != null)
-        {
-            _weaponInventory.ResetAllWeaponsAmmo();
-        }
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    public void ReturnToMainMenuClientRpc()
-    {
-        RoundManager manager = RoundManager.Instance != null ? RoundManager.Instance : FindAnyObjectByType<RoundManager>();
-        if (manager != null)
-        {
-            manager.TriggerDisconnectAndLoadMenu();
+            ApplyRoleData(selectedRole.Value);
         }
     }
 
     public void SetInitialRole(PlayerRoleType roleType)
     {
-        RoleDataSO targetRole = ResolveRole(roleType);
-        if (targetRole == null) return;
+        if (IsServer)
+        {
+            selectedRole.Value = roleType;
+            ApplyRoleData(roleType);
+            SyncRoleClientRpc(roleType);
+        }
+    }
 
-        ApplyRole(targetRole);
+    [Rpc(SendTo.Server)]
+    public void RequestSelectRoleServerRpc(PlayerRoleType roleType, RpcParams rpcParams = default)
+    {
+        selectedRole.Value = roleType;
+        ApplyRoleData(roleType);
+        SyncRoleClientRpc(roleType);
+
+        ulong senderClientId = rpcParams.Receive.SenderClientId;
+        Team team = _playerTeam != null ? _playerTeam.CurrentTeam.Value : Team.Neutral;
+        CustomLobbyManager.SavePlayerData(senderClientId, team, roleType);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void SyncRoleClientRpc(PlayerRoleType roleType)
+    {
+        ApplyRoleData(roleType);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SyncRoundStateClientRpc(
+        int roundTime,
+        int redScore,
+        int blueScore,
+        int roundNumber,
+        byte phase,
+        byte winner)
+    {
+        if (LoadingScreen.Instance != null)
+        {
+            LoadingScreen.Instance.Dismiss();
+        }
+
+        if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.ApplyClientSyncedState(
+                roundTime,
+                redScore,
+                blueScore,
+                roundNumber,
+                (RoundPhase)phase,
+                (Team)winner
+            );
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void TeleportAndResetClientRpc(Vector3 targetPosition, Quaternion targetRotation = default, ulong targetClientId = 0)
+    {
+        if (targetClientId != 0 && NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClientId != targetClientId)
+        {
+            return;
+        }
+
+        if (targetRotation == default) targetRotation = Quaternion.identity;
+
+        if (_characterController != null) _characterController.enabled = false;
+
+        RespawnPlayer(targetPosition, targetRotation);
+
+        NetworkTransform netTransform = GetComponent<NetworkTransform>();
+        if (netTransform != null)
+        {
+            netTransform.Teleport(targetPosition, targetRotation, transform.localScale);
+        }
+
+        if (_characterController != null && IsOwner) _characterController.enabled = true;
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void ReturnToMainMenuClientRpc()
+    {
+        StartCoroutine(ReturnToMainMenuRoutine());
+    }
+
+    private IEnumerator ReturnToMainMenuRoutine()
+    {
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            NetworkManager.Singleton.Shutdown();
+        }
+
+        SceneManager.LoadScene(MAIN_MENU_SCENE_NAME);
+        yield return null;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        selectedRole.OnValueChanged -= HandleRoleChanged;
+        if (_networkHealth != null) _networkHealth.CurrentHealth.OnValueChanged -= HandleHealthChanged;
+        if (IsOwner && CursorStateManager.Instance != null) CursorStateManager.Instance.OnCursorLockStateChanged -= HandleCursorLockStateChanged;
+    }
+
+    private void HandleCursorLockStateChanged(bool isLocked)
+    {
+        if (!isLocked)
+        {
+            _currentMoveInput = Vector2.zero;
+            _currentLookRotation = Vector2.zero;
+            _isWalkingSlow = false;
+            _jumpRequested = false;
+            _isFirePressed = false;
+        }
+    }
+
+    private void HandleHealthChanged(float previousHealth, float currentHealth)
+    {
+        if (!IsOwner) return;
+        if (currentHealth > 0f && _hasInitiatedSpectate) ResetToAliveState();
+    }
+
+    private void HandleRoleChanged(PlayerRoleType previousRole, PlayerRoleType currentRole)
+    {
+        ApplyRoleData(currentRole);
+    }
+
+    private void ApplyRoleData(PlayerRoleType roleType)
+    {
+        EnsureRoleDatabaseReference();
+        if (_roleDatabase == null) return;
+
+        _activeRole = _roleDatabase.GetRole(roleType);
+        if (_activeRole == null) return;
+
+        _lastAppliedRole = roleType;
 
         if (IsServer)
         {
-            SetRoleClientRpc(roleType);
-        }
-    }
-
-    [Rpc(SendTo.NotServer)]
-    private void SetRoleClientRpc(PlayerRoleType roleType)
-    {
-        RoleDataSO targetRole = ResolveRole(roleType);
-        if (targetRole == null) return;
-
-        ApplyRole(targetRole);
-    }
-
-    private RoleDataSO ResolveRole(PlayerRoleType roleType)
-    {
-        if (_roleDatabase != null)
-        {
-            RoleDataSO databaseRole = _roleDatabase.GetRole(roleType);
-            if (databaseRole != null) return databaseRole;
-        }
-
-        RoleDatabaseSO loadedDatabase = Resources.Load<RoleDatabaseSO>("RoleDatabase");
-        if (loadedDatabase != null)
-        {
-            RoleDataSO databaseRole = loadedDatabase.GetRole(roleType);
-            if (databaseRole != null) return databaseRole;
-        }
-
-        RoleDataSO[] loadedRoles = Resources.LoadAll<RoleDataSO>(string.Empty);
-        for (int i = 0; i < loadedRoles.Length; i++)
-        {
-            if (loadedRoles[i] != null && loadedRoles[i].roleType == roleType)
+            NetworkHealth networkHealth = GetComponent<NetworkHealth>();
+            if (networkHealth != null)
             {
-                return loadedRoles[i];
+                networkHealth.SetMaxStatsServer(_activeRole.maxHealth, _activeRole.maxArmor);
             }
         }
 
-        return null;
-    }
+        if (_weaponInventory == null) _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
 
-    private void ApplyRole(RoleDataSO roleData)
-    {
-        _activeRole = roleData;
-        _walkSpeed = roleData.walkSpeed;
-        _jumpHeight = roleData.jumpForce;
-
-        if (IsServer && _networkHealth != null)
+        if (_weaponInventory != null)
         {
-            _networkHealth.SetMaxStatsServer(roleData.maxHealth, roleData.maxArmor);
-        }
+            _weaponInventory.SetupLoadoutForRole(
+                _activeRole.primaryWeaponPrefab,
+                _activeRole.secondaryWeaponPrefab,
+                _activeRole.tpPrimaryWeaponPrefab,
+                _activeRole.tpSecondaryWeaponPrefab
+            );
 
-        ApplyRoleLoadout();
-    }
+            _weaponInventory.SwitchSlot(1);
 
-    private void ApplyRoleLoadout()
-    {
-        if (_activeRole == null || _weaponInventory == null) return;
-
-        _weaponInventory.SetupLoadoutForRole(
-            _activeRole.primaryWeaponPrefab,
-            _activeRole.secondaryWeaponPrefab,
-            _activeRole.tpPrimaryWeaponPrefab,
-            _activeRole.tpSecondaryWeaponPrefab
-        );
-
-        if (TacticalHUD.Instance != null)
-        {
-            TacticalHUD.Instance.Inventory = _weaponInventory;
+            TacticalHUD tacticalHud = FindAnyObjectByType<TacticalHUD>();
+            if (tacticalHud != null)
+            {
+                tacticalHud.Inventory = _weaponInventory;
+                tacticalHud.PlayerHealth = GetComponent<NetworkHealth>();
+            }
         }
     }
 
-    public void RespawnPlayer(Vector3 spawnPosition, Quaternion spawnRotation)
+    private void Update()
     {
-        if (_characterController != null) _characterController.enabled = false;
-        transform.SetPositionAndRotation(spawnPosition, spawnRotation);
-        _verticalLookRotation = 0f;
-        if (_cameraAnchor != null) _cameraAnchor.localRotation = Quaternion.identity;
-        _velocity = Vector3.zero;
-        if (_characterController != null) _characterController.enabled = true;
+        if (IsOwner)
+        {
+            HandleDeathCheck();
+            if (SpectatorManager.Instance != null && SpectatorManager.Instance.isSpectating) return;
+
+            if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
+            {
+                _currentMoveInput = Vector2.zero;
+                _currentLookRotation = Vector2.zero;
+                _isFirePressed = false;
+                _isWalkingSlow = false;
+                return;
+            }
+
+            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                bool isUiOpen = (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused) ||
+                                (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen);
+
+                if (!isUiOpen && Cursor.lockState != CursorLockMode.Locked)
+                {
+                    if (CursorStateManager.Instance != null) CursorStateManager.Instance.ForceEvaluateState();
+                    else
+                    {
+                        Cursor.lockState = CursorLockMode.Locked;
+                        Cursor.visible = false;
+                    }
+                }
+            }
+
+            UpdateInputStates();
+            HandleCameraRotation();
+            HandleMovementExecution();
+            HandleWeaponCombatInput();
+        }
+
+        HandleCrouchHeightTransition();
+    }
+
+    private void HandleWeaponCombatInput()
+    {
+        if (Cursor.lockState != CursorLockMode.Locked) return;
+        if (RoundManager.Instance != null && RoundManager.Instance.SyncedPhase != RoundPhase.InProgress) return;
+
+        BombInteractor bombInteractor = GetComponent<BombInteractor>();
+        if (bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing)) return;
+        if (_weaponInventory == null) return;
+
+        WeaponBase currentWeapon = _weaponInventory.ActiveWeapon;
+        if (currentWeapon == null) return;
+
+        bool reloadTriggered = false;
+        if (InputManager.Instance != null) reloadTriggered = InputManager.Instance.WasReloadTriggered;
+        else if (Keyboard.current != null) reloadTriggered = Keyboard.current.rKey.wasPressedThisFrame;
+
+        if (reloadTriggered)
+        {
+            currentWeapon.Reload();
+        }
+
+        bool wantsToFire = _isFirePressed;
+        if (InputManager.Instance != null)
+        {
+            wantsToFire = wantsToFire || InputManager.Instance.IsFirePressed || InputManager.Instance.WasFireTriggered;
+        }
+        else if (Mouse.current != null)
+        {
+            wantsToFire = wantsToFire || Mouse.current.leftButton.isPressed;
+        }
+
+        if (!wantsToFire) return;
+
+        WeaponData weaponData = currentWeapon.WeaponData;
+        bool isAutomatic = weaponData != null && weaponData.isAutomatic;
+
+        if (currentWeapon.CanFire())
+        {
+            if (currentWeapon is HealingPistol healingPistol) healingPistol.PerformHealShot();
+            else currentWeapon.Fire();
+
+            if (!isAutomatic) _isFirePressed = false;
+        }
+    }
+
+    public void OnFire(InputValue value)
+    {
+        _isFirePressed = value.isPressed;
+    }
+
+    public void OnReload(InputValue value)
+    {
+        if (value.isPressed && _weaponInventory != null && _weaponInventory.ActiveWeapon != null)
+        {
+            _weaponInventory.ActiveWeapon.Reload();
+        }
     }
 
     public void SetCursorLocked(bool locked)
     {
         Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !locked;
+
+        if (!locked)
+        {
+            _currentMoveInput = Vector2.zero;
+            _currentLookRotation = Vector2.zero;
+            _isWalkingSlow = false;
+            _jumpRequested = false;
+            _isFirePressed = false;
+        }
+    }
+
+    private void HandleDeathCheck()
+    {
+        if (_networkHealth == null) return;
+
+        bool isDead = !_networkHealth.IsAlive.Value || _networkHealth.CurrentHealth.Value <= 0f;
+
+        if (isDead && !_hasInitiatedSpectate)
+        {
+            _hasInitiatedSpectate = true;
+            _isWalkingSlow = false;
+
+            if (_characterController != null) _characterController.enabled = false;
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+
+            if (SpectatorManager.Instance != null && _playerTeam != null && _playerCamera != null)
+            {
+                SpectatorManager.Instance.StartSpectating(_playerTeam.CurrentTeam.Value, _playerCamera, transform, _defaultCameraLocalY);
+            }
+        }
+    }
+
+    private void ResetToAliveState()
+    {
+        _hasInitiatedSpectate = false;
+        if (SpectatorManager.Instance != null) SpectatorManager.Instance.StopSpectating();
+
+        if (_cameraRoot != null)
+        {
+            _cameraRoot.localPosition = new Vector3(0f, _defaultCameraLocalY, 0f);
+            _cameraRoot.localRotation = Quaternion.identity;
+        }
+
+        _cameraPitch = 0f;
+        _verticalVelocity = 0f;
+        _currentMoveInput = Vector2.zero;
+        _currentLookRotation = Vector2.zero;
+        _hasInitiatedSpectate = false;
+        _isWalkingSlow = false;
+
+        if (IsOwner)
+        {
+            if (SpectatorManager.Instance != null) SpectatorManager.Instance.StopSpectating();
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(true);
+            if (_playerCamera != null) _playerCamera.gameObject.SetActive(true);
+            if (_characterController != null) _characterController.enabled = true;
+        }
+        else
+        {
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
+        }
+    }
+
+    private void UpdateInputStates()
+    {
+        BombInteractor bombInteractor = GetComponent<BombInteractor>();
+        bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
+        bool isMovementFrozen = isInteractingBomb || (RoundManager.Instance != null && RoundManager.Instance.SyncedPhase == RoundPhase.Warmup);
+
+        if (isMovementFrozen)
+        {
+            _currentMoveInput = Vector2.zero;
+            _isWalkingSlow = false;
+            _jumpRequested = false;
+            return;
+        }
+
+        // 1. Movimiento Universal
+        Vector2 move = Vector2.zero;
+        if (InputManager.Instance != null && InputManager.Instance.MovementInput.sqrMagnitude > MIN_MOVE_MAGNITUDE_SQR)
+        {
+            move = InputManager.Instance.MovementInput;
+        }
+        else if (_eventMoveInput.sqrMagnitude > MIN_MOVE_MAGNITUDE_SQR)
+        {
+            move = _eventMoveInput;
+        }
+        else
+        {
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) move.y += 1f;
+                if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) move.y -= 1f;
+                if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) move.x += 1f;
+                if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) move.x -= 1f;
+            }
+            if (Gamepad.current != null && move.sqrMagnitude < MIN_MOVE_MAGNITUDE_SQR)
+            {
+                move = Gamepad.current.leftStick.ReadValue();
+            }
+        }
+        _currentMoveInput = move;
+
+        // 2. Rotación de cámara vinculada dinámicamente a los Sliders de Sensibilidad
+        float gamepadSens = InputManager.Instance != null ? InputManager.Instance.GamepadSensitivity : PlayerPrefs.GetFloat("GamepadSensitivity", 75.0f);
+        float mouseSens = InputManager.Instance != null ? InputManager.Instance.MouseSensitivity : PlayerPrefs.GetFloat("MouseSensitivity", 1.0f);
+
+        Vector2 lookRotationDelta = Vector2.zero;
+
+        bool isStickDeflected = Gamepad.current != null && Gamepad.current.rightStick.ReadValue().sqrMagnitude > MIN_MOVE_MAGNITUDE_SQR;
+
+        if (isStickDeflected)
+        {
+            Vector2 stick = Gamepad.current.rightStick.ReadValue();
+            if (stick.magnitude > 0.08f)
+            {
+                // El control usa grados/segundo escalados por GamepadSensitivity y Time.deltaTime
+                lookRotationDelta = stick * (gamepadSens * Time.deltaTime);
+            }
+        }
+        else if (InputManager.Instance != null && InputManager.Instance.LookInput.sqrMagnitude > MIN_MOVE_MAGNITUDE_SQR)
+        {
+            lookRotationDelta = InputManager.Instance.LookInput;
+        }
+        else if (_eventLookInput.sqrMagnitude > MIN_MOVE_MAGNITUDE_SQR)
+        {
+            lookRotationDelta = _eventLookInput * (mouseSens * 0.12f);
+        }
+        else if (Mouse.current != null)
+        {
+            lookRotationDelta = Mouse.current.delta.ReadValue() * (mouseSens * 0.12f);
+        }
+
+        _currentLookRotation = lookRotationDelta;
+
+        // 3. Agachado y Salto
+        bool crouchPressed = false;
+        bool walkSlowPressed = false;
+
+        if (InputManager.Instance != null)
+        {
+            crouchPressed = InputManager.Instance.IsCrouchPressed;
+            if (InputManager.Instance.WasJumpTriggered && IsGrounded && !_isCrouching) _jumpRequested = true;
+        }
+        else
+        {
+            if (Keyboard.current != null)
+            {
+                crouchPressed = Keyboard.current.leftCtrlKey.isPressed || Keyboard.current.rightCtrlKey.isPressed || Keyboard.current.cKey.isPressed;
+                walkSlowPressed = Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed;
+                if (Keyboard.current.spaceKey.wasPressedThisFrame && IsGrounded && !_isCrouching) _jumpRequested = true;
+            }
+            if (Gamepad.current != null)
+            {
+                if (Gamepad.current.buttonEast.isPressed || Gamepad.current.rightStickButton.isPressed) crouchPressed = true;
+                if (Gamepad.current.leftStickButton.isPressed) walkSlowPressed = true;
+                if (Gamepad.current.buttonSouth.wasPressedThisFrame && IsGrounded && !_isCrouching) _jumpRequested = true;
+            }
+        }
+
+        _isWalkingSlow = walkSlowPressed;
+
+        bool targetCrouch = _isCrouching;
+        if (crouchPressed) targetCrouch = true;
+        else if (!HasCeilingObstacle()) targetCrouch = false;
+
+        if (targetCrouch != _isCrouching)
+        {
+            _isCrouching = targetCrouch;
+            SetCrouchStateServerRpc(_isCrouching);
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    private void SetCrouchStateServerRpc(bool crouching)
+    {
+        isCrouchedNet.Value = crouching;
+    }
+
+    public void OnMove(InputValue value)
+    {
+        _eventMoveInput = value.Get<Vector2>();
+    }
+
+    public void OnLook(InputValue value)
+    {
+        _eventLookInput = value.Get<Vector2>();
+    }
+
+    public void OnJump(InputValue value)
+    {
+        if (value.isPressed && IsGrounded && !_isCrouching) _jumpRequested = true;
+    }
+
+    private bool HasCeilingObstacle()
+    {
+        if (_obstacleLayers.value == 0 || _characterController == null) return false;
+
+        float radius = _characterController.radius * 0.7f;
+        Vector3 pointBottom = transform.position + Vector3.up * (CROUCH_HEIGHT + 0.1f);
+        Vector3 pointTop = transform.position + Vector3.up * (STANDING_HEIGHT - radius);
+
+        if (pointTop.y <= pointBottom.y) return false;
+
+        Collider[] hits = Physics.OverlapCapsule(pointBottom, pointTop, radius, _obstacleLayers, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            if (hits[i].gameObject != gameObject && !hits[i].transform.IsChildOf(transform)) return true;
+        }
+        return false;
+    }
+
+    private void HandleCameraRotation()
+    {
+        if (_cameraRoot == null || Cursor.lockState != CursorLockMode.Locked) return;
+        if (_currentLookRotation.sqrMagnitude < MIN_MOVE_MAGNITUDE_SQR) return;
+
+        transform.Rotate(Vector3.up * _currentLookRotation.x);
+
+        _cameraPitch -= _currentLookRotation.y;
+        _cameraPitch = Mathf.Clamp(_cameraPitch, -_upDownLookLimit, _upDownLookLimit);
+        _cameraRoot.localRotation = Quaternion.Euler(_cameraPitch, 0f, 0f);
+    }
+
+    private void HandleCrouchHeightTransition()
+    {
+        bool crouched = IsOwner ? _isCrouching : isCrouchedNet.Value;
+
+        if (_characterController != null && IsOwner)
+        {
+            float targetHeight = crouched ? CROUCH_HEIGHT : STANDING_HEIGHT;
+            _characterController.height = Mathf.Lerp(_characterController.height, targetHeight, Time.deltaTime * CROUCH_TRANSITION_SPEED);
+            _characterController.center = new Vector3(0f, _characterController.height * 0.5f, 0f);
+        }
+
+        if (_cameraRoot != null && IsOwner && !_hasInitiatedSpectate)
+        {
+            float targetCameraY = crouched ? _defaultCameraLocalY * 0.55f : _defaultCameraLocalY;
+            Vector3 targetCameraPosition = _cameraRoot.localPosition;
+            targetCameraPosition.y = Mathf.Lerp(targetCameraPosition.y, targetCameraY, Time.deltaTime * CROUCH_TRANSITION_SPEED);
+            _cameraRoot.localPosition = targetCameraPosition;
+        }
+
+        float targetScaleY = crouched ? 0.5f : 1f;
+
+        if (_thirdPersonRoot != null)
+        {
+            Vector3 visualScale = _thirdPersonRoot.transform.localScale;
+            visualScale.y = Mathf.Lerp(visualScale.y, targetScaleY, Time.deltaTime * CROUCH_TRANSITION_SPEED);
+            _thirdPersonRoot.transform.localScale = visualScale;
+        }
+
+        if (_hitboxesRoot != null)
+        {
+            Vector3 hitboxScale = _hitboxesRoot.localScale;
+            hitboxScale.y = Mathf.Lerp(hitboxScale.y, targetScaleY, Time.deltaTime * CROUCH_TRANSITION_SPEED);
+            _hitboxesRoot.localScale = hitboxScale;
+        }
+    }
+
+    private void HandleMovementExecution()
+    {
+        if (_characterController == null) return;
+        if (!_characterController.enabled) _characterController.enabled = true;
+
+        float baseSpeed = _activeRole != null ? _activeRole.walkSpeed : DEFAULT_WALK_SPEED;
+        float currentSpeed = baseSpeed;
+
+        if (_isCrouching) currentSpeed *= CROUCH_SPEED_RATIO;
+        else if (_isWalkingSlow) currentSpeed *= WALK_SLOW_RATIO;
+
+        Vector3 moveDirection = transform.right * _currentMoveInput.x + transform.forward * _currentMoveInput.y;
+        if (moveDirection.sqrMagnitude > 1f) moveDirection.Normalize();
+
+        if (_characterController.isGrounded)
+        {
+            if (_verticalVelocity < 0f) _verticalVelocity = -2f;
+            if (_jumpRequested)
+            {
+                float jumpForce = _activeRole != null ? _activeRole.jumpForce : DEFAULT_JUMP_FORCE;
+                _verticalVelocity = Mathf.Sqrt(jumpForce * -2f * GRAVITY);
+                _jumpRequested = false;
+                if (_playerMovementAudio != null) _playerMovementAudio.OnPlayerJumped();
+            }
+        }
+        else
+        {
+            _verticalVelocity += GRAVITY * Time.deltaTime;
+        }
+
+        Vector3 finalVelocity = (moveDirection * currentSpeed) + (Vector3.up * _verticalVelocity);
+        _characterController.Move(finalVelocity * Time.deltaTime);
+    }
+
+    public void RespawnPlayer(Vector3 spawnPosition, Quaternion spawnRotation)
+    {
+        if (_characterController != null) _characterController.enabled = false;
+
+        transform.SetPositionAndRotation(spawnPosition, spawnRotation);
+
+        if (_cameraRoot != null)
+        {
+            _cameraRoot.localPosition = new Vector3(0f, _defaultCameraLocalY, 0f);
+            _cameraRoot.localRotation = Quaternion.identity;
+        }
+
+        _cameraPitch = 0f;
+        _verticalVelocity = 0f;
+        _currentMoveInput = Vector2.zero;
+        _currentLookRotation = Vector2.zero;
+        _eventMoveInput = Vector2.zero;
+        _hasInitiatedSpectate = false;
+        _isWalkingSlow = false;
+
+        if (IsOwner)
+        {
+            if (SpectatorManager.Instance != null) SpectatorManager.Instance.StopSpectating();
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(true);
+            if (_playerCamera != null) _playerCamera.gameObject.SetActive(true);
+            if (_characterController != null) _characterController.enabled = true;
+        }
+        else
+        {
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
+        }
     }
 }

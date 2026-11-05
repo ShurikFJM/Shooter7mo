@@ -94,7 +94,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 06:39 PM (November 4, 2026)
+    lastSaveTimePrint: 07:46 PM (November 4, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -331,7 +331,13 @@ MonoBehaviour:
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - 23b3b56b8ea620b4c8e3ef01590d59f3
+      - dc1ac7c7748377c41a9f0ae32fa541c7
+    - assetGUIDs:
+      - 3c1496308b8f780449f6ef99ba39dccf
+    - assetGUIDs:
+      - f381e7cd838fc12408522d9bebf20ba9
+    - assetGUIDs:
+      - 0bcfeff086bce4d41929a651ddd7271a
     - assetGUIDs:
       - 27d34e20eb7d60345ad8224a6be120d9
     - assetGUIDs:
@@ -343,18 +349,12 @@ MonoBehaviour:
     - assetGUIDs:
       - d862c7961e433f341bf7e31c0c920788
     - assetGUIDs:
+      - 23b3b56b8ea620b4c8e3ef01590d59f3
+    - assetGUIDs:
       - 93536632a2429584c845e889f0426318
-    - assetGUIDs:
-      - 42f8182d1a7df26418afbf0c38ab59c6
-    - assetGUIDs:
-      - c1318c971da43e04ea177379193a3b66
-    - assetGUIDs:
-      - b3aefab6f4408894ca6b55610e0bb4ff
-    - assetGUIDs:
-      - a55fb00e854537242b45f21610d9e8e4
-    targetObject: {fileID: 0}
+    targetObject: {fileID: 11500000, guid: dc1ac7c7748377c41a9f0ae32fa541c7, type: 3}
     targetObjects: []
-    lastSelectedAsset: 
+    lastSelectedAsset: Assets/_RUSHPOINT/Core/GameMode/RoundManager.cs
     lastClickedTab: -1
     previousTab: 0
   - tracker:
@@ -362,6 +362,11 @@ MonoBehaviour:
       - paths:
         - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]"}'
         count: 13
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"CustomLobbyManager[0]"}'
+        count: 11
         gameObjects:
         - {fileID: 0}
       - paths:
@@ -380,17 +385,21 @@ MonoBehaviour:
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_LoadingScreen[0]"}'
-        count: 2
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/Stats[0]"}'
-        count: 2
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Lobby[0]"}'
+        count: 4
         gameObjects:
         - {fileID: 0}
       - paths:
         - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]"}'
+        count: 3
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - 
+        count: 3
+        gameObjects: []
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/Stats[0]"}'
         count: 2
         gameObjects:
         - {fileID: 0}
@@ -399,57 +408,26 @@ MonoBehaviour:
         count: 1
         gameObjects:
         - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/Stats[0]/HealthText[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Lobby[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
       recentlyClicked:
       - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Lobby[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/CreditsPanel[0]/Credits[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/CreditsPanel[0]/TitleText[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"MainMenuController[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/CreditsPanel[0]/Button_Settings[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/CreditsPanel[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths: []
         count: 1
         gameObjects: []
       - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/AudioPanel[0]"}'
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"CustomLobbyManager[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Lobby[0]/Background[0]"}'
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
@@ -458,11 +436,29 @@ MonoBehaviour:
         count: 1
         gameObjects:
         - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Settings[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/AudioPanel[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/ControlsPanel[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths: []
+        count: 1
+        gameObjects: []
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: 7a241e49bcdcf8a419ef451860429469
     sceneName: MainMenu
-    lastSaveTimePrint: 07:02 PM (November 4, 2026)
+    lastSaveTimePrint: 07:55 PM (November 4, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -480,12 +476,12 @@ MonoBehaviour:
     alreadyCalculatedHeight: 0
     lastKnownHeight: 0
     tabs:
-    - path: '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Lobby[0]"}'
+    - path: '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_LoadingScreen[0]"}'
       paths: []
-      tabWidth: 138
-      name: Panel_Lobby
-      icon: {fileID: -3593279590788295529, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: Panel_Lobby
+      tabWidth: 0
+      name: Cavas_LoadingScreen
+      icon: {fileID: 6918890264710435130, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: Cavas_LoadingScreen
       filterString: 
       newTab: 0
       scrollPosition: 0
@@ -494,14 +490,14 @@ MonoBehaviour:
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: Cavas_LoadingScreen
+        m_Text: 
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "Cavas_LoadingScreen\u200B"
+        m_TextWithWhitespace: 
       multiEditMode: 0
       locked: 0
       hasPreview: 0
-      previewHeight: 13
+      previewHeight: 150
       debug: 0
       filtering: 0
       prefab: 0
@@ -541,60 +537,73 @@ MonoBehaviour:
         component: {fileID: 0}
         missingComponentID:
           m_rawData: 0
-        foldout: 1
+        foldout: 0
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: transform
-        niceComponentName: transform
+        componentName: 
+        niceComponentName: 
       - index: 0
         component: {fileID: 0}
         missingComponentID:
           m_rawData: 0
-        foldout: 1
+        foldout: 0
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: mainmenucontroller
-        niceComponentName: main menu controller
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
       historyPaths:
       - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Lobby[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/CreditsPanel[0]/Credits[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/CreditsPanel[0]/TitleText[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"MainMenuController[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/CreditsPanel[0]/Button_Settings[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/CreditsPanel[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/AudioPanel[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Lobby[0]/Background[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Host&Join[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Settings[0]"}'
-        prefab: 0
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/ControlsPanel[0]"}'
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_LoadingScreen[0]"}'
         prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
+    - assetGUIDs:
+      - b3aefab6f4408894ca6b55610e0bb4ff
+      - c1318c971da43e04ea177379193a3b66
+      - 4fd10b3a4de3ded44bca58a1aaa50a90
+      - 3c1496308b8f780449f6ef99ba39dccf
+    - assetGUIDs:
+      - 3c1496308b8f780449f6ef99ba39dccf
+    - assetGUIDs:
+      - b3aefab6f4408894ca6b55610e0bb4ff
+    - assetGUIDs:
+      - dc1ac7c7748377c41a9f0ae32fa541c7
+    - assetGUIDs:
+      - f381e7cd838fc12408522d9bebf20ba9
     - assetGUIDs:
       - 0bcfeff086bce4d41929a651ddd7271a
     - assetGUIDs:
@@ -607,19 +616,13 @@ MonoBehaviour:
       - 66b21236603c7124cbe7c5eda54de385
     - assetGUIDs:
       - d862c7961e433f341bf7e31c0c920788
-    - assetGUIDs:
-      - 23b3b56b8ea620b4c8e3ef01590d59f3
-    - assetGUIDs:
-      - 93536632a2429584c845e889f0426318
-    - assetGUIDs:
-      - 42f8182d1a7df26418afbf0c38ab59c6
-    - assetGUIDs:
-      - c1318c971da43e04ea177379193a3b66
-    - assetGUIDs:
-      - b3aefab6f4408894ca6b55610e0bb4ff
-    targetObject: {fileID: 11500000, guid: 0bcfeff086bce4d41929a651ddd7271a, type: 3}
-    targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Scripts/MainMenuController.cs
+    targetObject: {fileID: 0}
+    targetObjects:
+    - {fileID: 11500000, guid: b3aefab6f4408894ca6b55610e0bb4ff, type: 3}
+    - {fileID: 11500000, guid: c1318c971da43e04ea177379193a3b66, type: 3}
+    - {fileID: 11500000, guid: 4fd10b3a4de3ded44bca58a1aaa50a90, type: 3}
+    - {fileID: 11500000, guid: 3c1496308b8f780449f6ef99ba39dccf, type: 3}
+    lastSelectedAsset: 
     lastClickedTab: -1
     previousTab: 0
   - tracker:
@@ -1139,6 +1142,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Tutorial/TutorialTargetBridge.cs
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000010000000000000001000000000000000000000001000000010000000100000000000000000000000000000001000000010000000000000001000000000000000100000000000000000000000000000001000000000000000100000000000000010000000000000001000000000000000000000000000000000000000000000000000000010000000100000001000000000000000000000000000000000000000100000001000000010000000000000001000000
+  tipsShown: 01000000010000000000000001000000010000000100000001000000010000000100000001000000010000000000000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000000000000010000000100000001000000010000000100000000000000010000000000000001000000010000000100000001000000010000000100000000000000000000000100000001000000010000000100000001000000
   playModeStartScene: {}
   enteringPlayMode: 0

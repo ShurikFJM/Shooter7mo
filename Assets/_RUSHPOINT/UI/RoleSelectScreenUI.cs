@@ -45,6 +45,9 @@ public class RoleSelectScreenUI : MonoBehaviour
 
     public bool hasLockedIn => _hasLockedIn;
     public bool isRoleSelectionActive => !_hasLockedIn && _screenRoot != null && _screenRoot.activeSelf;
+    public PlayerRoleType SelectedRole => _selectedRole;
+    public Team SelectedTeam => _selectedTeam;
+    public RoleDatabaseSO RoleDatabase => _roleDatabase;
 
     private void Awake()
     {
@@ -124,7 +127,7 @@ public class RoleSelectScreenUI : MonoBehaviour
 
     private void HandlePhaseChanged(RoundPhase previousPhase, RoundPhase currentPhase)
     {
-        if (currentPhase == RoundPhase.Warmup || currentPhase == RoundPhase.InProgress)
+        if (_hasLockedIn && (currentPhase == RoundPhase.Warmup || currentPhase == RoundPhase.InProgress))
         {
             CloseRoleScreen();
         }
@@ -205,9 +208,43 @@ public class RoleSelectScreenUI : MonoBehaviour
             if (lockInText != null) lockInText.text = "LOCKED IN...";
         }
 
-        if (RoleLobbyManager.Instance != null)
+        ulong localClientId = NetworkManager.Singleton.LocalClientId;
+        CustomLobbyManager.SavePlayerData(localClientId, _selectedTeam, _selectedRole);
+
+        if (NetworkManager.Singleton.LocalClient != null && NetworkManager.Singleton.LocalClient.PlayerObject != null)
+        {
+            NetworkPlayerController controller = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<NetworkPlayerController>();
+            if (controller != null)
+            {
+                controller.RequestSelectRoleServerRpc(_selectedRole);
+            }
+
+            PlayerTeam playerTeam = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerTeam>();
+            if (playerTeam == null) playerTeam = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponentInChildren<PlayerTeam>();
+            if (playerTeam != null && NetworkManager.Singleton.IsServer)
+            {
+                playerTeam.CurrentTeam.Value = _selectedTeam;
+            }
+        }
+
+        if (RoleLobbyManager.Instance != null && RoleLobbyManager.Instance.IsSpawned)
         {
             RoleLobbyManager.Instance.ConfirmRoleSelection(_selectedRole, _selectedTeam);
+        }
+
+        CloseRoleScreen();
+
+        if (_tacticalHudRoot != null) _tacticalHudRoot.SetActive(true);
+        if (_minimapRoot != null) _minimapRoot.SetActive(true);
+
+        if (NetworkManager.Singleton.LocalClient != null &&
+            NetworkManager.Singleton.LocalClient.PlayerObject != null)
+        {
+            Canvas playerCanvas = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponentInChildren<Canvas>(true);
+            if (playerCanvas != null)
+            {
+                playerCanvas.gameObject.SetActive(true);
+            }
         }
     }
 
