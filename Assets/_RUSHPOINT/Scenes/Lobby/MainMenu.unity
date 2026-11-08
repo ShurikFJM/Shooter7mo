@@ -414,7 +414,7 @@ RectTransform:
   m_Father: {fileID: 600871079}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -18897,13 +18897,13 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: -1
+  m_RendererIndex: 0
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -38489,7 +38489,6 @@ GameObject:
   - component: {fileID: 1281719291}
   - component: {fileID: 1281719294}
   - component: {fileID: 1281719293}
-  - component: {fileID: 1281719292}
   m_Layer: 5
   m_Name: ColorBlindOptions
   m_TagString: Untagged
@@ -38520,25 +38519,6 @@ RectTransform:
   m_AnchoredPosition: {x: -461, y: -499}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1281719292
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1281719290}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f10bab5b2a2f18c4699fc239f93ab602, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ColorBlindController
-  material: {fileID: 2100000, guid: e6108a76b8c27594a9cbd580e213c890, type: 2}
-  modeDropdown: {fileID: 1277895301}
-  strengthSlider: {fileID: 127876222}
-  correctToggle: {fileID: 429328885}
-  mode: 0
-  strength: 1
-  correct: 0
 --- !u!114 &1281719293
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -41002,7 +40982,7 @@ RectTransform:
   m_Father: {fileID: 1721693179}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -47091,13 +47071,14 @@ GameObject:
   - component: {fileID: 1617708225}
   - component: {fileID: 1617708227}
   - component: {fileID: 1617708226}
+  - component: {fileID: 1617708228}
   m_Layer: 5
   m_Name: Panel_Settings
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1617708225
 RectTransform:
   m_ObjectHideFlags: 0
@@ -47178,6 +47159,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1617708224}
   m_CullTransparentMesh: 1
+--- !u!114 &1617708228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1617708224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d291869eec875f4d80a48a0be85f5da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorBlindSettingsUI
+  modeDropdown: {fileID: 1277895301}
+  strengthSlider: {fileID: 127876222}
+  correctToggle: {fileID: 429328885}
 --- !u!1 &1624321973
 GameObject:
   m_ObjectHideFlags: 0
@@ -60917,7 +60913,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2138524197
 RectTransform:
   m_ObjectHideFlags: 0
