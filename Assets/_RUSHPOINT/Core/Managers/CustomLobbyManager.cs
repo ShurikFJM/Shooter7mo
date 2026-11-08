@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(NetworkObject))]
 public class CustomLobbyManager : NetworkBehaviour
@@ -10,6 +11,7 @@ public class CustomLobbyManager : NetworkBehaviour
     public const int MAX_PLAYERS_PER_TEAM = 5;
     private const float DEFAULT_ROUND_DURATION = 90f;
     private const int DEFAULT_ROUNDS_TO_WIN = 5;
+    private const bool DEFAULT_FRIENDLY_FIRE = false;
     private const string DEFAULT_MAP_SCENE_NAME = "RUSPOINT";
     private const string PLAYER_PREFS_NAME_KEY = "PlayerName";
     private const string DEFAULT_PLAYER_NAME_PREFIX = "Player_";
@@ -37,6 +39,13 @@ public class CustomLobbyManager : NetworkBehaviour
         set => _savedRoundsToWin = value;
     }
 
+    private static bool _savedFriendlyFire = DEFAULT_FRIENDLY_FIRE;
+    public static bool SavedFriendlyFire
+    {
+        get => _savedFriendlyFire;
+        set => _savedFriendlyFire = value;
+    }
+
     public event Action OnLobbyDataUpdated;
 
     [SerializeField] private string _gameSceneName = DEFAULT_MAP_SCENE_NAME;
@@ -45,6 +54,7 @@ public class CustomLobbyManager : NetworkBehaviour
     [SerializeField] private GameObject _customLobbyCanvas;
     [SerializeField] private GameObject _roleSelectCanvas;
     [SerializeField] private GameObject _spectatorWaitCanvas;
+    [SerializeField] private Toggle _friendlyFireToggle;
 
     private NetworkList<LobbyPlayerData> _players;
     public NetworkList<LobbyPlayerData> Players => _players;
@@ -70,12 +80,20 @@ public class CustomLobbyManager : NetworkBehaviour
     );
     public NetworkVariable<int> SelectedRoundsToWin => _selectedRoundsToWin;
 
+    private readonly NetworkVariable<bool> _friendlyFireEnabled = new NetworkVariable<bool>(
+        DEFAULT_FRIENDLY_FIRE,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+    public NetworkVariable<bool> FriendlyFireEnabled => _friendlyFireEnabled;
+
     public static void ClearLobbyData()
     {
         _savedTeams.Clear();
         _savedRoles.Clear();
         _savedRoundDuration = DEFAULT_ROUND_DURATION;
         _savedRoundsToWin = DEFAULT_ROUNDS_TO_WIN;
+        _savedFriendlyFire = DEFAULT_FRIENDLY_FIRE;
     }
 
     public bool CanStartMatch()
@@ -108,10 +126,20 @@ public class CustomLobbyManager : NetworkBehaviour
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
+
+        if (_friendlyFireToggle != null)
+        {
+            _friendlyFireToggle.onValueChanged.AddListener(HandleToggleFriendlyFireChanged);
+        }
     }
 
     public override void OnDestroy()
     {
+        if (_friendlyFireToggle != null)
+        {
+            _friendlyFireToggle.onValueChanged.RemoveListener(HandleToggleFriendlyFireChanged);
+        }
+
         if (_instance == this) _instance = null;
         base.OnDestroy();
     }
@@ -125,6 +153,7 @@ public class CustomLobbyManager : NetworkBehaviour
 
             _savedRoundDuration = _selectedRoundDuration.Value;
             _savedRoundsToWin = _selectedRoundsToWin.Value;
+            _savedFriendlyFire = _friendlyFireEnabled.Value;
 
             HandleClientConnected(NetworkManager.Singleton.LocalClientId);
         }
@@ -133,6 +162,9 @@ public class CustomLobbyManager : NetworkBehaviour
         _lobbyJoinCode.OnValueChanged += (prev, curr) => OnLobbyDataUpdated?.Invoke();
         _selectedRoundDuration.OnValueChanged += HandleRoundDurationNetworkChanged;
         _selectedRoundsToWin.OnValueChanged += HandleRoundsToWinNetworkChanged;
+        _friendlyFireEnabled.OnValueChanged += HandleFriendlyFireNetworkChanged;
+
+        UpdateToggleUIState(_friendlyFireEnabled.Value);
 
         OnLobbyDataUpdated?.Invoke();
     }
@@ -147,6 +179,51 @@ public class CustomLobbyManager : NetworkBehaviour
 
         _selectedRoundDuration.OnValueChanged -= HandleRoundDurationNetworkChanged;
         _selectedRoundsToWin.OnValueChanged -= HandleRoundsToWinNetworkChanged;
+        _friendlyFireEnabled.OnValueChanged -= HandleFriendlyFireNetworkChanged;
+    }
+
+    private void HandleFriendlyFireNetworkChanged(bool previousValue, bool currentValue)
+    {
+        _savedFriendlyFire = currentValue;
+        UpdateToggleUIState(currentValue);
+        OnLobbyDataUpdated?.Invoke();
+    }
+
+    private void UpdateToggleUIState(bool isEnabled)
+    {
+        if (_friendlyFireToggle != null)
+        {
+            _friendlyFireToggle.SetIsOnWithoutNotify(isEnabled);
+            // Solo el anfitrión/servidor puede modificar los ajustes de la partida
+            _friendlyFireToggle.interactable = IsServer;
+        }
+    }
+
+    private void HandleToggleFriendlyFireChanged(bool isEnabled)
+    {
+        SetFriendlyFire(isEnabled);
+    }
+
+    public void SetFriendlyFire(bool isEnabled)
+    {
+        if (IsServer)
+        {
+            _friendlyFireEnabled.Value = isEnabled;
+            _savedFriendlyFire = isEnabled;
+            OnLobbyDataUpdated?.Invoke();
+        }
+        else
+        {
+            SetFriendlyFireServerRpc(isEnabled);
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    public void SetFriendlyFireServerRpc(bool isEnabled)
+    {
+        _friendlyFireEnabled.Value = isEnabled;
+        _savedFriendlyFire = isEnabled;
+        OnLobbyDataUpdated?.Invoke();
     }
 
     private void HandleRoundDurationNetworkChanged(float previousValue, float currentValue)
@@ -393,6 +470,7 @@ public class CustomLobbyManager : NetworkBehaviour
 
         _savedRoundDuration = _selectedRoundDuration.Value;
         _savedRoundsToWin = _selectedRoundsToWin.Value;
+        _savedFriendlyFire = _friendlyFireEnabled.Value;
 
         StartRoleSelectionClientRpc();
     }

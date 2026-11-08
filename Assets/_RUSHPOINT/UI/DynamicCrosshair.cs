@@ -284,7 +284,7 @@ public class DynamicCrosshair : MonoBehaviour
             return;
         }
 
-        WeaponInventory[] inventories = FindObjectsByType<WeaponInventory>(FindObjectsSortMode.None);
+        WeaponInventory[] inventories = FindObjectsByType<WeaponInventory>();
         for (int i = 0; i < inventories.Length; i++)
         {
             if (inventories[i].IsOwner || !NetworkManager.Singleton.IsListening)

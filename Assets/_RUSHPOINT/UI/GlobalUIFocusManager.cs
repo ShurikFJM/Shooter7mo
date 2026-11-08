@@ -28,7 +28,7 @@ public class GlobalUIFocusManager : MonoBehaviour
 
     private void AssignFocusToFrontmostSelectable()
     {
-        Selectable[] allSelectables = FindObjectsByType<Selectable>(FindObjectsSortMode.None);
+        Selectable[] allSelectables = FindObjectsByType<Selectable>();
         Selectable bestCandidate = null;
         int highestSiblingIndex = -1;
 

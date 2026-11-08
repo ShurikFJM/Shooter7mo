@@ -7,7 +7,7 @@ public class BombInteractor : NetworkBehaviour
     private const float DEFAULT_DEFUSE_DURATION = 5.0f;
     private const float INTERACTION_DISTANCE = 3.5f;
 
-    [SerializeField] private Camera _interactOrigin;
+    [SerializeField] private Transform _interactOrigin;
     [SerializeField] private LayerMask _bombLayer;
     [SerializeField] private LayerMask _siteLayer;
     [SerializeField] private PlayerTeam _playerTeam;
@@ -57,7 +57,11 @@ public class BombInteractor : NetworkBehaviour
     private void Awake()
     {
         if (_playerTeam == null) _playerTeam = GetComponent<PlayerTeam>();
-        if (_interactOrigin == null) _interactOrigin = GetComponentInChildren<Camera>(true);
+        if (_interactOrigin == null)
+        {
+            Camera cam = GetComponentInChildren<Camera>(true);
+            _interactOrigin = cam != null ? cam.transform : transform;
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -257,7 +261,7 @@ public class BombInteractor : NetworkBehaviour
     [Rpc(SendTo.Server)]
     private void RequestStartDefuseAudioServerRpc()
     {
-        BroadcastBombSoundClientRpc(5); 
+        BroadcastBombSoundClientRpc(5);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -305,7 +309,7 @@ public class BombInteractor : NetworkBehaviour
         LocateSceneBomb();
         if (_activeBomb == null) return;
 
-        BombSite[] allSites = FindObjectsByType<BombSite>(FindObjectsSortMode.None);
+        BombSite[] allSites = FindObjectsByType<BombSite>();
         bool isValidSite = false;
 
         for (int i = 0; i < allSites.Length; i++)

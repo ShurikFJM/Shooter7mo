@@ -94,7 +94,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 07:46 PM (November 4, 2026)
+    lastSaveTimePrint: 07:55 PM (November 4, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -331,9 +331,16 @@ MonoBehaviour:
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - dc1ac7c7748377c41a9f0ae32fa541c7
+      - b3aefab6f4408894ca6b55610e0bb4ff
+      - c1318c971da43e04ea177379193a3b66
+      - 4fd10b3a4de3ded44bca58a1aaa50a90
+      - 3c1496308b8f780449f6ef99ba39dccf
     - assetGUIDs:
       - 3c1496308b8f780449f6ef99ba39dccf
+    - assetGUIDs:
+      - b3aefab6f4408894ca6b55610e0bb4ff
+    - assetGUIDs:
+      - dc1ac7c7748377c41a9f0ae32fa541c7
     - assetGUIDs:
       - f381e7cd838fc12408522d9bebf20ba9
     - assetGUIDs:
@@ -348,25 +355,25 @@ MonoBehaviour:
       - 66b21236603c7124cbe7c5eda54de385
     - assetGUIDs:
       - d862c7961e433f341bf7e31c0c920788
-    - assetGUIDs:
-      - 23b3b56b8ea620b4c8e3ef01590d59f3
-    - assetGUIDs:
-      - 93536632a2429584c845e889f0426318
-    targetObject: {fileID: 11500000, guid: dc1ac7c7748377c41a9f0ae32fa541c7, type: 3}
-    targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Core/GameMode/RoundManager.cs
+    targetObject: {fileID: 0}
+    targetObjects:
+    - {fileID: 11500000, guid: b3aefab6f4408894ca6b55610e0bb4ff, type: 3}
+    - {fileID: 11500000, guid: c1318c971da43e04ea177379193a3b66, type: 3}
+    - {fileID: 11500000, guid: 4fd10b3a4de3ded44bca58a1aaa50a90, type: 3}
+    - {fileID: 11500000, guid: 3c1496308b8f780449f6ef99ba39dccf, type: 3}
+    lastSelectedAsset: 
     lastClickedTab: -1
     previousTab: 0
   - tracker:
       mostClicked:
       - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]"}'
-        count: 13
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"CustomLobbyManager[0]"}'
+        count: 23
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"CustomLobbyManager[0]"}'
-        count: 11
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]"}'
+        count: 14
         gameObjects:
         - {fileID: 0}
       - paths:
@@ -395,70 +402,66 @@ MonoBehaviour:
         gameObjects:
         - {fileID: 0}
       - paths:
-        - 
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]/Button_Settings[0]"}'
         count: 3
-        gameObjects: []
+        gameObjects:
+        - {fileID: 0}
       - paths:
         - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/Stats[0]"}'
         count: 2
         gameObjects:
         - {fileID: 0}
       - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/RoleImage[0]"}'
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"NetworkManager[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
       recentlyClicked:
       - paths:
-        - 
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"NetworkManager[0]"}'
         count: 1
-        gameObjects: []
-      - paths: []
-        count: 1
-        gameObjects: []
+        gameObjects:
+        - {fileID: 0}
       - paths:
         - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"CustomLobbyManager[0]"}'
         count: 1
         gameObjects:
         - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Host&Join[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/Panel_Settings[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/AudioPanel[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]/ControlsPanel[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
       - paths: []
         count: 1
         gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths: []
+        count: 1
+        gameObjects: []
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]/Background[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]/TXT_FriendlyFire[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]/TXT_FriendlyFire[0]/Toggle_FriendlyFire[0]/Background[0]"}'
+        count: 1
+        gameObjects:
+        - {fileID: 0}
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: 7a241e49bcdcf8a419ef451860429469
     sceneName: MainMenu
-    lastSaveTimePrint: 07:55 PM (November 4, 2026)
+    lastSaveTimePrint: 03:51 PM (November 8, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -472,16 +475,16 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 141
+    lastValidTabWidth: 0
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 0
+    lastKnownHeight: 1
     tabs:
-    - path: '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_LoadingScreen[0]"}'
+    - path: '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]"}'
       paths: []
       tabWidth: 0
-      name: Cavas_LoadingScreen
-      icon: {fileID: 6918890264710435130, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: Cavas_LoadingScreen
+      name: NetworkPlayer
+      icon: {fileID: 5988843443690612340, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: NetworkPlayer
       filterString: 
       newTab: 0
       scrollPosition: 0
@@ -500,7 +503,7 @@ MonoBehaviour:
       previewHeight: 150
       debug: 0
       filtering: 0
-      prefab: 0
+      prefab: 1
       multiFoldout: 1
       target: {fileID: 0}
       targets: []
@@ -583,46 +586,176 @@ MonoBehaviour:
         hidden: 0
         componentName: 
         niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
+      - index: 0
+        component: {fileID: 0}
+        missingComponentID:
+          m_rawData: 0
+        foldout: 0
+        focusAfter: 0
+        awaitingScroll: 0
+        hidden: 0
+        componentName: 
+        niceComponentName: 
       historyPaths:
       - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_LoadingScreen[0]"}'
-        prefab: 0
+        - '{"sceneGUID":"23b3b56b8ea620b4c8e3ef01590d59f3","path":"NetworkPlayer[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"NetworkManager[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"CustomLobbyManager[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]/Background[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]/TXT_FriendlyFire[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]/TXT_FriendlyFire[0]/Toggle_FriendlyFire[0]/Background[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]/TXT_FriendlyFire[0]/Toggle_FriendlyFire[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]/LobbyCode[0]"}'
+        prefab: 1
+      - paths:
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_Lobby_CustomGame[0]/TXT_RoundDuration[0]"}'
+        prefab: 1
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - b3aefab6f4408894ca6b55610e0bb4ff
-      - c1318c971da43e04ea177379193a3b66
-      - 4fd10b3a4de3ded44bca58a1aaa50a90
-      - 3c1496308b8f780449f6ef99ba39dccf
+      - a79207f133480694982d208e05ebb2a6
     - assetGUIDs:
-      - 3c1496308b8f780449f6ef99ba39dccf
+      - 2cc77967f4493434db6646917d83f627
     - assetGUIDs:
-      - b3aefab6f4408894ca6b55610e0bb4ff
+      - 15b70d5da3d5adb45a3644f8c23c38c6
     - assetGUIDs:
-      - dc1ac7c7748377c41a9f0ae32fa541c7
+      - 23b3b56b8ea620b4c8e3ef01590d59f3
     - assetGUIDs:
-      - f381e7cd838fc12408522d9bebf20ba9
+      - d64bb7e7b0864d14a925f0710d4bdf4c
     - assetGUIDs:
-      - 0bcfeff086bce4d41929a651ddd7271a
+      - a79207f133480694982d208e05ebb2a6
+      - 2cc77967f4493434db6646917d83f627
+      - 15b70d5da3d5adb45a3644f8c23c38c6
     - assetGUIDs:
-      - 27d34e20eb7d60345ad8224a6be120d9
+      - a79207f133480694982d208e05ebb2a6
+      - 2cc77967f4493434db6646917d83f627
     - assetGUIDs:
-      - b2b691b9bf54e074ea544fb911929835
+      - aa4964a135f1ab54f90b47f1eb0bd514
     - assetGUIDs:
-      - 24cf391e3622de743a54e6e771f28333
+      - 1f549c5f9795a3c4bbcfa41777c4a5d4
     - assetGUIDs:
-      - 66b21236603c7124cbe7c5eda54de385
+      - ec65ef32614af2b48a166d1ea704ca4d
     - assetGUIDs:
-      - d862c7961e433f341bf7e31c0c920788
-    targetObject: {fileID: 0}
-    targetObjects:
-    - {fileID: 11500000, guid: b3aefab6f4408894ca6b55610e0bb4ff, type: 3}
-    - {fileID: 11500000, guid: c1318c971da43e04ea177379193a3b66, type: 3}
-    - {fileID: 11500000, guid: 4fd10b3a4de3ded44bca58a1aaa50a90, type: 3}
-    - {fileID: 11500000, guid: 3c1496308b8f780449f6ef99ba39dccf, type: 3}
-    lastSelectedAsset: 
+      - 0f1b1aa6496075e4e99de9bc32b34045
+    targetObject: {fileID: 2991988490985404437, guid: a79207f133480694982d208e05ebb2a6, type: 3}
+    targetObjects: []
+    lastSelectedAsset: Assets/_RUSHPOINT/Prefabs/Weapons/Grenades/Frag.prefab
     lastClickedTab: -1
     previousTab: 0
   - tracker:
@@ -1035,7 +1168,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: 91539b0d54401974baf219f36a5d3390
     sceneName: IntroRushpoint
-    lastSaveTimePrint: 04:51 PM (November 4, 2026)
+    lastSaveTimePrint: 07:57 PM (November 4, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -1049,7 +1182,7 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 0
+    lastValidTabWidth: 141
     alreadyCalculatedHeight: 0
     lastKnownHeight: 0
     tabs:
@@ -1116,32 +1249,39 @@ MonoBehaviour:
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - f1fcefc61a7dc5c49a8ffec7a7b3f81f
+      - b3aefab6f4408894ca6b55610e0bb4ff
+      - c1318c971da43e04ea177379193a3b66
+      - 4fd10b3a4de3ded44bca58a1aaa50a90
+      - 3c1496308b8f780449f6ef99ba39dccf
     - assetGUIDs:
-      - ba41196db5683f145b436727bb01e81f
+      - 3c1496308b8f780449f6ef99ba39dccf
     - assetGUIDs:
-      - 1e7d60d320c503e42a4d7569ab16ec92
+      - b3aefab6f4408894ca6b55610e0bb4ff
     - assetGUIDs:
-      - 23b3b56b8ea620b4c8e3ef01590d59f3
+      - dc1ac7c7748377c41a9f0ae32fa541c7
     - assetGUIDs:
-      - c000273e43838594b97148ea2cdbee9a
-    - assetGUIDs:
-      - 7a241e49bcdcf8a419ef451860429469
-    - assetGUIDs:
-      - 9b83c6717e4da584c9314a76959ff82b
-    - assetGUIDs:
-      - 32e6a2ee81e9430499ae1476767cf0a1
-    - assetGUIDs:
-      - dc52e236875189d4c866ef62dae04a11
-    - assetGUIDs:
-      - 4fe04e5d22ec9e344ac22a125741595b
+      - f381e7cd838fc12408522d9bebf20ba9
     - assetGUIDs:
       - 0bcfeff086bce4d41929a651ddd7271a
-    targetObject: {fileID: 11500000, guid: f1fcefc61a7dc5c49a8ffec7a7b3f81f, type: 3}
-    targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Tutorial/TutorialTargetBridge.cs
+    - assetGUIDs:
+      - 27d34e20eb7d60345ad8224a6be120d9
+    - assetGUIDs:
+      - b2b691b9bf54e074ea544fb911929835
+    - assetGUIDs:
+      - 24cf391e3622de743a54e6e771f28333
+    - assetGUIDs:
+      - 66b21236603c7124cbe7c5eda54de385
+    - assetGUIDs:
+      - d862c7961e433f341bf7e31c0c920788
+    targetObject: {fileID: 0}
+    targetObjects:
+    - {fileID: 11500000, guid: b3aefab6f4408894ca6b55610e0bb4ff, type: 3}
+    - {fileID: 11500000, guid: c1318c971da43e04ea177379193a3b66, type: 3}
+    - {fileID: 11500000, guid: 4fd10b3a4de3ded44bca58a1aaa50a90, type: 3}
+    - {fileID: 11500000, guid: 3c1496308b8f780449f6ef99ba39dccf, type: 3}
+    lastSelectedAsset: 
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000010000000000000001000000010000000100000001000000010000000100000001000000010000000000000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000000000000010000000100000001000000010000000100000000000000010000000000000001000000010000000100000001000000010000000100000000000000000000000100000001000000010000000100000001000000
+  tipsShown: 01000000010000000000000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000000000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
   playModeStartScene: {}
   enteringPlayMode: 0

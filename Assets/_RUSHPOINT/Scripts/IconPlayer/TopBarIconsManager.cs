@@ -26,7 +26,7 @@ public class TopBarIconsManager : MonoBehaviour
     private void RefreshSlots()
     {
         ClearAllSlots();
-        NetworkHealth[] allPlayers = FindObjectsByType<NetworkHealth>(FindObjectsSortMode.None);
+        NetworkHealth[] allPlayers = FindObjectsByType<NetworkHealth>();
 
         int redIndex = 0;
         int blueIndex = 0;

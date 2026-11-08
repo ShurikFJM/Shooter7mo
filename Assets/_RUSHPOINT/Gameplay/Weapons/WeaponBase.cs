@@ -327,17 +327,6 @@ public class WeaponBase : NetworkBehaviour
             targetPoint = hit.point;
             hitNormal = hit.normal;
 
-            // Dianas del tutorial (locales, no son NetworkObject)
-            TutorialTargetBridge targetBridge = hit.collider.GetComponentInParent<TutorialTargetBridge>();
-            if (targetBridge != null)
-            {
-                impactType = SurfaceImpactType.Wall;
-                CreateImpactVisual(hit);
-                PlayImpactSound(hit.point, false);
-                targetBridge.ApplyDamage(weaponData != null ? weaponData.damage : 0f);
-                break;
-            }
-
             NetworkHealth victimHealth = hit.collider.GetComponentInParent<NetworkHealth>();
             NetworkObject victimObj = hit.collider.GetComponentInParent<NetworkObject>();
 
@@ -478,7 +467,14 @@ public class WeaponBase : NetworkBehaviour
 
         if (_firePoint != null)
         {
-            StartCoroutine(RenderTracerRoutine(_firePoint.position, targetPoint));
+            if (PoolManager.Instance != null)
+            {
+                PoolManager.Instance.StartCoroutine(RenderTracerRoutine(_firePoint.position, targetPoint));
+            }
+            else
+            {
+                StartCoroutine(RenderTracerRoutine(_firePoint.position, targetPoint));
+            }
         }
     }
 
@@ -516,7 +512,7 @@ public class WeaponBase : NetworkBehaviour
         return _loadedPlayerVfx;
     }
 
-    private IEnumerator RenderTracerRoutine(Vector3 startPoint, Vector3 endPoint)
+    private static IEnumerator RenderTracerRoutine(Vector3 startPoint, Vector3 endPoint)
     {
         if (PoolManager.Instance == null) yield break;
 

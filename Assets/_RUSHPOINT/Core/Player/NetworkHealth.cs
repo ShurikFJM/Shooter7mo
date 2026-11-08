@@ -51,6 +51,12 @@ public class NetworkHealth : NetworkBehaviour
     public NetworkVariable<float> MaxArmor => _maxArmor;
     public NetworkVariable<bool> IsAlive => _isAlive;
 
+    public bool EnableFriendlyFire
+    {
+        get => _enableFriendlyFire;
+        set => _enableFriendlyFire = value;
+    }
+
     public override void OnNetworkSpawn()
     {
         _isAlive.OnValueChanged += HandleLivingStateChanged;
@@ -227,9 +233,11 @@ public class NetworkHealth : NetworkBehaviour
                     Team attackerTeam = attackerTeamComponent.CurrentTeam.Value;
                     Team victimTeam = victimTeamComponent.CurrentTeam.Value;
 
-                    if (attackerTeam == victimTeam && attackerTeam != Team.Neutral && !_enableFriendlyFire)
+                    bool isFriendlyFireAllowed = _enableFriendlyFire || CustomLobbyManager.SavedFriendlyFire;
+
+                    if (attackerTeam == victimTeam && attackerTeam != Team.Neutral && !isFriendlyFireAllowed)
                     {
-                        return;
+                        return; 
                     }
                 }
             }
@@ -259,14 +267,6 @@ public class NetworkHealth : NetworkBehaviour
         if (_currentHealth.Value <= 0f)
         {
             _isAlive.Value = false;
-            if (ScoreboardManager.Instance != null)
-            {
-                ScoreboardManager.Instance.RegisterKillAndDeathServer(attackerClientId, OwnerClientId);
-            }
-            if (KillFeedManager.Instance != null)
-            {
-                KillFeedManager.Instance.BroadcastKillServer(attackerClientId, OwnerClientId);
-            }
         }
     }
 }

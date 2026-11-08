@@ -183,7 +183,7 @@ public class Bomb : NetworkBehaviour
 
         if (clientId == NO_CARRIER_ID) return;
 
-        NetworkPlayerController[] allPlayers = FindObjectsByType<NetworkPlayerController>(FindObjectsSortMode.None);
+        NetworkPlayerController[] allPlayers = FindObjectsByType<NetworkPlayerController>();
         for (int i = 0; i < allPlayers.Length; i++)
         {
             if (allPlayers[i] != null && allPlayers[i].OwnerClientId == clientId)

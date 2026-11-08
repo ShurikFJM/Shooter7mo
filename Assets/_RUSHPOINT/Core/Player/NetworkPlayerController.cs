@@ -20,6 +20,10 @@ public class NetworkPlayerController : NetworkBehaviour
     private const float CAMERA_PLANE_DISTANCE = 1f;
     private const string LOBBY_CAMERA_TAG = "LobbyCamera";
     private const string MAIN_MENU_SCENE_NAME = "MainMenu";
+    private bool _isStunned;
+    private float _stunSlowRatio = 1.0f;
+    private float _stunSensRatio = 1.0f;
+    private Coroutine _stunCoroutine;
 
     [SerializeField] private CharacterController _characterController;
     [SerializeField] private Transform _cameraRoot;
@@ -112,7 +116,6 @@ public class NetworkPlayerController : NetworkBehaviour
 
         selectedRole.OnValueChanged += HandleRoleChanged;
         if (_weaponInventory == null) _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
-
         if (_networkHealth != null) _networkHealth.CurrentHealth.OnValueChanged += HandleHealthChanged;
 
         Canvas localPlayerCanvas = GetComponentInChildren<Canvas>(true);
@@ -164,7 +167,6 @@ public class NetworkPlayerController : NetworkBehaviour
             Camera lobbyCamera = GameObject.FindWithTag(LOBBY_CAMERA_TAG)?.GetComponent<Camera>();
             if (lobbyCamera != null) lobbyCamera.gameObject.SetActive(false);
 
-            // Reclamar el rol seleccionado previamente en la UI si aún no coincide
             PlayerRoleType intendedRole = selectedRole.Value;
             if (RoleSelectScreenUI.instance != null && RoleSelectScreenUI.instance.hasLockedIn)
             {
@@ -212,8 +214,10 @@ public class NetworkPlayerController : NetworkBehaviour
         SyncRoleClientRpc(roleType);
 
         ulong senderClientId = rpcParams.Receive.SenderClientId;
-        Team team = _playerTeam != null ? _playerTeam.CurrentTeam.Value : Team.Neutral;
-        CustomLobbyManager.SavePlayerData(senderClientId, team, roleType);
+        if (CustomLobbyManager.SavedRoles != null)
+        {
+            CustomLobbyManager.SavedRoles[senderClientId] = roleType;
+        }
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -450,11 +454,7 @@ public class NetworkPlayerController : NetworkBehaviour
         }
     }
 
-    public void OnFire(InputValue value)
-    {
-        _isFirePressed = value.isPressed;
-    }
-
+    public void OnFire(InputValue value) => _isFirePressed = value.isPressed;
     public void OnReload(InputValue value)
     {
         if (value.isPressed && _weaponInventory != null && _weaponInventory.ActiveWeapon != null)
@@ -492,10 +492,24 @@ public class NetworkPlayerController : NetworkBehaviour
             if (_characterController != null) _characterController.enabled = false;
             if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
 
+            if (_weaponInventory != null && _weaponInventory.ActiveWeapon != null)
+            {
+                _weaponInventory.ActiveWeapon.gameObject.SetActive(false);
+            }
+
             if (SpectatorManager.Instance != null && _playerTeam != null && _playerCamera != null)
             {
                 SpectatorManager.Instance.StartSpectating(_playerTeam.CurrentTeam.Value, _playerCamera, transform, _defaultCameraLocalY);
             }
+        }
+    }
+
+    public void SetFirstPersonVisibility(bool visible)
+    {
+        if (_firstPersonRoot != null) _firstPersonRoot.SetActive(visible);
+        if (_weaponInventory != null && _weaponInventory.ActiveWeapon != null)
+        {
+            _weaponInventory.ActiveWeapon.gameObject.SetActive(visible);
         }
     }
 
@@ -519,8 +533,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
         if (IsOwner)
         {
-            if (SpectatorManager.Instance != null) SpectatorManager.Instance.StopSpectating();
-            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(true);
+            SetFirstPersonVisibility(true);
             if (_playerCamera != null) _playerCamera.gameObject.SetActive(true);
             if (_characterController != null) _characterController.enabled = true;
         }
@@ -544,7 +557,6 @@ public class NetworkPlayerController : NetworkBehaviour
             return;
         }
 
-        // 1. Movimiento Universal
         Vector2 move = Vector2.zero;
         if (InputManager.Instance != null && InputManager.Instance.MovementInput.sqrMagnitude > MIN_MOVE_MAGNITUDE_SQR)
         {
@@ -570,12 +582,9 @@ public class NetworkPlayerController : NetworkBehaviour
         }
         _currentMoveInput = move;
 
-        // 2. Rotación de cámara vinculada dinámicamente a los Sliders de Sensibilidad
         float gamepadSens = InputManager.Instance != null ? InputManager.Instance.GamepadSensitivity : PlayerPrefs.GetFloat("GamepadSensitivity", 75.0f);
-        float mouseSens = InputManager.Instance != null ? InputManager.Instance.MouseSensitivity : PlayerPrefs.GetFloat("MouseSensitivity", 1.0f);
-
+        float mouseSens = InputManager.Instance != null ? InputManager.Instance.MouseSensitivity : PlayerPrefs.GetFloat("MouseSensitivity", _mouseSensitivity);
         Vector2 lookRotationDelta = Vector2.zero;
-
         bool isStickDeflected = Gamepad.current != null && Gamepad.current.rightStick.ReadValue().sqrMagnitude > MIN_MOVE_MAGNITUDE_SQR;
 
         if (isStickDeflected)
@@ -583,7 +592,6 @@ public class NetworkPlayerController : NetworkBehaviour
             Vector2 stick = Gamepad.current.rightStick.ReadValue();
             if (stick.magnitude > 0.08f)
             {
-                // El control usa grados/segundo escalados por GamepadSensitivity y Time.deltaTime
                 lookRotationDelta = stick * (gamepadSens * Time.deltaTime);
             }
         }
@@ -602,7 +610,6 @@ public class NetworkPlayerController : NetworkBehaviour
 
         _currentLookRotation = lookRotationDelta;
 
-        // 3. Agachado y Salto
         bool crouchPressed = false;
         bool walkSlowPressed = false;
 
@@ -638,6 +645,14 @@ public class NetworkPlayerController : NetworkBehaviour
             _isCrouching = targetCrouch;
             SetCrouchStateServerRpc(_isCrouching);
         }
+
+        if (_isStunned)
+        {
+            lookRotationDelta *= _stunSensRatio; 
+        }
+
+        _currentLookRotation = lookRotationDelta;
+
     }
 
     [Rpc(SendTo.Server)]
@@ -646,16 +661,8 @@ public class NetworkPlayerController : NetworkBehaviour
         isCrouchedNet.Value = crouching;
     }
 
-    public void OnMove(InputValue value)
-    {
-        _eventMoveInput = value.Get<Vector2>();
-    }
-
-    public void OnLook(InputValue value)
-    {
-        _eventLookInput = value.Get<Vector2>();
-    }
-
+    public void OnMove(InputValue value) => _eventMoveInput = value.Get<Vector2>();
+    public void OnLook(InputValue value) => _eventLookInput = value.Get<Vector2>();
     public void OnJump(InputValue value)
     {
         if (value.isPressed && IsGrounded && !_isCrouching) _jumpRequested = true;
@@ -737,6 +744,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
         if (_isCrouching) currentSpeed *= CROUCH_SPEED_RATIO;
         else if (_isWalkingSlow) currentSpeed *= WALK_SLOW_RATIO;
+        if (_isStunned) currentSpeed *= _stunSlowRatio;
 
         Vector3 moveDirection = transform.right * _currentMoveInput.x + transform.forward * _currentMoveInput.y;
         if (moveDirection.sqrMagnitude > 1f) moveDirection.Normalize();
@@ -784,7 +792,7 @@ public class NetworkPlayerController : NetworkBehaviour
         if (IsOwner)
         {
             if (SpectatorManager.Instance != null) SpectatorManager.Instance.StopSpectating();
-            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(true);
+            SetFirstPersonVisibility(true);
             if (_playerCamera != null) _playerCamera.gameObject.SetActive(true);
             if (_characterController != null) _characterController.enabled = true;
         }
@@ -792,5 +800,28 @@ public class NetworkPlayerController : NetworkBehaviour
         {
             if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
         }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void ApplyStunClientRpc(float duration, float slowMultiplier, float sensMultiplier)
+    {
+        if (!IsOwner) return;
+
+        if (_stunCoroutine != null) StopCoroutine(_stunCoroutine);
+        _stunCoroutine = StartCoroutine(StunRoutine(duration, slowMultiplier, sensMultiplier));
+    }
+
+    private IEnumerator StunRoutine(float duration, float slowMultiplier, float sensMultiplier)
+    {
+        _isStunned = true;
+        _stunSlowRatio = slowMultiplier;
+        _stunSensRatio = sensMultiplier;
+
+        yield return new WaitForSeconds(duration);
+
+        _isStunned = false;
+        _stunSlowRatio = 1.0f;
+        _stunSensRatio = 1.0f;
+        _stunCoroutine = null;
     }
 }

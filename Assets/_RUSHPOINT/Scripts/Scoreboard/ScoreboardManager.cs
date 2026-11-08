@@ -42,12 +42,12 @@ public class ScoreboardManager : NetworkBehaviour
     {
         Instance = this;
 
-        int copies = FindObjectsByType<ScoreboardManager>(FindObjectsSortMode.None).Length;
+        int copies = FindObjectsByType<ScoreboardManager>().Length;
         Debug.Log($"[Scoreboard] OnNetworkSpawn | objId={System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this)} | " +
-                  $"IsServer={IsServer} | IsSpawned={IsSpawned} | ScoreboardManagers en escena={copies}");
+        $"IsServer={IsServer} | IsSpawned={IsSpawned} | ScoreboardManagers en escena={copies}");
         if (copies > 1)
         {
-            Debug.LogWarning("⚠ [Scoreboard] Hay más de un ScoreboardManager en la escena. Borra el que sobra.");
+            Debug.LogWarning("[Scoreboard] Hay más de un ScoreboardManager en la escena. Borra el que sobra.");
         }
 
         if (IsServer)
@@ -78,7 +78,7 @@ public class ScoreboardManager : NetworkBehaviour
             int missing = CountMissingFromCache();
             if (missing > 0)
             {
-                Debug.LogWarning($"⚠ [Scoreboard] Faltan {missing} jugadores del lobby en la lista (intento {attempt}). Se rellena otra vez.");
+                Debug.LogWarning($"[Scoreboard] Faltan {missing} jugadores del lobby en la lista (intento {attempt}). Se rellena otra vez.");
                 FillFromLobbyAndPlayers();
             }
         }

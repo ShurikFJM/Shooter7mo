@@ -713,15 +713,28 @@ public class RoundManager : NetworkBehaviour
             ulong clientId = clientPair.Key;
             NetworkClient client = clientPair.Value;
 
-            Team assignedTeam = Team.Red;
+            Team assignedTeam = Team.Neutral;
             if (CustomLobbyManager.SavedTeams != null && CustomLobbyManager.SavedTeams.TryGetValue(clientId, out Team savedTeam))
             {
                 assignedTeam = savedTeam;
             }
 
+            if (assignedTeam == Team.Neutral && client.PlayerObject != null)
+            {
+                PlayerTeam existingTeam = client.PlayerObject.GetComponent<PlayerTeam>();
+                if (existingTeam == null) existingTeam = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
+
+                if (existingTeam != null && existingTeam.CurrentTeam.Value != Team.Neutral)
+                {
+                    assignedTeam = existingTeam.CurrentTeam.Value;
+                    if (CustomLobbyManager.SavedTeams != null) CustomLobbyManager.SavedTeams[clientId] = assignedTeam;
+                }
+            }
+
             if (!anyCombatantExists && assignedTeam == Team.Neutral)
             {
                 assignedTeam = (clientId % 2 == 0) ? Team.Red : Team.Blue;
+                if (CustomLobbyManager.SavedTeams != null) CustomLobbyManager.SavedTeams[clientId] = assignedTeam;
             }
 
             if (assignedTeam == Team.Neutral)
@@ -791,7 +804,7 @@ public class RoundManager : NetworkBehaviour
                     if (playerController != null)
                     {
                         playerController.RespawnPlayer(targetPosition, targetRotation);
-                        playerController.TeleportAndResetClientRpc(targetPosition, targetRotation);
+                        playerController.TeleportAndResetClientRpc(targetPosition, targetRotation, clientId);
                     }
                 }
             }

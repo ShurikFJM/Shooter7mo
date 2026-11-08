@@ -49,6 +49,19 @@ public class SpectatorManager : MonoBehaviour
         _originalLocalY = defaultY;
         _isSpectating = true;
 
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
+        {
+            NetworkObject localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+            if (localPlayer != null)
+            {
+                NetworkPlayerController localController = localPlayer.GetComponent<NetworkPlayerController>();
+                if (localController != null)
+                {
+                    localController.SetFirstPersonVisibility(false);
+                }
+            }
+        }
+
         RefreshPlayersList();
 
         if (_spectatablePlayers.Count > 0)
@@ -67,6 +80,19 @@ public class SpectatorManager : MonoBehaviour
         _isSpectating = false;
         _currentSpectatedPlayer = null;
         _spectatablePlayers.Clear();
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SpawnManager != null)
+        {
+            NetworkObject localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+            if (localPlayer != null)
+            {
+                NetworkPlayerController localController = localPlayer.GetComponent<NetworkPlayerController>();
+                if (localController != null)
+                {
+                    localController.SetFirstPersonVisibility(true);
+                }
+            }
+        }
 
         ForceResetCamera();
     }
@@ -126,16 +152,10 @@ public class SpectatorManager : MonoBehaviour
 
             NetworkPlayerController candidateController = client.PlayerObject.GetComponent<NetworkPlayerController>();
             PlayerTeam candidateTeam = client.PlayerObject.GetComponent<PlayerTeam>();
-            if (candidateTeam == null)
-            {
-                candidateTeam = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
-            }
+            if (candidateTeam == null) candidateTeam = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
 
             NetworkHealth candidateHealth = client.PlayerObject.GetComponent<NetworkHealth>();
-            if (candidateHealth == null)
-            {
-                candidateHealth = client.PlayerObject.GetComponentInChildren<NetworkHealth>();
-            }
+            if (candidateHealth == null) candidateHealth = client.PlayerObject.GetComponentInChildren<NetworkHealth>();
 
             if (candidateController == null || candidateTeam == null || candidateHealth == null) continue;
 
@@ -181,10 +201,7 @@ public class SpectatorManager : MonoBehaviour
         }
 
         NetworkHealth targetHealth = _currentSpectatedPlayer.GetComponent<NetworkHealth>();
-        if (targetHealth == null)
-        {
-            targetHealth = _currentSpectatedPlayer.GetComponentInChildren<NetworkHealth>();
-        }
+        if (targetHealth == null) targetHealth = _currentSpectatedPlayer.GetComponentInChildren<NetworkHealth>();
 
         if (targetHealth == null || !targetHealth.IsAlive.Value || targetHealth.CurrentHealth.Value <= 0f)
         {
