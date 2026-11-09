@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -259,14 +260,31 @@ public class NetworkHealth : NetworkBehaviour
         if (_currentHealth.Value <= 0f)
         {
             _isAlive.Value = false;
+            string killerName = "Desconocido";
             if (ScoreboardManager.Instance != null)
             {
                 ScoreboardManager.Instance.RegisterKillAndDeathServer(attackerClientId, OwnerClientId);
-            }
+
+                foreach (var stat in ScoreboardManager.Instance.PlayerStats)
+                {
+                    if (stat.ClientId == attackerClientId)
+                    {
+                        killerName = stat.PlayerName.ToString();
+                        break;
+                    }
+                }
             if (KillFeedManager.Instance != null)
             {
-                KillFeedManager.Instance.BroadcastKillServer(attackerClientId, OwnerClientId);
+                    KillFeedManager.Instance.BroadcastKillServer(attackerClientId, OwnerClientId);
             }
-        }
+                PlayerFeedbackUI feedbackUI = GetComponent<PlayerFeedbackUI>();
+                if (feedbackUI != null)
+                {
+                    feedbackUI.ShowDeathScreenClientRpc(new FixedString32Bytes(killerName));
+                }
+            }
     }
+  
 }
+}
+

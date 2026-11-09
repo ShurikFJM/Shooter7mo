@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a872732cec17b6342978ac0362142565
+timeCreated: 1489676037
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 85702
+  packageName: Toon Soldiers WW2 demo
+  packageVersion: 1.0
+  assetPath: Assets/ToonSoldiers_WW2_demo/ToonSoldiers_WW2_demo_README.txt
+  uploadId: 982300
