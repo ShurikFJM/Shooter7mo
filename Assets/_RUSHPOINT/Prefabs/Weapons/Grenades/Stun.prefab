@@ -165,20 +165,20 @@ MonoBehaviour:
   _collisionMask:
     serializedVersion: 2
     m_Bits: 2057
-  _audioSource: {fileID: 0}
+  _audioSource: {fileID: 5338169912959887438}
   _bounceSound: {fileID: 0}
-  _stunRadius: 9
-  _stunDuration: 3
+  _stunRadius: 10
+  _maxStunDuration: 4
   _slowMultiplier: 0.45
-  _sensitivityMultiplier: 0.4
-  _targetMask:
+  _sensMultiplier: 0.3
+  _playerMask:
     serializedVersion: 2
-    m_Bits: 2056
+    m_Bits: 2048
   _occlusionMask:
     serializedVersion: 2
     m_Bits: 1
-  _stunVfxPrefab: {fileID: 0}
-  _stunExplosionSound: {fileID: 0}
+  _flashVfxPrefab: {fileID: 0}
+  _flashDetonationSound: {fileID: 0}
 --- !u!82 &5338169912959887438
 AudioSource:
   m_ObjectHideFlags: 0
@@ -191,7 +191,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 149552297876152156, guid: 2157669b2e7d95f4ca5cbc4c019a0121, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -200,8 +200,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 2
+  MaxDistance: 2.02
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0

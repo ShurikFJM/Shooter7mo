@@ -3,59 +3,56 @@ using UnityEngine;
 
 public class StunGrenade : NetworkGrenadeBase
 {
-    [SerializeField] private float _stunRadius = 9.0f;
-    [SerializeField] private float _stunDuration = 3.0f;
-    [SerializeField] private float _slowMultiplier = 0.45f;
-    [SerializeField] private float _sensitivityMultiplier = 0.4f;
-    [SerializeField] private LayerMask _targetMask = ~0;
+    [Header("Configuración de Aturdimiento")]
+    [SerializeField] private float _stunRadius = 12.0f;
+    [SerializeField] private float _maxStunDuration = 4.0f;
+    [SerializeField] private float _slowMultiplier = 0.4f;    
+    [SerializeField] private float _sensMultiplier = 0.3f;    
+    [SerializeField] private LayerMask _playerMask;
     [SerializeField] private LayerMask _occlusionMask;
 
-    [SerializeField] private GameObject _stunVfxPrefab;
-    [SerializeField] private AudioClip _stunExplosionSound;
+    [Header("Efectos Audiovisuales")]
+    [SerializeField] private GameObject _flashVfxPrefab;
+    [SerializeField] private AudioClip _flashDetonationSound;
 
     protected override void OnExplodeServer(Vector3 impactPoint, Vector3 impactNormal)
     {
-        Collider[] colliders = Physics.OverlapSphere(impactPoint, _stunRadius, _targetMask, QueryTriggerInteraction.Ignore);
-        System.Collections.Generic.HashSet<NetworkPlayerController> affectedPlayers = new System.Collections.Generic.HashSet<NetworkPlayerController>();
+        Collider[] hits = Physics.OverlapSphere(impactPoint, _stunRadius, _playerMask, QueryTriggerInteraction.Ignore);
 
-        for (int i = 0; i < colliders.Length; i++)
+        for (int i = 0; i < hits.Length; i++)
         {
-            Collider col = colliders[i];
-            NetworkPlayerController player = col.GetComponentInParent<NetworkPlayerController>();
+            NetworkPlayerController player = hits[i].GetComponentInParent<NetworkPlayerController>();
+            if (player == null) continue;
 
-            if (player != null && !affectedPlayers.Contains(player))
+            Vector3 targetHead = player.PlayerCamera != null ? player.PlayerCamera.transform.position : hits[i].bounds.center;
+            Vector3 directionToTarget = targetHead - impactPoint;
+            float distance = directionToTarget.magnitude;
+
+            if (distance < 0.1f) distance = 0.1f;
+
+            if (Physics.Raycast(impactPoint, directionToTarget.normalized, distance, _occlusionMask, QueryTriggerInteraction.Ignore))
             {
-                affectedPlayers.Add(player);
-
-                Vector3 targetCenter = col.bounds.center;
-                Vector3 directionToTarget = targetCenter - impactPoint;
-                float distance = directionToTarget.magnitude;
-
-                if (Physics.Raycast(impactPoint, directionToTarget.normalized, out RaycastHit hit, distance, _occlusionMask))
-                {
-                    if (hit.collider != col && !hit.collider.transform.IsChildOf(player.transform))
-                    {
-                        continue;
-                    }
-                }
-
-                player.ApplyStunClientRpc(_stunDuration, _slowMultiplier, _sensitivityMultiplier);
+                continue;
             }
+
+            float distanceRatio = Mathf.Clamp01(1f - (distance / _stunRadius));
+            float finalDuration = Mathf.Lerp(_maxStunDuration * 0.4f, _maxStunDuration, distanceRatio);
+
+            player.ApplyStunClientRpc(finalDuration, _slowMultiplier, _sensMultiplier);
         }
     }
 
     protected override void PlayExplosionVisualEffect(Vector3 impactPoint, Vector3 impactNormal)
     {
-        if (_stunVfxPrefab != null)
+        if (_flashVfxPrefab != null)
         {
-            Quaternion rot = impactNormal.sqrMagnitude > 0.001f ? Quaternion.LookRotation(impactNormal) : Quaternion.identity;
-            GameObject vfx = Instantiate(_stunVfxPrefab, impactPoint, rot);
-            Destroy(vfx, 3.5f);
+            GameObject flashVfx = Instantiate(_flashVfxPrefab, impactPoint, Quaternion.identity);
+            Destroy(flashVfx, 2.5f);
         }
 
-        if (_stunExplosionSound != null)
+        if (_audioSource != null && _flashDetonationSound != null)
         {
-            AudioSource.PlayClipAtPoint(_stunExplosionSound, impactPoint, 1.2f);
+            _audioSource.PlayOneShot(_flashDetonationSound, 1.0f);
         }
     }
 }

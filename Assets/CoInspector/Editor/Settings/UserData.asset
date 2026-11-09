@@ -80,7 +80,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 06:22 PM (November 8, 2026)
+    lastSaveTimePrint: 06:36 PM (November 8, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -96,14 +96,14 @@ MonoBehaviour:
     rawUserHeight: 0
     lastValidTabWidth: 121
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 1
+    lastKnownHeight: 0
     tabs:
     - path: 
       paths: []
       tabWidth: 0
-      name: New Tab
+      name: 
       icon: {fileID: 0}
-      shortName: 
+      shortName: New Tab
       filterString: 
       newTab: 1
       scrollPosition: 0
@@ -161,6 +161,14 @@ MonoBehaviour:
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
+      - 23b3b56b8ea620b4c8e3ef01590d59f3
+    - assetGUIDs:
+      - 2cc77967f4493434db6646917d83f627
+    - assetGUIDs:
+      - a79207f133480694982d208e05ebb2a6
+    - assetGUIDs:
+      - 15b70d5da3d5adb45a3644f8c23c38c6
+    - assetGUIDs:
       - 27d34e20eb7d60345ad8224a6be120d9
     - assetGUIDs:
       - b2b691b9bf54e074ea544fb911929835
@@ -173,15 +181,7 @@ MonoBehaviour:
     - assetGUIDs:
       - d862c7961e433f341bf7e31c0c920788
     - assetGUIDs:
-      - 23b3b56b8ea620b4c8e3ef01590d59f3
-    - assetGUIDs:
       - a0aec254ec4c5ae4d91eef1a335903cd
-    - assetGUIDs:
-      - 2cc77967f4493434db6646917d83f627
-    - assetGUIDs:
-      - 37f1ba8466766fc4fb450c3ea73a8aa5
-    - assetGUIDs:
-      - 2f419e0b47d15494294b23290909c33f
     targetObject: {fileID: 0}
     targetObjects: []
     lastSelectedAsset: 
@@ -224,7 +224,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: 7a241e49bcdcf8a419ef451860429469
     sceneName: MainMenu
-    lastSaveTimePrint: 06:20 PM (November 8, 2026)
+    lastSaveTimePrint: 08:23 PM (November 8, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -241,40 +241,94 @@ MonoBehaviour:
     lastValidTabWidth: 121
     alreadyCalculatedHeight: 0
     lastKnownHeight: 0
-    tabs: []
+    tabs:
+    - path: 
+      paths: []
+      tabWidth: 0
+      name: 
+      icon: {fileID: 0}
+      shortName: New Tab
+      filterString: 
+      newTab: 1
+      scrollPosition: 0
+      isSelected: 0
+      allCollapsed: 0
+      runtimeFoldouts: 
+      runtimeMultiComponents: []
+      tabTextContent:
+        m_Text: 
+        m_Image: {fileID: 0}
+        m_Tooltip: 
+        m_TextWithWhitespace: 
+      multiEditMode: 0
+      locked: 0
+      hasPreview: 0
+      previewHeight: 150
+      debug: 0
+      filtering: 0
+      prefab: 0
+      multiFoldout: 1
+      target: {fileID: 0}
+      targets: []
+      linkedPrefabs: []
+      trackMultiTarget: {fileID: 0}
+      serializedTransform:
+        owner: {fileID: 0}
+        localPosition: {x: 0, y: 0, z: 0}
+        localRotation: {x: 0, y: 0, z: 0, w: 0}
+        localScale: {x: 0, y: 0, z: 0}
+        originalPosition: {x: 0, y: 0, z: 0}
+        originalRotation: {x: 0, y: 0, z: 0, w: 0}
+        originalLocalScale: {x: 0, y: 0, z: 0}
+        anchorMin: {x: 0, y: 0}
+        anchorMax: {x: 0, y: 0}
+        anchoredPosition: {x: 0, y: 0}
+        sizeDelta: {x: 0, y: 0}
+        pivot: {x: 0, y: 0}
+        originalAnchorMin: {x: 0, y: 0}
+        originalAnchorMax: {x: 0, y: 0}
+        originalAnchoredPosition: {x: 0, y: 0}
+        originalSizeDelta: {x: 0, y: 0}
+        originalPivot: {x: 0, y: 0}
+        isRectTransform: 0
+        appliedTransform: 0
+        undidTransform: 0
+        autoSave: 0
+      serializedTransforms: []
+      savePlayModeTransform: 0
+      index: 0
+      historyPosition: 0
+      componentMaps: []
+      historyPaths: []
+      owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
+      - 15b70d5da3d5adb45a3644f8c23c38c6
+    - assetGUIDs:
+      - 2cc77967f4493434db6646917d83f627
+    - assetGUIDs:
       - 23b3b56b8ea620b4c8e3ef01590d59f3
     - assetGUIDs:
+      - a79207f133480694982d208e05ebb2a6
+    - assetGUIDs:
+      - 27d34e20eb7d60345ad8224a6be120d9
+    - assetGUIDs:
+      - b2b691b9bf54e074ea544fb911929835
+    - assetGUIDs:
+      - 24cf391e3622de743a54e6e771f28333
+    - assetGUIDs:
+      - 66b21236603c7124cbe7c5eda54de385
+    - assetGUIDs:
+      - 00000000000000003000000000000000
+    - assetGUIDs:
+      - d862c7961e433f341bf7e31c0c920788
+    - assetGUIDs:
       - a0aec254ec4c5ae4d91eef1a335903cd
-    - assetGUIDs:
-      - 2cc77967f4493434db6646917d83f627
-    - assetGUIDs:
-      - 37f1ba8466766fc4fb450c3ea73a8aa5
-    - assetGUIDs:
-      - 2f419e0b47d15494294b23290909c33f
-    - assetGUIDs:
-      - 15b70d5da3d5adb45a3644f8c23c38c6
-    - assetGUIDs:
-      - a79207f133480694982d208e05ebb2a6
-    - assetGUIDs:
-      - adde89dd1fd95e04780ee50d883131ab
-      - bcc952d1731d4954e9b890475ee512de
-      - 75975a3ef3450bb47b793744ae08edd8
-    - assetGUIDs:
-      - adde89dd1fd95e04780ee50d883131ab
-      - bcc952d1731d4954e9b890475ee512de
-    - assetGUIDs:
-      - d64bb7e7b0864d14a925f0710d4bdf4c
-    - assetGUIDs:
-      - a79207f133480694982d208e05ebb2a6
-      - 2cc77967f4493434db6646917d83f627
-      - 15b70d5da3d5adb45a3644f8c23c38c6
-    targetObject: {fileID: 0}
+    targetObject: {fileID: 576807643676254759, guid: 15b70d5da3d5adb45a3644f8c23c38c6, type: 3}
     targetObjects: []
-    lastSelectedAsset: 
+    lastSelectedAsset: Assets/_RUSHPOINT/Prefabs/Weapons/Grenades/Stun.prefab
     lastClickedTab: -1
     previousTab: 0
   - tracker:
@@ -914,6 +968,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/_RUSHPOINT/Prefabs/Weapons/Grenades/Frag.prefab
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000
+  tipsShown: 01000000000000000000000000000000000000000100000000000000010000000000000000000000000000000000000001000000000000000000000001000000000000000000000001000000010000000000000000000000000000000100000001000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000010000000000000000000000
   playModeStartScene: {}
   enteringPlayMode: 0

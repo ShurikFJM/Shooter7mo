@@ -165,12 +165,9 @@ MonoBehaviour:
   _collisionMask:
     serializedVersion: 2
     m_Bits: 2057
-  _audioSource: {fileID: 0}
+  _audioSource: {fileID: 1616640157739546201}
   _bounceSound: {fileID: 0}
   _smokeDuration: 14
-  _groundSnapMask:
-    serializedVersion: 2
-    m_Bits: 1
   _smokeParticlePrefab: {fileID: 374518182886001330, guid: a0aec254ec4c5ae4d91eef1a335903cd, type: 3}
   _smokeHissSound: {fileID: 0}
 --- !u!65 &6396242430720217787

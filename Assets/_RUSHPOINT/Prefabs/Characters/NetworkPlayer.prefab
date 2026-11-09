@@ -620,7 +620,7 @@ MonoBehaviour:
   _fragGrenadePrefab: {fileID: 2991988490985404437, guid: a79207f133480694982d208e05ebb2a6, type: 3}
   _smokeGrenadePrefab: {fileID: 3563754460539779546, guid: 2cc77967f4493434db6646917d83f627, type: 3}
   _stunGrenadePrefab: {fileID: 576807643676254759, guid: 15b70d5da3d5adb45a3644f8c23c38c6, type: 3}
-  _maxGrenadesPerRound: 2
+  _maxGrenadesPerRound: 20
 --- !u!1 &5650862837141661167
 GameObject:
   m_ObjectHideFlags: 0
