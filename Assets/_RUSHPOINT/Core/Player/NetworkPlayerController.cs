@@ -813,8 +813,17 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        if (_stunCoroutine != null) StopCoroutine(_stunCoroutine);
+        if (_stunCoroutine != null)
+        {
+            StopCoroutine(_stunCoroutine);
+        }
+
         _stunCoroutine = StartCoroutine(StunRoutine(duration, slowMultiplier, sensMultiplier));
+
+        if (StunVisualEffect.Instance != null)
+        {
+            StunVisualEffect.Instance.TriggerStun(duration);
+        }
     }
 
     private IEnumerator StunRoutine(float duration, float slowMultiplier, float sensMultiplier)

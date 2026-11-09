@@ -8,7 +8,7 @@ public class TacticalHUD : MonoBehaviour
 {
     private const string NO_AMMO_STRING = "-";
     private const string SLASH_STRING = " / ";
-    private const string RELOADING_LABEL = "RELOADING...";
+    private const string RELOADING_LABEL = "...";
     private const string DEFAULT_HALFTIME_MESSAGE = "SIDE SWITCH!\n<size=60%>SWITCHING SIDES</size>";
     private const float DEFAULT_BANNER_DURATION = 4.5f;
 
