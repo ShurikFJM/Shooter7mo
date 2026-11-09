@@ -9,6 +9,18 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: a156295b4e0fba040a5d5f8de17f59de, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a156295b4e0fba040a5d5f8de17f59de, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a156295b4e0fba040a5d5f8de17f59de, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a156295b4e0fba040a5d5f8de17f59de, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -48,9 +60,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a156295b4e0fba040a5d5f8de17f59de, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: a156295b4e0fba040a5d5f8de17f59de, type: 3}
       propertyPath: m_Name
-      value: M18_SmokeGrenade-Hitansh3D
+      value: Smoke
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -152,7 +168,10 @@ MonoBehaviour:
   _audioSource: {fileID: 0}
   _bounceSound: {fileID: 0}
   _smokeDuration: 14
-  _smokeParticlePrefab: {fileID: 0}
+  _groundSnapMask:
+    serializedVersion: 2
+    m_Bits: 1
+  _smokeParticlePrefab: {fileID: 374518182886001330, guid: a0aec254ec4c5ae4d91eef1a335903cd, type: 3}
   _smokeHissSound: {fileID: 0}
 --- !u!65 &6396242430720217787
 BoxCollider:

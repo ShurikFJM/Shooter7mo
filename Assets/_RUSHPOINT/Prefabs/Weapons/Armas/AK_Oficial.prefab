@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6127649806170374494}
   - component: {fileID: 7359418622584217918}
   - component: {fileID: 5430272077579077547}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Capsule
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -123,7 +123,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7104995611434977514}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: FirePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -211,11 +211,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8504249905713606647, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: -5847821457327588969, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: -5176219720295892811, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
       propertyPath: m_LocalPosition.y
@@ -223,11 +223,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -1064451724702449605, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 46502392658659125, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
       propertyPath: m_Name
@@ -235,19 +235,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 7036213049465896255, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 7341757665696038683, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 7554260249914918127, guid: 0ce53365b9b805b4dae916acf6cc64c1, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 13
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

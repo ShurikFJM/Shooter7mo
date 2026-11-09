@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6959122962073881821}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: FirePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -98,6 +98,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 08558bf7dce54e0439aaba26fcfecff7, type: 3}
       propertyPath: m_Name
       value: SryingeGun_PrimaryPrefab
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 08558bf7dce54e0439aaba26fcfecff7, type: 3}
+      propertyPath: m_Layer
+      value: 13
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -272,9 +276,11 @@ MonoBehaviour:
   _playerImpactParticlePrefab: {fileID: 0}
   _wallHitFallbackSound: {fileID: 0}
   _playerHitFallbackSound: {fileID: 0}
-  _healAmount: 50
-  _healRange: 50
-  _healImpactEffect: {fileID: 0}
+  _healAmountAlly: 35
+  _healAmountSelf: 25
+  _selfHealCooldown: 1
+  _selfHealSound: {fileID: 0}
+  _selfHealVfxPrefab: {fileID: 0}
 --- !u!4 &6824510085390698012 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 08558bf7dce54e0439aaba26fcfecff7, type: 3}

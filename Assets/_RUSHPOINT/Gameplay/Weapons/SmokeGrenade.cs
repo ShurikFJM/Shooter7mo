@@ -4,41 +4,32 @@ using UnityEngine;
 public class SmokeGrenade : NetworkGrenadeBase
 {
     [SerializeField] private float _smokeDuration = 14f;
+
     [SerializeField] private GameObject _smokeParticlePrefab;
     [SerializeField] private AudioClip _smokeHissSound;
 
     protected override void OnExplodeServer(Vector3 impactPoint, Vector3 impactNormal)
     {
+        SpawnSmokeCloudClientRpc(impactPoint);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void SpawnSmokeCloudClientRpc(Vector3 spawnPosition)
+    {
+        if (_smokeParticlePrefab != null)
+        {
+            GameObject smokeCloud = Instantiate(_smokeParticlePrefab, spawnPosition, Quaternion.identity);
+            Destroy(smokeCloud, _smokeDuration + 1.5f);
+        }
+
+        if (_audioSource != null && _smokeHissSound != null)
+        {
+            AudioSource.PlayClipAtPoint(_smokeHissSound, spawnPosition, 1.0f);
+        }
     }
 
     protected override void PlayExplosionVisualEffect(Vector3 impactPoint, Vector3 impactNormal)
     {
-        if (_smokeParticlePrefab != null)
-        {
-            Vector3 spawnPos = impactPoint + (Vector3.up * 0.2f);
-            GameObject smokeCloud = Instantiate(_smokeParticlePrefab, spawnPos, Quaternion.identity);
 
-            ParticleSystem ps = smokeCloud.GetComponent<ParticleSystem>();
-            if (ps != null)
-            {
-                var main = ps.main;
-                main.stopAction = ParticleSystemStopAction.Destroy;
-            }
-
-            AudioSource audio = smokeCloud.GetComponent<AudioSource>();
-            if (audio == null) audio = smokeCloud.AddComponent<AudioSource>();
-            audio.spatialBlend = 1f;
-            audio.minDistance = 3f;
-            audio.maxDistance = 25f;
-
-            if (_smokeHissSound != null)
-            {
-                audio.clip = _smokeHissSound;
-                audio.loop = false;
-                audio.Play();
-            }
-
-            Destroy(smokeCloud, _smokeDuration);
-        }
     }
 }

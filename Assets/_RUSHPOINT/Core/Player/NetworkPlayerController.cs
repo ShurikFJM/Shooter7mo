@@ -20,6 +20,7 @@ public class NetworkPlayerController : NetworkBehaviour
     private const float CAMERA_PLANE_DISTANCE = 1f;
     private const string LOBBY_CAMERA_TAG = "LobbyCamera";
     private const string MAIN_MENU_SCENE_NAME = "MainMenu";
+
     private bool _isStunned;
     private float _stunSlowRatio = 1.0f;
     private float _stunSensRatio = 1.0f;
@@ -122,6 +123,11 @@ public class NetworkPlayerController : NetworkBehaviour
 
         if (IsOwner)
         {
+            if (InputManager.Instance != null)
+            {
+                InputManager.Instance.EnableAllGameplayActions();
+            }
+
             if (_characterController != null) _characterController.enabled = true;
 
             PlayerInput playerInput = GetComponent<PlayerInput>();
@@ -391,12 +397,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
                 if (!isUiOpen && Cursor.lockState != CursorLockMode.Locked)
                 {
-                    if (CursorStateManager.Instance != null) CursorStateManager.Instance.ForceEvaluateState();
-                    else
-                    {
-                        Cursor.lockState = CursorLockMode.Locked;
-                        Cursor.visible = false;
-                    }
+                    SetCursorLocked(true);
                 }
             }
 
@@ -423,7 +424,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
         bool reloadTriggered = false;
         if (InputManager.Instance != null) reloadTriggered = InputManager.Instance.WasReloadTriggered;
-        else if (Keyboard.current != null) reloadTriggered = Keyboard.current.rKey.wasPressedThisFrame;
+        if (!reloadTriggered && Keyboard.current != null) reloadTriggered = Keyboard.current.rKey.wasPressedThisFrame;
 
         if (reloadTriggered)
         {
@@ -431,13 +432,20 @@ public class NetworkPlayerController : NetworkBehaviour
         }
 
         bool wantsToFire = _isFirePressed;
+
         if (InputManager.Instance != null)
         {
             wantsToFire = wantsToFire || InputManager.Instance.IsFirePressed || InputManager.Instance.WasFireTriggered;
         }
-        else if (Mouse.current != null)
+
+        if (Mouse.current != null && Mouse.current.leftButton.isPressed)
         {
-            wantsToFire = wantsToFire || Mouse.current.leftButton.isPressed;
+            wantsToFire = true;
+        }
+
+        if (Gamepad.current != null && Gamepad.current.rightTrigger.isPressed)
+        {
+            wantsToFire = true;
         }
 
         if (!wantsToFire) return;
@@ -608,6 +616,11 @@ public class NetworkPlayerController : NetworkBehaviour
             lookRotationDelta = Mouse.current.delta.ReadValue() * (mouseSens * 0.12f);
         }
 
+        if (_isStunned)
+        {
+            lookRotationDelta *= _stunSensRatio;
+        }
+
         _currentLookRotation = lookRotationDelta;
 
         bool crouchPressed = false;
@@ -616,6 +629,7 @@ public class NetworkPlayerController : NetworkBehaviour
         if (InputManager.Instance != null)
         {
             crouchPressed = InputManager.Instance.IsCrouchPressed;
+            walkSlowPressed = InputManager.Instance.IsWalkPressed;
             if (InputManager.Instance.WasJumpTriggered && IsGrounded && !_isCrouching) _jumpRequested = true;
         }
         else
@@ -645,14 +659,6 @@ public class NetworkPlayerController : NetworkBehaviour
             _isCrouching = targetCrouch;
             SetCrouchStateServerRpc(_isCrouching);
         }
-
-        if (_isStunned)
-        {
-            lookRotationDelta *= _stunSensRatio; 
-        }
-
-        _currentLookRotation = lookRotationDelta;
-
     }
 
     [Rpc(SendTo.Server)]

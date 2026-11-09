@@ -5,16 +5,14 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(NetworkPlayerController))]
 public class PlayerGrenadeThrower : NetworkBehaviour
 {
-    private const float THROW_FORCE = 18f;
-    private const float UPWARD_FORCE_RATIO = 0.18f;
-    private const float SPAWN_FORWARD_OFFSET = 0.6f;
+    [SerializeField] private float _throwForce = 22f;
+    [SerializeField] private float _upwardForceRatio = 0.22f;
+    [SerializeField] private float _spawnForwardOffset = 0.85f;
 
-    [Header("Prefabs de Granadas por Rol")]
-    [SerializeField] private GameObject _fragGrenadePrefab;    // Tank
-    [SerializeField] private GameObject _smokeGrenadePrefab;   // Assault
-    [SerializeField] private GameObject _stunGrenadePrefab;    // Medic (Aturdimiento)
+    [SerializeField] private GameObject _fragGrenadePrefab;    
+    [SerializeField] private GameObject _smokeGrenadePrefab;   
+    [SerializeField] private GameObject _stunGrenadePrefab;    
 
-    [Header("Disponibilidad")]
     [SerializeField] private int _maxGrenadesPerRound = 1;
 
     private NetworkPlayerController _playerController;
@@ -97,9 +95,9 @@ public class PlayerGrenadeThrower : NetworkBehaviour
         _nextThrowTime = Time.time + 1.2f;
 
         Transform camTransform = _playerController.PlayerCamera != null ? _playerController.PlayerCamera.transform : transform;
-        Vector3 spawnPosition = camTransform.position + (camTransform.forward * SPAWN_FORWARD_OFFSET);
-        Vector3 throwDirection = (camTransform.forward + (Vector3.up * UPWARD_FORCE_RATIO)).normalized;
-        Vector3 throwVelocity = throwDirection * THROW_FORCE;
+        Vector3 spawnPosition = camTransform.position + (camTransform.forward * _spawnForwardOffset) + (Vector3.up * 0.1f);
+        Vector3 throwDirection = (camTransform.forward + (Vector3.up * _upwardForceRatio)).normalized;
+        Vector3 throwVelocity = throwDirection * _throwForce;
 
         PlayerRoleType currentRole = _playerController.selectedRole.Value;
         RequestSpawnGrenadeServerRpc(spawnPosition, throwVelocity, currentRole);
@@ -141,7 +139,8 @@ public class PlayerGrenadeThrower : NetworkBehaviour
             NetworkGrenadeBase grenadeBase = grenadeInstance.GetComponent<NetworkGrenadeBase>();
             if (grenadeBase != null)
             {
-                grenadeBase.InitializeGrenadeServer(rpcParams.Receive.SenderClientId, team, throwVelocity);
+                grenadeBase.InitializeGrenadeServer(rpcParams.Receive.SenderClientId, team);
+                grenadeBase.LaunchGrenadeClientRpc(throwVelocity, new NetworkObjectReference(NetworkObject));
             }
         }
     }

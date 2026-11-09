@@ -29,7 +29,7 @@ public abstract class NetworkGrenadeBase : NetworkBehaviour
         if (_audioSource == null) _audioSource = GetComponent<AudioSource>();
     }
 
-    public virtual void InitializeGrenadeServer(ulong throwerId, Team team, Vector3 throwVelocity)
+    public virtual void InitializeGrenadeServer(ulong throwerId, Team team)
     {
         if (!IsServer) return;
 
@@ -37,11 +37,37 @@ public abstract class NetworkGrenadeBase : NetworkBehaviour
         _throwerTeam = team;
         _currentFuseTimer = _fuseTime;
         _hasExploded = false;
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void LaunchGrenadeClientRpc(Vector3 throwVelocity, NetworkObjectReference throwerRef)
+    {
+        if (_rigidbody == null) _rigidbody = GetComponent<Rigidbody>();
 
         if (_rigidbody != null)
         {
+            _rigidbody.isKinematic = false;
+            _rigidbody.useGravity = true;
             _rigidbody.linearVelocity = throwVelocity;
-            _rigidbody.angularVelocity = Random.insideUnitSphere * 10f;
+            _rigidbody.AddForce(throwVelocity, ForceMode.VelocityChange);
+            _rigidbody.angularVelocity = Random.insideUnitSphere * 12f;
+        }
+
+        // Ignora colisiones con el jugador que la lanzó para que no se frene en su cabeza/manos
+        if (throwerRef.TryGet(out NetworkObject throwerObj))
+        {
+            Collider myCol = GetComponent<Collider>();
+            if (myCol != null)
+            {
+                Collider[] throwerCols = throwerObj.GetComponentsInChildren<Collider>();
+                for (int i = 0; i < throwerCols.Length; i++)
+                {
+                    if (throwerCols[i] != null)
+                    {
+                        Physics.IgnoreCollision(myCol, throwerCols[i], true);
+                    }
+                }
+            }
         }
     }
 

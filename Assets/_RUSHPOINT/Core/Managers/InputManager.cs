@@ -99,9 +99,39 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    public bool IsFirePressed => _fireAction != null && _fireAction.IsPressed();
-    public bool WasFireTriggered => _fireAction != null && _fireAction.WasPressedThisFrame();
-    public bool IsAimPressed => _aimAction != null && _aimAction.IsPressed();
+    public bool IsFirePressed
+    {
+        get
+        {
+            if (_fireAction != null && _fireAction.IsPressed()) return true;
+            if (Mouse.current != null && Mouse.current.leftButton.isPressed) return true;
+            if (Gamepad.current != null && Gamepad.current.rightTrigger.isPressed) return true;
+            return false;
+        }
+    }
+
+    public bool WasFireTriggered
+    {
+        get
+        {
+            if (_fireAction != null && _fireAction.WasPressedThisFrame()) return true;
+            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) return true;
+            if (Gamepad.current != null && Gamepad.current.rightTrigger.wasPressedThisFrame) return true;
+            return false;
+        }
+    }
+
+    public bool IsAimPressed
+    {
+        get
+        {
+            if (_aimAction != null && _aimAction.IsPressed()) return true;
+            if (Mouse.current != null && Mouse.current.rightButton.isPressed) return true;
+            if (Gamepad.current != null && Gamepad.current.leftTrigger.isPressed) return true;
+            return false;
+        }
+    }
+
     public bool WasReloadTriggered => _reloadAction != null && _reloadAction.WasPressedThisFrame();
     public bool IsInteractPressed => _interactAction != null && _interactAction.IsPressed();
     public bool WasInteractTriggered => _interactAction != null && _interactAction.WasPressedThisFrame();
@@ -151,6 +181,11 @@ public class InputManager : MonoBehaviour
 
         LoadSensitivitySettings();
         InitializeInputActions();
+    }
+
+    private void Start()
+    {
+        EnableAllGameplayActions();
     }
 
     private void OnEnable()
@@ -303,7 +338,28 @@ public class InputManager : MonoBehaviour
 
         action = map.AddAction(primaryName, InputActionType.Button);
 
-        if (primaryName == ACTION_WALK)
+        if (primaryName == ACTION_FIRE)
+        {
+            action.AddBinding("<Mouse>/leftButton");
+            action.AddBinding("<Gamepad>/rightTrigger");
+        }
+        else if (primaryName == ACTION_AIM)
+        {
+            action.AddBinding("<Mouse>/rightButton");
+            action.AddBinding("<Gamepad>/leftTrigger");
+        }
+        else if (primaryName == ACTION_JUMP)
+        {
+            action.AddBinding("<Keyboard>/space");
+            action.AddBinding("<Gamepad>/buttonSouth");
+        }
+        else if (primaryName == ACTION_CROUCH)
+        {
+            action.AddBinding("<Keyboard>/leftCtrl");
+            action.AddBinding("<Keyboard>/c");
+            action.AddBinding("<Gamepad>/buttonEast");
+        }
+        else if (primaryName == ACTION_WALK)
         {
             action.AddBinding("<Keyboard>/leftShift");
             action.AddBinding("<Gamepad>/leftStickPress");
@@ -351,15 +407,36 @@ public class InputManager : MonoBehaviour
         return action;
     }
 
-    private void EnableAllGameplayActions()
+    public void EnableAllGameplayActions()
     {
         if (_inputActions != null)
         {
             _inputActions.Enable();
+            for (int i = 0; i < _inputActions.actionMaps.Count; i++)
+            {
+                _inputActions.actionMaps[i].Enable();
+            }
         }
+
+        _moveAction?.Enable();
+        _lookAction?.Enable();
+        _fireAction?.Enable();
+        _aimAction?.Enable();
+        _reloadAction?.Enable();
+        _interactAction?.Enable();
+        _jumpAction?.Enable();
+        _crouchAction?.Enable();
+        _walkAction?.Enable();
+        _dropAction?.Enable();
+        _slot1Action?.Enable();
+        _slot2Action?.Enable();
+        _slot3Action?.Enable();
+        _pauseAction?.Enable();
+        _scoreboardAction?.Enable();
+        _chatAction?.Enable();
     }
 
-    private void DisableAllGameplayActions()
+    public void DisableAllGameplayActions()
     {
         if (_inputActions != null)
         {
@@ -522,5 +599,4 @@ public class InputManager : MonoBehaviour
             DisableAllGameplayActions();
         }
     }
-
 }
