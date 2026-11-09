@@ -154,6 +154,7 @@ GameObject:
   - component: {fileID: 3763993040339902959}
   - component: {fileID: 6514967389136861494}
   - component: {fileID: 3970206372028291820}
+  - component: {fileID: 7284823195776867758}
   m_Layer: 11
   m_Name: NetworkPlayer
   m_TagString: Player
@@ -619,6 +620,26 @@ MonoBehaviour:
   _deathDuration: 4
   _damageSound: {fileID: 8300000, guid: c3cf8b677f8ebfe4390c562dd553b605, type: 3}
   _deathSound: {fileID: 8300000, guid: b8b0db661f3c6774c98e83b186484c4b, type: 3}
+--- !u!114 &7284823195776867758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5347775635805665784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40449b3286b01c047ad046613d70639e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerGrenadeThrower
+  ShowTopMostFoldoutHeaderGroup: 1
+  _throwForce: 10
+  _upwardForceRatio: 0.15
+  _spawnForwardOffset: 0.85
+  _fragGrenadePrefab: {fileID: 2991988490985404437, guid: a79207f133480694982d208e05ebb2a6, type: 3}
+  _smokeGrenadePrefab: {fileID: 3563754460539779546, guid: 2cc77967f4493434db6646917d83f627, type: 3}
+  _stunGrenadePrefab: {fileID: 576807643676254759, guid: 15b70d5da3d5adb45a3644f8c23c38c6, type: 3}
+  _maxGrenadesPerRound: 2
 --- !u!1 &5650862837141661167
 GameObject:
   m_ObjectHideFlags: 0

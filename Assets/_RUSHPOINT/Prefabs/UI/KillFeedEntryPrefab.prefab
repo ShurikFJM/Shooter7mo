@@ -474,8 +474,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8c9a308a883dea4f8357c3bd4c52290, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KillFeedEntry
-  _killerText: {fileID: 0}
-  _victimText: {fileID: 0}
+  _killerText: {fileID: 6507994297502389571}
+  _victimText: {fileID: 7421974600941900518}
   _displayTime: 7
 --- !u!114 &2843412937802302984
 MonoBehaviour:

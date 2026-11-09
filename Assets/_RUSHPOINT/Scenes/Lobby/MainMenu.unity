@@ -22909,7 +22909,7 @@ Transform:
   m_GameObject: {fileID: 591226496}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 281.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -24637,29 +24637,53 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoleSelectScreenUI
   _screenRoot: {fileID: 538864927}
   _roleDatabase: {fileID: 11400000, guid: 42f8182d1a7df26418afbf0c38ab59c6, type: 2}
+  _tacticalHudRoot: {fileID: 0}
+  _minimapRoot: {fileID: 0}
   _roleNameText: {fileID: 723837392}
   _roleDescriptionText: {fileID: 1760232702}
   _roleHealthText: {fileID: 388514519}
   _roleArmorText: {fileID: 554121024}
   _roleSpeedText: {fileID: 1321516812}
+  _healthSlider: {fileID: 1245307909}
+  _armorSlider: {fileID: 54087449}
+  _speedSlider: {fileID: 1145434985}
+  _sliderAnimationSpeed: 8
   _roomCodeText: {fileID: 216579448}
   _copyCodeButton: {fileID: 91046525}
   _lockInButton: {fileID: 301844517}
+  _confirmButton: {fileID: 301844517}
   _selectTerroristButton: {fileID: 318674591}
   _selectCounterTerroristButton: {fileID: 1179510417}
   _terroristButtonBackground: {fileID: 318674589}
   _counterTerroristButtonBackground: {fileID: 1179510415}
   _teamSelectedColor: {r: 1, g: 1, b: 1, a: 1}
   _teamUnselectedColor: {r: 0.35, g: 0.35, b: 0.35, a: 1}
-  _selectAssaultButton: {fileID: 0}
-  _selectMedicButton: {fileID: 0}
-  _selectMobilityButton: {fileID: 0}
-  _selectSniperButton: {fileID: 0}
-  _selectSupportButton: {fileID: 0}
-  _selectTankButton: {fileID: 0}
-  _confirmButton: {fileID: 301844517}
-  _tacticalHudRoot: {fileID: 0}
-  _minimapRoot: {fileID: 0}
+  _roleButtons:
+  - RoleType: 0
+    RoleButton: {fileID: 846175547}
+    RectTransform: {fileID: 846175546}
+    IconImage: {fileID: 358280095}
+  - RoleType: 1
+    RoleButton: {fileID: 1138606580}
+    RectTransform: {fileID: 1138606579}
+    IconImage: {fileID: 124519303}
+  - RoleType: 2
+    RoleButton: {fileID: 463717706}
+    RectTransform: {fileID: 463717705}
+    IconImage: {fileID: 337215439}
+  _radialRadius: 300
+  _angleSpacing: 25
+  _scaleFalloff: 0.2
+  _animationSpeed: 10
+  _selectedRoleColor: {r: 1, g: 0.8, b: 0.2, a: 1}
+  _unselectedRoleColor: {r: 1, g: 1, b: 1, a: 1}
+  _roleModels:
+  - RoleType: 0
+    ModelRoot: {fileID: 694001976}
+  - RoleType: 1
+    ModelRoot: {fileID: 1257154162}
+  - RoleType: 2
+    ModelRoot: {fileID: 88899296}
 --- !u!114 &650109272
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25549,6 +25573,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 689451751}
   m_CullTransparentMesh: 1
+--- !u!1 &694001976 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100052, guid: f4209d51d1ad0434299f2d498ee076ba, type: 3}
+  m_PrefabInstance: {fileID: 334591800}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &694395815
 GameObject:
   m_ObjectHideFlags: 0
