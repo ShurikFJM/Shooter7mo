@@ -75,7 +75,7 @@ GameObject:
   - component: {fileID: 6680873818612919310}
   m_Layer: 9
   m_Name: ThirdPersonModel
-  m_TagString: Player
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -108,7 +108,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9010424332264134401}
-  m_Layer: 11
+  m_Layer: 0
   m_Name: WeaponHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -153,7 +153,8 @@ GameObject:
   - component: {fileID: 8818974824339966079}
   - component: {fileID: 3763993040339902959}
   - component: {fileID: 6514967389136861494}
-  - component: {fileID: 4189042153571095879}
+  - component: {fileID: 3970206372028291820}
+  - component: {fileID: 7284823195776867758}
   m_Layer: 11
   m_Name: NetworkPlayer
   m_TagString: Player
@@ -313,16 +314,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1871180684
-  InScenePlacedSourceGlobalObjectIdHash: 0
+  GlobalObjectIdHash: 2397595995
+  InScenePlacedSourceGlobalObjectIdHash: 1871180684
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  m_InScenePlaced: 0
+  m_InScenePlaced: 1
   ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
+  SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
@@ -434,19 +435,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkPlayerController
   ShowTopMostFoldoutHeaderGroup: 1
-  _characterController: {fileID: 5092822756275291844}
-  _cameraRoot: {fileID: 2745469733686981276}
+  _characterController: {fileID: 0}
+  _cameraRoot: {fileID: 0}
   _playerCamera: {fileID: 6438023712298921843}
   _audioListener: {fileID: 3740326465607362252}
   _mouseSensitivity: 0.15
   _upDownLookLimit: 85
   _roleDatabase: {fileID: 11400000, guid: 42f8182d1a7df26418afbf0c38ab59c6, type: 2}
-  _firstPersonRoot: {fileID: 3973672152315432193}
-  _thirdPersonRoot: {fileID: 2470624848093030887}
-  _hitboxesRoot: {fileID: 146813479000506641}
+  _firstPersonRoot: {fileID: 0}
+  _thirdPersonRoot: {fileID: 0}
+  _hitboxesRoot: {fileID: 0}
   _obstacleLayers:
     serializedVersion: 2
-    m_Bits: 2049
+    m_Bits: 0
   selectedRole:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -601,7 +602,25 @@ MonoBehaviour:
   _landClips:
   - {fileID: 8300000, guid: 8c9ebe706778bdf4c869fc4051676d51, type: 3}
   _minFallDistanceForLandSound: 0.35
---- !u!114 &4189042153571095879
+--- !u!114 &3970206372028291820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5347775635805665784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6798305b742bb534d88a0a88e0f8b7a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerFeedbackUI
+  ShowTopMostFoldoutHeaderGroup: 1
+  _delayBeforeFade: 2
+  _fadeSpeed: 1.5
+  _deathDuration: 4
+  _damageSound: {fileID: 8300000, guid: c3cf8b677f8ebfe4390c562dd553b605, type: 3}
+  _deathSound: {fileID: 8300000, guid: b8b0db661f3c6774c98e83b186484c4b, type: 3}
+--- !u!114 &7284823195776867758
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1007,7 +1026,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2745469733686981276}
-  m_Layer: 11
+  m_Layer: 0
   m_Name: CameraRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1042,7 +1061,7 @@ GameObject:
   - component: {fileID: 6438023712298921843}
   - component: {fileID: 3740326465607362252}
   - component: {fileID: 7810868740424751284}
-  m_Layer: 11
+  m_Layer: 0
   m_Name: PlayerCamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}

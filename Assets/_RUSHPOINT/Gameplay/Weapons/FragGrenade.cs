@@ -42,11 +42,6 @@ public class FragGrenade : NetworkGrenadeBase
                 PlayerTeam victimTeam = health.GetComponent<PlayerTeam>();
                 if (victimTeam == null) victimTeam = health.GetComponentInChildren<PlayerTeam>();
 
-                bool isFriendlyFireAllowed = health.EnableFriendlyFire || CustomLobbyManager.SavedFriendlyFire;
-                if (victimTeam != null && victimTeam.CurrentTeam.Value == _throwerTeam && _throwerTeam != Team.Neutral && !isFriendlyFireAllowed)
-                {
-                    continue;
-                }
 
                 float distanceRatio = Mathf.Clamp01(distance / _explosionRadius);
                 float damage = Mathf.Lerp(_maxDamage, _minDamage, distanceRatio);

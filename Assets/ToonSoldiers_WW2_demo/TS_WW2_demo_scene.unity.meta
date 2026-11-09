@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 351d41988a8603c4e97f5952316453ac
+timeCreated: 1489674957
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 85702
+  packageName: Toon Soldiers WW2 demo
+  packageVersion: 1.0
+  assetPath: Assets/ToonSoldiers_WW2_demo/TS_WW2_demo_scene.unity
+  uploadId: 982300

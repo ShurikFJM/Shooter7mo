@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.UI; 
 using Unity.Netcode;
 
 public class PlayerIconSlot : MonoBehaviour
 {
-    [SerializeField] private GameObject _diamondRoot;
+    [SerializeField] private GameObject _squareRoot;
     [SerializeField] private GameObject _skullIcon;
+    [SerializeField] private Image _healthFillImage;
 
     private NetworkHealth _boundHealth;
 
@@ -13,13 +15,14 @@ public class PlayerIconSlot : MonoBehaviour
         Clear();
 
         _boundHealth = health;
-        _diamondRoot.SetActive(true);
+        _squareRoot.SetActive(true);
 
         if (_boundHealth != null)
         {
+            _boundHealth.CurrentHealth.OnValueChanged += OnHealthChanged;
             _boundHealth.IsAlive.OnValueChanged += OnAliveChanged;
-
-            UpdateVisuals(_boundHealth.IsAlive.Value);
+            UpdateHealthVisual(_boundHealth.CurrentHealth.Value);
+            UpdateAliveVisual(_boundHealth.IsAlive.Value);
         }
     }
 
@@ -27,18 +30,33 @@ public class PlayerIconSlot : MonoBehaviour
     {
         if (_boundHealth != null)
         {
+            _boundHealth.CurrentHealth.OnValueChanged -= OnHealthChanged;
             _boundHealth.IsAlive.OnValueChanged -= OnAliveChanged;
             _boundHealth = null;
         }
-        _diamondRoot.SetActive(false);
+        _squareRoot.SetActive(false);
+    }
+
+    private void OnHealthChanged(float previousValue, float newValue)
+    {
+        UpdateHealthVisual(newValue);
     }
 
     private void OnAliveChanged(bool previousValue, bool newValue)
     {
-        UpdateVisuals(newValue);
+        UpdateAliveVisual(newValue);
     }
 
-    private void UpdateVisuals(bool isAlive)
+    private void UpdateHealthVisual(float currentHealth)
+    {
+        if (_healthFillImage != null && _boundHealth != null)
+        {
+            float maxHealth = _boundHealth.MaxHealth.Value > 0f ? _boundHealth.MaxHealth.Value : 100f;
+            _healthFillImage.fillAmount = currentHealth / maxHealth;
+        }
+    }
+
+    private void UpdateAliveVisual(bool isAlive)
     {
         if (_skullIcon != null)
         {
