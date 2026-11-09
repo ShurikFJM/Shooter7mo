@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -50,12 +51,6 @@ public class NetworkHealth : NetworkBehaviour
     public NetworkVariable<float> CurrentArmor => _currentArmor;
     public NetworkVariable<float> MaxArmor => _maxArmor;
     public NetworkVariable<bool> IsAlive => _isAlive;
-
-    public bool EnableFriendlyFire
-    {
-        get => _enableFriendlyFire;
-        set => _enableFriendlyFire = value;
-    }
 
     public override void OnNetworkSpawn()
     {
@@ -233,11 +228,9 @@ public class NetworkHealth : NetworkBehaviour
                     Team attackerTeam = attackerTeamComponent.CurrentTeam.Value;
                     Team victimTeam = victimTeamComponent.CurrentTeam.Value;
 
-                    bool isFriendlyFireAllowed = _enableFriendlyFire || CustomLobbyManager.SavedFriendlyFire;
-
-                    if (attackerTeam == victimTeam && attackerTeam != Team.Neutral && !isFriendlyFireAllowed)
+                    if (attackerTeam == victimTeam && attackerTeam != Team.Neutral && !_enableFriendlyFire)
                     {
-                        return; 
+                        return;
                     }
                 }
             }
@@ -267,6 +260,31 @@ public class NetworkHealth : NetworkBehaviour
         if (_currentHealth.Value <= 0f)
         {
             _isAlive.Value = false;
-        }
+            string killerName = "Desconocido";
+            if (ScoreboardManager.Instance != null)
+            {
+                ScoreboardManager.Instance.RegisterKillAndDeathServer(attackerClientId, OwnerClientId);
+
+                foreach (var stat in ScoreboardManager.Instance.PlayerStats)
+                {
+                    if (stat.ClientId == attackerClientId)
+                    {
+                        killerName = stat.PlayerName.ToString();
+                        break;
+                    }
+                }
+            if (KillFeedManager.Instance != null)
+            {
+                    KillFeedManager.Instance.BroadcastKillServer(attackerClientId, OwnerClientId);
+            }
+                PlayerFeedbackUI feedbackUI = GetComponent<PlayerFeedbackUI>();
+                if (feedbackUI != null)
+                {
+                    feedbackUI.ShowDeathScreenClientRpc(new FixedString32Bytes(killerName));
+                }
+            }
     }
+  
 }
+}
+

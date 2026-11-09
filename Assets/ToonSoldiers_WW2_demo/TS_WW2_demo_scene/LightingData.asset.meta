@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0f3ccf2f6e277d94398e5fc9172528f7
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 112000000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 85702
+  packageName: Toon Soldiers WW2 demo
+  packageVersion: 1.0
+  assetPath: Assets/ToonSoldiers_WW2_demo/TS_WW2_demo_scene/LightingData.asset
+  uploadId: 982300
