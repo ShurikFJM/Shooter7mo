@@ -360,14 +360,18 @@ namespace HierarchyDesigner
                 {
                     hierarchyChangeCount = 0;
                     #region Update GameObject Data Cache
+#if UNITY_6000_6_OR_NEWER
+                    gameObjectDataCache.Clear();
+#else
                     List<int> keysToRemove = new();
+
                     foreach (int key in gameObjectDataCache.Keys)
                     {
 #if UNITY_6000_4_OR_NEWER
 #pragma warning disable CS0618
 #endif
 #if UNITY_6000_3_OR_NEWER
-    if (EditorUtility.EntityIdToObject(key) == null)
+                        if (EditorUtility.EntityIdToObject(key) == null)
 #else
                         if (EditorUtility.InstanceIDToObject(key) == null)
 #endif
@@ -378,10 +382,12 @@ namespace HierarchyDesigner
                             keysToRemove.Add(key);
                         }
                     }
+
                     foreach (int key in keysToRemove)
                     {
                         gameObjectDataCache.Remove(key);
                     }
+#endif
 
                     HD_Icon.ClearGlobalObjectIdCache();
                     #endregion
@@ -450,16 +456,22 @@ namespace HierarchyDesigner
                 }
 
                 bool isHovering = finalSelectionRect.Contains(Event.current.mousePosition);
+#if UNITY_6000_6_OR_NEWER
+                bool isSelected = Array.Exists(
+                    Selection.gameObjects,
+                    selectedGameObject => GetGameObjectCacheID(selectedGameObject) == instanceID);
+#else
 #if UNITY_6000_4_OR_NEWER
 #pragma warning disable CS0618
 #endif
 #if UNITY_6000_3_OR_NEWER
-bool isSelected = Array.IndexOf(Selection.entityIds, instanceID) >= 0;
+                bool isSelected = Array.IndexOf(Selection.entityIds, instanceID) >= 0;
 #else
                 bool isSelected = Array.IndexOf(Selection.instanceIDs, instanceID) >= 0;
 #endif
 #if UNITY_6000_4_OR_NEWER
 #pragma warning restore CS0618
+#endif
 #endif
                 bool isHierarchyFocused = EditorWindow.focusedWindow != null && EditorWindow.focusedWindow.titleContent.text == HD_Constants.HierarchyWindow;
 

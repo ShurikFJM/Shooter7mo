@@ -1,3 +1,6 @@
+<color=#FFF35A>Version 3.2.3</color>
+• Fixed a few errors in Unity 6.6 editors.
+
 <color=#FFF35A>Version 3.2.2</color>
 • Fixed several errors and warnings in Unity 6.5 editors.
 

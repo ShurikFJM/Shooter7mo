@@ -20,20 +20,6 @@ MonoBehaviour:
   passIndex: 0
   bindDepthStencilAttachment: 0
   m_Version: 1
---- !u!114 &-1152722552104419521
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43a84b065505d8f41b624b74c882ed4b, type: 3}
-  m_Name: HTrace Screen Space Global Illumination
-  m_EditorClassIdentifier: HTraceSSGI::HTraceSSGI.Scripts.Infrastructure.URP.HTraceSSGIRendererFeature
-  m_Active: 1
-  UseVolumes: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61,8 +47,7 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: 7833122117494664109}
   - {fileID: -6340879046457963809}
-  - {fileID: -1152722552104419521}
-  m_RendererFeatureMap: ad6b866f10d7b46cdfca27481aac00a83fff3b3df2b400f0
+  m_RendererFeatureMap: ad6b866f10d7b46cdfca27481aac00a8
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
@@ -105,15 +90,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   m_Settings:
-    AOMethod: 0
+    AOMethod: 1
     Downsample: 0
     AfterOpaque: 0
-    Source: 1
-    NormalSamples: 1
-    Intensity: 0.4
-    DirectLightingStrength: 0.25
-    Radius: 0.3
-    Samples: 1
+    Source: 0
+    NormalSamples: 2
+    Intensity: 1.8
+    DirectLightingStrength: 0.2
+    Radius: 0.5
+    Samples: 0
     BlurQuality: 0
     Falloff: 100
     SampleCount: -1
