@@ -333,6 +333,12 @@ public class WeaponBase : NetworkBehaviour
         WeaponInventory inventory = _playerController != null ? _playerController.GetComponentInChildren<WeaponInventory>() : null;
 
         LayerMask maskToUse = _hitLayers != 0 ? _hitLayers : (LayerMask)~0;
+        int hitboxLayer = LayerMask.NameToLayer("Hitbox");
+        if (hitboxLayer != -1)
+        {
+            maskToUse |= (1 << hitboxLayer);
+        }
+
         RaycastHit[] hits = Physics.RaycastAll(rayOrigin, rayDirection, maxRange, maskToUse, QueryTriggerInteraction.Collide);
         System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
@@ -365,12 +371,61 @@ public class WeaponBase : NetworkBehaviour
                 CreatePlayerImpactVisual(hit.point, hit.normal);
                 PlayImpactSound(hit.point, true);
 
+                RaycastHit bestHit = hit;
+                Hitbox bestHitbox = hit.collider.GetComponent<Hitbox>();
+
+                for (int j = 0; j < hits.Length; j++)
+                {
+                    if (hits[j].transform.IsChildOf(victimObj.transform))
+                    {
+                        Hitbox candidate = hits[j].collider.GetComponent<Hitbox>();
+                        if (candidate != null)
+                        {
+                            bestHit = hits[j];
+                            bestHitbox = candidate;
+                            if (candidate.Type == HitboxType.Head)
+                            {
+                                break;
+                            }
+                        }
+                        else if (hits[j].collider.name.IndexOf("head", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            bestHit = hits[j];
+                            break;
+                        }
+                    }
+                }
+
+                targetPoint = bestHit.point;
+                hitNormal = bestHit.normal;
+
+                HitboxType hitboxType = HitboxType.Chest;
+                if (bestHitbox != null)
+                {
+                    hitboxType = bestHitbox.Type;
+                }
+                else if (bestHit.collider.name.IndexOf("head", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    hitboxType = HitboxType.Head;
+                }
+
                 if (inventory != null && inventory.IsOwner)
                 {
-                    Hitbox hitbox = hit.collider.GetComponent<Hitbox>();
-                    HitboxType hitboxType = hitbox != null ? hitbox.Type : HitboxType.Chest;
                     inventory.RequestDealDamageServerRpc(victimObj, hitboxType);
                 }
+
+                Rigidbody hitRb = bestHit.collider.attachedRigidbody != null ? bestHit.collider.attachedRigidbody : hit.collider.attachedRigidbody;
+                if (hitRb != null && !hitRb.isKinematic)
+                {
+                    hitRb.AddForceAtPosition(rayDirection * 150f, bestHit.point, ForceMode.Impulse);
+                }
+
+                RagdollController ragdoll = victimObj.GetComponentInChildren<RagdollController>();
+                if (ragdoll != null && (!victimHealth.IsAlive.Value || victimHealth.CurrentHealth.Value <= 0f))
+                {
+                    ragdoll.TriggerRagdoll(rayDirection, 200f);
+                }
+
                 break;
             }
             else
@@ -674,4 +729,4 @@ public class WeaponBase : NetworkBehaviour
             _weaponAnimator.ResetTrigger(_reloadTriggerHash);
         }
     }
-}
+} 

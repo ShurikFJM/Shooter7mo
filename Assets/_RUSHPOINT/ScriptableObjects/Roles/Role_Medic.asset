@@ -21,7 +21,25 @@ MonoBehaviour:
   maxArmor: 40
   walkSpeed: 6
   jumpForce: 3
-  primaryWeaponPrefab: {fileID: 5278817231483725052, guid: 24cf391e3622de743a54e6e771f28333, type: 3}
-  secondaryWeaponPrefab: {fileID: 6196486273028906150, guid: 27d34e20eb7d60345ad8224a6be120d9, type: 3}
-  tpPrimaryWeaponPrefab: {fileID: 5278817231483725052, guid: 24cf391e3622de743a54e6e771f28333, type: 3}
-  tpSecondaryWeaponPrefab: {fileID: 6196486273028906150, guid: 27d34e20eb7d60345ad8224a6be120d9, type: 3}
+  primaryWeaponPrefab: {fileID: 1551484714283485593, guid: 545d3b2e725204543baff55b7304ff68, type: 3}
+  secondaryWeaponPrefab: {fileID: 2375206337446572558, guid: 8e628a0b5f572d447ba72a8c12ce0c55, type: 3}
+  tpPrimaryWeaponPrefab: {fileID: 1551484714283485593, guid: 545d3b2e725204543baff55b7304ff68, type: 3}
+  tpSecondaryWeaponPrefab: {fileID: 2375206337446572558, guid: 8e628a0b5f572d447ba72a8c12ce0c55, type: 3}
+  thirdPersonModelPrefab: {fileID: 133738, guid: 482fb19898afc38419a5799f9a76bf75, type: 3}
+  primaryPositionOffset: {x: 0, y: 0, z: 0}
+  primaryRotationOffset: {x: 0, y: 0, z: 0}
+  secondaryPositionOffset: {x: 0, y: 0, z: 0}
+  secondaryRotationOffset: {x: 0, y: 0, z: 0}
+  primaryWeaponName: Subfusil
+  primaryWeaponDescription: "Fusil autom\xE1tico de media y larga distancia."
+  primaryWeaponIcon: {fileID: 0}
+  secondaryWeaponName: Pistola medica
+  secondaryWeaponDescription: Dispara dardos curativos a distancia que restauran
+    40 HP a los aliados. Al apuntar (clic derecho) inyecta 25 HP directamente al
+    portador
+  secondaryWeaponIcon: {fileID: 0}
+  utilityName: "Granada de conmoci\xF3n"
+  utilityDescription: Utilidad arrojadiza para control de zona.
+  utilityIcon: {fileID: 0}
+  primaryAnimState: infantry_combat_idle
+  secondaryAnimState: handgun_combat_idle

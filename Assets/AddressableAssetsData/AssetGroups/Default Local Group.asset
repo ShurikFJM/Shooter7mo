@@ -14,7 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
   m_GroupName: Default Local Group
   m_GUID: 743307f0ccfcd634f988a7afcb99d59f
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 73de5d6b7216f114389abd14ed6d25c0
+    m_Address: Assets/_RUSHPOINT/Prefabs/Weapons/Armas/weapon_assault_rifle_A.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 9005604059b9ef446b1dd554701de908, type: 2}
   m_SchemaSet:

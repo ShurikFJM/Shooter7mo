@@ -1,43 +1,21 @@
-using Unity.Netcode;
 using UnityEngine;
 
-public enum HitboxType
+public enum HitboxType : byte
 {
-    Head,
-    Chest,
-    Legs
+    Head = 0,
+    Chest = 1,
+    Legs = 2
 }
 
-[RequireComponent(typeof(Collider))]
 public class Hitbox : MonoBehaviour
 {
-    [SerializeField] private NetworkHealth _targetHealth;
-    [SerializeField] private HitboxType _hitboxType = HitboxType.Chest;
+    [SerializeField] private HitboxType _type = HitboxType.Chest;
 
-    public NetworkHealth TargetHealth => _targetHealth;
-    public HitboxType Type => _hitboxType;
-
-    private void Awake()
+    public HitboxType Type
     {
-        ResolveTargetHealth();
+        get => _type;
+        set => _type = value;
     }
 
-    private void OnValidate()
-    {
-        if (_targetHealth == null)
-        {
-            ResolveTargetHealth();
-        }
-    }
-
-    private void ResolveTargetHealth()
-    {
-        if (_targetHealth != null) return;
-
-        _targetHealth = GetComponentInParent<NetworkHealth>();
-        if (_targetHealth == null && transform.root != null)
-        {
-            _targetHealth = transform.root.GetComponentInChildren<NetworkHealth>(true);
-        }
-    }
+    public HitboxType hitboxType => _type;
 }

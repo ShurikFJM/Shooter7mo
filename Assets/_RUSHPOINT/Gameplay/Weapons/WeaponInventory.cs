@@ -120,6 +120,24 @@ public class WeaponInventory : NetworkBehaviour
         }
     }
 
+    private Transform GetActiveHandSocket()
+    {
+        string[] socketNames = new string[] { "WeaponContainer", "WeaponContainer_R", "Bip001 R Hand", "RightHand" };
+        Transform[] allActiveTransforms = GetComponentsInChildren<Transform>(false);
+
+        for (int s = 0; s < socketNames.Length; s++)
+        {
+            for (int i = 0; i < allActiveTransforms.Length; i++)
+            {
+                if (allActiveTransforms[i].name.Equals(socketNames[s], System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return allActiveTransforms[i];
+                }
+            }
+        }
+        return null;
+    }
+
     public void SetupLoadoutForRole(GameObject primaryPrefab, GameObject secondaryPrefab, GameObject tpPrimaryPrefab, GameObject tpSecondaryPrefab)
     {
         EnsureHolders();
@@ -132,20 +150,57 @@ public class WeaponInventory : NetworkBehaviour
             if (_defaultMeleePrefab != null) InstantiateWeaponSlot(2, _defaultMeleePrefab);
         }
 
-        if (tpPrimaryPrefab != null && _tpPrimaryHolder != null)
+        Transform autoSocket = GetActiveHandSocket();
+        Transform primaryHolder = _tpPrimaryHolder != null ? _tpPrimaryHolder : autoSocket;
+        Transform secondaryHolder = _tpSecondaryHolder != null ? _tpSecondaryHolder : autoSocket;
+
+        NetworkPlayerController pc = GetComponent<NetworkPlayerController>();
+        if (pc == null) pc = GetComponentInParent<NetworkPlayerController>();
+
+        if (tpPrimaryPrefab != null && primaryHolder != null)
         {
-            _currentTpPrimary = Instantiate(tpPrimaryPrefab, _tpPrimaryHolder);
-            _currentTpPrimary.transform.localPosition = tpPrimaryPrefab.transform.localPosition;
-            _currentTpPrimary.transform.localRotation = tpPrimaryPrefab.transform.localRotation;
+            _currentTpPrimary = Instantiate(tpPrimaryPrefab, primaryHolder);
+
+            Vector3 pos = tpPrimaryPrefab.transform.localPosition;
+            Quaternion rot = tpPrimaryPrefab.transform.localRotation;
+            if (pc != null && pc.ActiveRole != null && (pc.ActiveRole.primaryPositionOffset != Vector3.zero || pc.ActiveRole.primaryRotationOffset != Vector3.zero))
+            {
+                pos = pc.ActiveRole.primaryPositionOffset;
+                rot = Quaternion.Euler(pc.ActiveRole.primaryRotationOffset);
+            }
+
+            _currentTpPrimary.transform.localPosition = pos;
+            _currentTpPrimary.transform.localRotation = rot;
             _currentTpPrimary.transform.localScale = tpPrimaryPrefab.transform.localScale;
+
+            Collider[] cols = _currentTpPrimary.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
+
+            WeaponBase wb = _currentTpPrimary.GetComponentInChildren<WeaponBase>(true);
+            if (wb != null) wb.enabled = false;
         }
 
-        if (tpSecondaryPrefab != null && _tpSecondaryHolder != null)
+        if (tpSecondaryPrefab != null && secondaryHolder != null)
         {
-            _currentTpSecondary = Instantiate(tpSecondaryPrefab, _tpSecondaryHolder);
-            _currentTpSecondary.transform.localPosition = tpSecondaryPrefab.transform.localPosition;
-            _currentTpSecondary.transform.localRotation = tpSecondaryPrefab.transform.localRotation;
+            _currentTpSecondary = Instantiate(tpSecondaryPrefab, secondaryHolder);
+
+            Vector3 pos = tpSecondaryPrefab.transform.localPosition;
+            Quaternion rot = tpSecondaryPrefab.transform.localRotation;
+            if (pc != null && pc.ActiveRole != null && (pc.ActiveRole.secondaryPositionOffset != Vector3.zero || pc.ActiveRole.secondaryRotationOffset != Vector3.zero))
+            {
+                pos = pc.ActiveRole.secondaryPositionOffset;
+                rot = Quaternion.Euler(pc.ActiveRole.secondaryRotationOffset);
+            }
+
+            _currentTpSecondary.transform.localPosition = pos;
+            _currentTpSecondary.transform.localRotation = rot;
             _currentTpSecondary.transform.localScale = tpSecondaryPrefab.transform.localScale;
+
+            Collider[] cols = _currentTpSecondary.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
+
+            WeaponBase wb = _currentTpSecondary.GetComponentInChildren<WeaponBase>(true);
+            if (wb != null) wb.enabled = false;
         }
 
         _hasEquippedLoadout = true;

@@ -1,0 +1,117 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Mask_UpperBody
+  m_Mask: 00000000010000000100000000000000000000000100000001000000010000000100000000000000000000000100000001000000
+  m_Elements:
+  - m_Path: 
+    m_Weight: 1
+  - m_Path: Bip001
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 L Thigh
+    m_Weight: 0
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 L Thigh/Bip001 L Calf
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 L Thigh/Bip001 L Calf/Bip001 L Foot
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 L Thigh/Bip001 L Calf/Bip001 L Foot/Bip001
+      L Toe0
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 R Thigh
+    m_Weight: 0
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 R Thigh/Bip001 R Calf
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 R Thigh/Bip001 R Calf/Bip001 R Foot
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 R Thigh/Bip001 R Calf/Bip001 R Foot/Bip001
+      R Toe0
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Backpack_container
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 L Clavicle
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 L Clavicle/Bip001 L UpperArm
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 L Clavicle/Bip001 L UpperArm/Bip001
+      L Forearm
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 L Clavicle/Bip001 L UpperArm/Bip001
+      L Forearm/Bip001 L Hand
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 L Clavicle/Bip001 L UpperArm/Bip001
+      L Forearm/Bip001 L Hand/WeaponContainer_L
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Neck
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 Neck/Bip001 Head
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 R Clavicle
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 R Clavicle/Bip001 R UpperArm
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 R Clavicle/Bip001 R UpperArm/Bip001
+      R Forearm
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 R Clavicle/Bip001 R UpperArm/Bip001
+      R Forearm/Bip001 R Hand
+    m_Weight: 1
+  - m_Path: Bip001/Bip001 Pelvis/Bip001 Spine/Bip001 R Clavicle/Bip001 R UpperArm/Bip001
+      R Forearm/Bip001 R Hand/WeaponContainer
+    m_Weight: 1
+  - m_Path: TS_Body_01_infantry
+    m_Weight: 1
+  - m_Path: TS_Body_02_gunner
+    m_Weight: 1
+  - m_Path: TS_Body_03_scout
+    m_Weight: 1
+  - m_Path: TS_Body_04_sniper
+    m_Weight: 1
+  - m_Path: TS_Body_05_engineer
+    m_Weight: 1
+  - m_Path: TS_Body_06_medic
+    m_Weight: 1
+  - m_Path: TS_Body_07_unequipped
+    m_Weight: 1
+  - m_Path: TS_Body_08_trench
+    m_Weight: 1
+  - m_Path: TS_Body_09_general
+    m_Weight: 1
+  - m_Path: TS_Head_00_unequipped
+    m_Weight: 1
+  - m_Path: TS_Head_01_infantry
+    m_Weight: 1
+  - m_Path: TS_Head_02_Scout
+    m_Weight: 1
+  - m_Path: TS_Head_04_sniper
+    m_Weight: 1
+  - m_Path: TS_Head_05_engineer
+    m_Weight: 1
+  - m_Path: TS_Head_06_medic_A
+    m_Weight: 1
+  - m_Path: TS_Head_07_medic_B
+    m_Weight: 1
+  - m_Path: TS_Head_08_beret
+    m_Weight: 1
+  - m_Path: TS_Head_09_general
+    m_Weight: 1
+  - m_Path: TS_Head_10_glasses
+    m_Weight: 1
+  - m_Path: TS_Head_11_gasmask
+    m_Weight: 1
+  - m_Path: TS_Head_12_gasmask_helmet
+    m_Weight: 1
+  - m_Path: TS_Head_13_gasmask_general
+    m_Weight: 1
+  - m_Path: TS_Head_14_gasmask_medic
+    m_Weight: 1
+  - m_Path: TS_Head_15_gunner_only
+    m_Weight: 1

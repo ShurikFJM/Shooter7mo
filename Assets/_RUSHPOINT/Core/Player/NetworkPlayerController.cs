@@ -35,6 +35,9 @@ public class NetworkPlayerController : NetworkBehaviour
     [SerializeField] private RoleDatabaseSO _roleDatabase;
     [SerializeField] private GameObject _firstPersonRoot;
     [SerializeField] private GameObject _thirdPersonRoot;
+    [SerializeField] private GameObject _infantryModel;
+    [SerializeField] private GameObject _gunnerModel;
+    [SerializeField] private GameObject _medicModel;
     [SerializeField] private Transform _hitboxesRoot;
     [SerializeField] private LayerMask _obstacleLayers;
 
@@ -350,6 +353,16 @@ public class NetworkPlayerController : NetworkBehaviour
             {
                 networkHealth.SetMaxStatsServer(_activeRole.maxHealth, _activeRole.maxArmor);
             }
+        }
+
+        if (_infantryModel != null) _infantryModel.SetActive(roleType == PlayerRoleType.Assault);
+        if (_gunnerModel != null) _gunnerModel.SetActive(roleType == PlayerRoleType.Tank);
+        if (_medicModel != null) _medicModel.SetActive(roleType == PlayerRoleType.Medic);
+
+        PlayerTeamVisualizer visualizer = GetComponent<PlayerTeamVisualizer>();
+        if (visualizer != null)
+        {
+            visualizer.RefreshRenderers();
         }
 
         if (_weaponInventory == null) _weaponInventory = GetComponentInChildren<WeaponInventory>(true);

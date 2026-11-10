@@ -82,28 +82,25 @@ public class NetworkHealth : NetworkBehaviour
             characterController.enabled = isAlive;
         }
 
-        Collider[] bodyColliders = GetComponentsInChildren<Collider>(true);
-        for (int i = 0; i < bodyColliders.Length; i++)
-        {
-            if (bodyColliders[i] != null)
-            {
-                bodyColliders[i].enabled = isAlive;
-            }
-        }
+        RagdollController ragdoll = GetComponentInChildren<RagdollController>();
 
-        if (_characterModelRoot != null)
+        if (isAlive)
         {
-            _characterModelRoot.SetActive(isAlive);
+            if (ragdoll != null)
+            {
+                ragdoll.ResetRagdoll();
+            }
+
+            if (_characterModelRoot != null)
+            {
+                _characterModelRoot.SetActive(true);
+            }
         }
         else
         {
-            Renderer[] visualRenderers = GetComponentsInChildren<Renderer>(true);
-            for (int i = 0; i < visualRenderers.Length; i++)
+            if (ragdoll != null)
             {
-                if (visualRenderers[i] is MeshRenderer || visualRenderers[i] is SkinnedMeshRenderer)
-                {
-                    visualRenderers[i].enabled = isAlive;
-                }
+                ragdoll.SetRagdollActive(true);
             }
         }
 
@@ -261,6 +258,18 @@ public class NetworkHealth : NetworkBehaviour
         {
             _isAlive.Value = false;
             string killerName = "Desconocido";
+
+            Vector3 hitDirection = -transform.forward;
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.ConnectedClients.TryGetValue(attackerClientId, out NetworkClient killerClient))
+            {
+                if (killerClient.PlayerObject != null)
+                {
+                    hitDirection = (transform.position - killerClient.PlayerObject.transform.position).normalized;
+                }
+            }
+
+            TriggerRagdollDeathClientRpc(hitDirection);
+
             if (ScoreboardManager.Instance != null)
             {
                 ScoreboardManager.Instance.RegisterKillAndDeathServer(attackerClientId, OwnerClientId);
@@ -273,18 +282,28 @@ public class NetworkHealth : NetworkBehaviour
                         break;
                     }
                 }
+            }
+
             if (KillFeedManager.Instance != null)
             {
-                    KillFeedManager.Instance.BroadcastKillServer(attackerClientId, OwnerClientId);
+                KillFeedManager.Instance.BroadcastKillServer(attackerClientId, OwnerClientId);
             }
-                PlayerFeedbackUI feedbackUI = GetComponent<PlayerFeedbackUI>();
-                if (feedbackUI != null)
-                {
-                    feedbackUI.ShowDeathScreenClientRpc(new FixedString32Bytes(killerName));
-                }
-            }
-    }
-  
-}
-}
 
+            PlayerFeedbackUI feedbackUI = GetComponent<PlayerFeedbackUI>();
+            if (feedbackUI != null)
+            {
+                feedbackUI.ShowDeathScreenClientRpc(new FixedString32Bytes(killerName));
+            }
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerRagdollDeathClientRpc(Vector3 impactDirection)
+    {
+        RagdollController ragdoll = GetComponentInChildren<RagdollController>();
+        if (ragdoll != null)
+        {
+            ragdoll.TriggerRagdoll(impactDirection + Vector3.up * 0.25f, 220f);
+        }
+    }
+}

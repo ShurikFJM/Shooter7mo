@@ -21,7 +21,23 @@ MonoBehaviour:
   maxArmor: 50
   walkSpeed: 6
   jumpForce: 2
-  primaryWeaponPrefab: {fileID: 6677107256558942080, guid: d862c7961e433f341bf7e31c0c920788, type: 3}
-  secondaryWeaponPrefab: {fileID: 1978381668156629706, guid: b2b691b9bf54e074ea544fb911929835, type: 3}
-  tpPrimaryWeaponPrefab: {fileID: 6677107256558942080, guid: d862c7961e433f341bf7e31c0c920788, type: 3}
-  tpSecondaryWeaponPrefab: {fileID: 1978381668156629706, guid: b2b691b9bf54e074ea544fb911929835, type: 3}
+  primaryWeaponPrefab: {fileID: 5545909492272332344, guid: 73de5d6b7216f114389abd14ed6d25c0, type: 3}
+  secondaryWeaponPrefab: {fileID: 3334357898813462729, guid: ff7ea7d317f94dd4bb42604f9516b732, type: 3}
+  tpPrimaryWeaponPrefab: {fileID: 5545909492272332344, guid: 73de5d6b7216f114389abd14ed6d25c0, type: 3}
+  tpSecondaryWeaponPrefab: {fileID: 3334357898813462729, guid: ff7ea7d317f94dd4bb42604f9516b732, type: 3}
+  thirdPersonModelPrefab: {fileID: 182702, guid: 0b66b9bdf70fc964fa924cea4e45c3d8, type: 3}
+  primaryPositionOffset: {x: 0, y: 0, z: 0}
+  primaryRotationOffset: {x: 0, y: 0, z: 0}
+  secondaryPositionOffset: {x: 0, y: 0, z: 0}
+  secondaryRotationOffset: {x: 0, y: 0, z: 0}
+  primaryWeaponName: Fusil de Asalto
+  primaryWeaponDescription: "Fusil autom\xE1tico de media y larga distancia."
+  primaryWeaponIcon: {fileID: 0}
+  secondaryWeaponName: "Pistola T\xE1ctica"
+  secondaryWeaponDescription: "Arma secundaria para remates r\xE1pidos."
+  secondaryWeaponIcon: {fileID: 0}
+  utilityName: Granada de humo
+  utilityDescription: Utilidad arrojadiza para control de zona.
+  utilityIcon: {fileID: 0}
+  primaryAnimState: infantry_combat_Idle
+  secondaryAnimState: handgun_combat_idle

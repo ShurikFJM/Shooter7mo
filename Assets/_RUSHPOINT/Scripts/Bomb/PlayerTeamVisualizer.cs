@@ -5,6 +5,7 @@ using UnityEngine.Rendering;
 public class PlayerTeamVisualizer : NetworkBehaviour
 {
     [SerializeField] private PlayerTeam _playerTeam;
+    [SerializeField] private Transform _modelRoot;
     [SerializeField] private Renderer[] _teamMeshRenderers;
     [SerializeField] private Material _terroristMaterial;
     [SerializeField] private Material _counterTerroristMaterial;
@@ -24,7 +25,7 @@ public class PlayerTeamVisualizer : NetworkBehaviour
         if (_playerTeam != null)
         {
             _playerTeam.CurrentTeam.OnValueChanged += HandleTeamChanged;
-            ApplyTeamVisuals(_playerTeam.CurrentTeam.Value);
+            RefreshRenderers();
         }
     }
 
@@ -38,12 +39,41 @@ public class PlayerTeamVisualizer : NetworkBehaviour
         base.OnNetworkDespawn();
     }
 
+    public void EnsureRenderers(bool force = false)
+    {
+        if (!force && _teamMeshRenderers != null && _teamMeshRenderers.Length > 0 && _teamMeshRenderers[0] != null)
+        {
+            return;
+        }
+
+        Transform searchRoot = _modelRoot != null ? _modelRoot : transform;
+        _teamMeshRenderers = searchRoot.GetComponentsInChildren<Renderer>(true);
+    }
+
+    public void RefreshRenderers(Renderer[] newRenderers = null)
+    {
+        if (newRenderers != null && newRenderers.Length > 0)
+        {
+            _teamMeshRenderers = newRenderers;
+        }
+        else
+        {
+            Transform searchRoot = _modelRoot != null ? _modelRoot : transform;
+            _teamMeshRenderers = searchRoot.GetComponentsInChildren<Renderer>(true);
+        }
+
+        if (_playerTeam != null)
+        {
+            ApplyTeamVisuals(_playerTeam.CurrentTeam.Value);
+        }
+    }
+
     private void HandleTeamChanged(Team previousTeam, Team currentTeam)
     {
         ApplyTeamVisuals(currentTeam);
     }
 
-    private void ApplyTeamVisuals(Team team)
+    public void ApplyTeamVisuals(Team team)
     {
         if (team == Team.Neutral)
         {
@@ -58,23 +88,37 @@ public class PlayerTeamVisualizer : NetworkBehaviour
         }
 
         Material targetMaterial = team == Team.Red ? _terroristMaterial : _counterTerroristMaterial;
-        if (targetMaterial == null || _teamMeshRenderers == null) return;
+        if (targetMaterial == null) return;
+
+        EnsureRenderers();
+
+        if (_teamMeshRenderers == null) return;
 
         for (int i = 0; i < _teamMeshRenderers.Length; i++)
         {
-            if (_teamMeshRenderers[i] != null)
-            {
-                _teamMeshRenderers[i].material = targetMaterial;
+            Renderer rend = _teamMeshRenderers[i];
+            if (rend == null) continue;
 
-                if (IsOwner)
-                {
-                    _teamMeshRenderers[i].shadowCastingMode = ShadowCastingMode.ShadowsOnly;
-                }
-                else
-                {
-                    _teamMeshRenderers[i].enabled = true;
-                    _teamMeshRenderers[i].shadowCastingMode = ShadowCastingMode.On;
-                }
+            if (rend.name.StartsWith("weapon_", System.StringComparison.OrdinalIgnoreCase) ||
+                rend.name.StartsWith("AK_", System.StringComparison.OrdinalIgnoreCase) ||
+                rend.name.StartsWith("Gun_", System.StringComparison.OrdinalIgnoreCase) ||
+                (rend.name.IndexOf("Weapon", System.StringComparison.OrdinalIgnoreCase) >= 0 &&
+                 rend.name.IndexOf("Container", System.StringComparison.OrdinalIgnoreCase) < 0))
+            {
+                continue;
+            }
+
+            rend.material = targetMaterial;
+
+            if (IsOwner)
+            {
+                rend.enabled = true;
+                rend.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+            }
+            else
+            {
+                rend.enabled = true;
+                rend.shadowCastingMode = ShadowCastingMode.On;
             }
         }
     }

@@ -28,4 +28,28 @@ public class RoleDataSO : ScriptableObject
     public GameObject secondaryWeaponPrefab;
     public GameObject tpPrimaryWeaponPrefab;
     public GameObject tpSecondaryWeaponPrefab;
+
+    public GameObject thirdPersonModelPrefab;
+
+    public Vector3 primaryPositionOffset = Vector3.zero;
+    public Vector3 primaryRotationOffset = new Vector3(0f, 90f, 0f); 
+
+    public Vector3 secondaryPositionOffset = Vector3.zero;
+    public Vector3 secondaryRotationOffset = new Vector3(0f, 90f, 0f);
+
+    public string primaryWeaponName = "Fusil de Asalto";
+    [TextArea(2, 4)] public string primaryWeaponDescription = "Fusil automático de media y larga distancia.";
+    public Sprite primaryWeaponIcon;
+
+    public string secondaryWeaponName = "Pistola Táctica";
+    [TextArea(2, 4)] public string secondaryWeaponDescription = "Arma secundaria para remates rápidos.";
+    public Sprite secondaryWeaponIcon;
+
+    public string utilityName = "Granada Táctica";
+    [TextArea(2, 4)] public string utilityDescription = "Utilidad arrojadiza para control de zona.";
+    public Sprite utilityIcon;
+
+    [Header("Lobby Animation States")]
+    public string primaryAnimState = "infantry_combat_idle";
+    public string secondaryAnimState = "handgun_combat_idle";
 }

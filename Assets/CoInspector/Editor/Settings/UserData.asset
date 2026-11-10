@@ -17,7 +17,7 @@ MonoBehaviour:
   generalScrollSensitivity: 1
   userInstalls:
   - 1.7.5
-  tabPreviewExpanded: 1
+  tabPreviewExpanded: 0
   softWheelScrolling: 1
   middleScrollMode: 1
   newTabIfLocked: 0
@@ -67,71 +67,86 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"vfx_Projectile_LaserBlue
-          Variant[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
       recentlyClicked:
-      - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"vfx_Projectile_LaserBlue
-          Variant[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths: []
-        count: 1
-        gameObjects: []
       - paths: []
         count: 1
         gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths: []
+        - 
         count: 1
         gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]"}'
+        - 
         count: 1
-        gameObjects:
-        - {fileID: 0}
+        gameObjects: []
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]"}'
-        count: 1
-        gameObjects:
-        - {fileID: 0}
-      - paths: []
+        - 
         count: 1
         gameObjects: []
-      - paths: []
+      - paths:
+        - 
         count: 1
         gameObjects: []
-      - paths: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
+        count: 1
+        gameObjects: []
+      - paths:
+        - 
         count: 1
         gameObjects: []
       mostClickedContents: []
       recentlyClickedContents: []
     sceneGUID: c000273e43838594b97148ea2cdbee9a
     sceneName: RUSPOINT
-    lastSaveTimePrint: 09:46 PM (November 9, 2026)
+    lastSaveTimePrint: 05:40 AM (November 10, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -142,39 +157,38 @@ MonoBehaviour:
     suggestedHeight: 0
     userAssetViewSize: -1
     previewHeight: 0
-    scrollPosition: {x: 0, y: 9.211097}
+    scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 195
+    lastValidTabWidth: 106
     alreadyCalculatedHeight: 0
-    lastKnownHeight: 1
+    lastKnownHeight: 0
     tabs:
-    - path: '{"sceneGUID":"beeeff3cf7fbf2044af81125d54eb20c","path":"vfx_Projectile_LaserBlue
-        Variant[0]"}'
+    - path: '{"sceneGUID":"","path":"Cavas_LoadingScreen[0]"}'
       paths: []
-      tabWidth: 192
-      name: vfx_Projectile_LaserBlue Variant
-      icon: {fileID: 7853449062886713960, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: vfx_Projectile_LaserBlue Variant
+      tabWidth: 0
+      name: Cavas_LoadingScreen
+      icon: {fileID: 6918890264710435130, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: Cavas_LoadingScreen
       filterString: 
       newTab: 0
-      scrollPosition: 9.211097
+      scrollPosition: 0
       isSelected: 0
       allCollapsed: 0
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: vfx_Projectile_LaserBlue Variant
+        m_Text: 
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: "vfx_Projectile_LaserBlue Variant\u200B"
+        m_TextWithWhitespace: 
       multiEditMode: 0
       locked: 0
-      hasPreview: 1
+      hasPreview: 0
       previewHeight: 13
       debug: 0
       filtering: 0
-      prefab: 1
+      prefab: 0
       multiFoldout: 1
       target: {fileID: 0}
       targets: []
@@ -215,8 +229,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: transform
-        niceComponentName: transform
+        componentName: recttransform
+        niceComponentName: rect transform
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -225,8 +239,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: projectilemovescript
-        niceComponentName: projectile move script
+        componentName: canvas
+        niceComponentName: canvas
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -235,8 +249,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: particlesystemrenderer
-        niceComponentName: particle system renderer
+        componentName: canvasscaler
+        niceComponentName: canvas scaler
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -245,8 +259,8 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: particlesystem
-        niceComponentName: particle system
+        componentName: graphicraycaster
+        niceComponentName: graphic raycaster
       - index: 0
         component: {fileID: 0}
         missingComponentID:
@@ -255,60 +269,65 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: boxcollider
-        niceComponentName: box collider
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: rigidbody
-        niceComponentName: rigidbody
+        componentName: loadingscreen
+        niceComponentName: loading screen
       historyPaths:
       - paths:
-        - '{"sceneGUID":"beeeff3cf7fbf2044af81125d54eb20c","path":"vfx_Projectile_LaserBlue
-          Variant[0]"}'
-        prefab: 1
+        - '{"sceneGUID":"","path":"Cavas_LoadingScreen[0]"}'
+        prefab: 0
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"vfx_Projectile_LaserBlue
-          Variant[0]"}'
-        prefab: 1
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Bomb[0]"}'
+        prefab: 0
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Generator Facility[0]"}'
-        prefab: 1
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Chat[0]"}'
+        prefab: 0
       - paths:
-        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Site B[0]"}'
-        prefab: 1
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Scoreboard[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Stun[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Stun[0]/StunFlashOverlay[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_HUD[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_HUD[0]/Canvas[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause_Backup[0]"}'
+        prefab: 0
+      - paths:
+        - '{"sceneGUID":"c000273e43838594b97148ea2cdbee9a","path":"Canvas_Pause_Backup[0]/PauseMenuManager[0]"}'
+        prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - beeeff3cf7fbf2044af81125d54eb20c
+      - 23b3b56b8ea620b4c8e3ef01590d59f3
     - assetGUIDs:
-      - 1e7bb52e36ec4b544a598d5cb2cec1c4
+      - a6fd360511e64274b99ea5110a1c2cd2
     - assetGUIDs:
-      - 080168af0fb1a0f48bd653b0def3737e
-      - 6cf36a334a0e5754ea36fca06014b86a
+      - 7cfe7f91b1b9ec34d9ae422b379a66c7
     - assetGUIDs:
-      - 6cf36a334a0e5754ea36fca06014b86a
+      - 73de5d6b7216f114389abd14ed6d25c0
     - assetGUIDs:
-      - 080168af0fb1a0f48bd653b0def3737e
+      - e34e91b7615b6994297891fbb395bbb3
     - assetGUIDs:
-      - c000273e43838594b97148ea2cdbee9a
+      - b15552bcc15eacc48bb7639516c27c77
     - assetGUIDs:
-      - b45a1889b41ca8f4d8ea147d8d705bee
+      - de6f782cb998f3d41a9e756ef3aad689
     - assetGUIDs:
-      - 9ae5e242e15c7494a8bd65e18812ce62
+      - e77f4ee8d24674a4bb659b470d5939a4
     - assetGUIDs:
-      - 840f338b0237d3440b6d0de9ca9481f5
+      - 4029b0e09f4b2e44380368978a5bc662
     - assetGUIDs:
-      - 368464f8326873c46857bc476ac2b0a7
+      - a17805d5de8633142bd29acb6ab5bc33
     - assetGUIDs:
-      - 1220774a6e4cd454aa215fc9dfec7f4a
+      - cf67fa4ba9d070b4b807409ff16fc2ba
     targetObject: {fileID: 0}
     targetObjects: []
     lastSelectedAsset: 
@@ -317,14 +336,16 @@ MonoBehaviour:
   - tracker:
       mostClicked:
       - paths:
-        - 
-        count: 7
-        gameObjects: []
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/ToonSoldiers_infantry[0]"}'
+        count: 11
+        gameObjects:
+        - {fileID: 0}
       recentlyClicked:
       - paths:
-        - 
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/ToonSoldiers_infantry[0]"}'
         count: 1
-        gameObjects: []
+        gameObjects:
+        - {fileID: 0}
       - paths: []
         count: 1
         gameObjects: []
@@ -356,7 +377,7 @@ MonoBehaviour:
       recentlyClickedContents: []
     sceneGUID: 7a241e49bcdcf8a419ef451860429469
     sceneName: MainMenu
-    lastSaveTimePrint: 09:43 PM (November 9, 2026)
+    lastSaveTimePrint: 05:47 AM (November 10, 2026)
     gracePeriod: 3
     activeIndex: 0
     checkingToLoad: 0
@@ -370,16 +391,16 @@ MonoBehaviour:
     scrollPosition: {x: 0, y: 0}
     toolbarScrollPosition: {x: 0, y: 0}
     rawUserHeight: 0
-    lastValidTabWidth: 0
-    alreadyCalculatedHeight: 0
+    lastValidTabWidth: 143
+    alreadyCalculatedHeight: 1
     lastKnownHeight: 1
     tabs:
-    - path: '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Main Camera[0]"}'
+    - path: '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/ToonSoldiers_infantry[0]"}'
       paths: []
-      tabWidth: 0
-      name: Main Camera
-      icon: {fileID: 7226769568068977144, guid: 0000000000000000d000000000000000, type: 0}
-      shortName: Main Camera
+      tabWidth: 140
+      name: ToonSoldiers_infantry
+      icon: {fileID: 7853449062886713960, guid: 0000000000000000d000000000000000, type: 0}
+      shortName: ToonSoldiers_infantry
       filterString: 
       newTab: 0
       scrollPosition: 0
@@ -388,10 +409,10 @@ MonoBehaviour:
       runtimeFoldouts: 
       runtimeMultiComponents: []
       tabTextContent:
-        m_Text: 
+        m_Text: ToonSoldiers_infantry
         m_Image: {fileID: 0}
         m_Tooltip: 
-        m_TextWithWhitespace: 
+        m_TextWithWhitespace: "ToonSoldiers_infantry\u200B"
       multiEditMode: 0
       locked: 0
       hasPreview: 0
@@ -449,65 +470,44 @@ MonoBehaviour:
         focusAfter: 0
         awaitingScroll: 0
         hidden: 0
-        componentName: camera
-        niceComponentName: camera
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: audiolistener
-        niceComponentName: audio listener
-      - index: 0
-        component: {fileID: 0}
-        missingComponentID:
-          m_rawData: 0
-        foldout: 1
-        focusAfter: 0
-        awaitingScroll: 0
-        hidden: 0
-        componentName: universaladditionalcameradata
-        niceComponentName: universal additional camera data
+        componentName: animator
+        niceComponentName: animator
       historyPaths:
       - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Main Camera[0]"}'
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/ToonSoldiers_infantry[0]"}'
         prefab: 0
       - paths:
-        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Cavas_Menu[0]"}'
+        - '{"sceneGUID":"7a241e49bcdcf8a419ef451860429469","path":"Canvas_RoleSelecter[0]/ScreenRoot[0]/ToonSoldiers_medic[0]"}'
         prefab: 0
       owner: {fileID: 0}
     closedTabs: []
     playModeTransforms: []
     historyAssets:
     - assetGUIDs:
-      - c000273e43838594b97148ea2cdbee9a
+      - 649de373d04f9324385bdf92813c10d6
     - assetGUIDs:
-      - 080168af0fb1a0f48bd653b0def3737e
-      - 6cf36a334a0e5754ea36fca06014b86a
+      - 111ae2b5472c6d641b7226df2e4dfa3b
     - assetGUIDs:
-      - 080168af0fb1a0f48bd653b0def3737e
+      - a17805d5de8633142bd29acb6ab5bc33
     - assetGUIDs:
-      - 6cf36a334a0e5754ea36fca06014b86a
+      - 0e835f20e187c3b4993dc4a1c02748a1
     - assetGUIDs:
-      - b45a1889b41ca8f4d8ea147d8d705bee
+      - 8e628a0b5f572d447ba72a8c12ce0c55
     - assetGUIDs:
-      - 9ae5e242e15c7494a8bd65e18812ce62
+      - ff7ea7d317f94dd4bb42604f9516b732
     - assetGUIDs:
-      - 840f338b0237d3440b6d0de9ca9481f5
+      - 73de5d6b7216f114389abd14ed6d25c0
     - assetGUIDs:
-      - 368464f8326873c46857bc476ac2b0a7
+      - 0cedb3d19ab05034783553ee1e6a62d9
     - assetGUIDs:
-      - 1220774a6e4cd454aa215fc9dfec7f4a
+      - a59670924a782844eba004b28831683c
     - assetGUIDs:
-      - c7e9268bc510d734e980e1e5b5898911
+      - 545d3b2e725204543baff55b7304ff68
     - assetGUIDs:
-      - 68a0ef4dcae9aa14687734d594059d40
-    targetObject: {fileID: 102900000, guid: c000273e43838594b97148ea2cdbee9a, type: 3}
+      - 93536632a2429584c845e889f0426318
+    targetObject: {fileID: 11400000, guid: 649de373d04f9324385bdf92813c10d6, type: 2}
     targetObjects: []
-    lastSelectedAsset: Assets/_RUSHPOINT/Scenes/Graybox_Test.unity/RUSPOINT.unity
+    lastSelectedAsset: Assets/_RUSHPOINT/ScriptableObjects/WeaponData/Minigun.asset
     lastClickedTab: -1
     previousTab: 0
   - tracker:
@@ -1147,6 +1147,6 @@ MonoBehaviour:
     lastSelectedAsset: Assets/_RUSHPOINT/Prefabs/Weapons/Grenades/Frag.prefab
     lastClickedTab: -1
     previousTab: 0
-  tipsShown: 01000000000000000100000000000000000000000100000001000000010000000100000000000000010000000000000001000000000000000000000001000000010000000100000001000000010000000100000000000000010000000100000001000000000000000100000001000000010000000100000001000000010000000100000000000000010000000100000001000000000000000100000000000000010000000100000001000000010000000100000001000000
+  tipsShown: 01000000010000000000000000000000010000000100000001000000000000000100000001000000000000000100000000000000000000000000000001000000000000000100000000000000010000000000000000000000000000000000000001000000000000000000000001000000000000000100000001000000000000000100000000000000000000000000000000000000000000000100000001000000000000000000000001000000000000000100000001000000
   playModeStartScene: {}
   enteringPlayMode: 0

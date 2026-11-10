@@ -1,8 +1,9 @@
-using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
-using Unity.Netcode;
 using System.Collections.Generic;
+using TMPro;
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class RoleButtonUI
@@ -18,6 +19,7 @@ public class RolePreviewModel
 {
     public PlayerRoleType RoleType;
     public GameObject ModelRoot;
+    public Transform HandSocketOverride;
 }
 
 public class RoleSelectScreenUI : MonoBehaviour
@@ -25,33 +27,35 @@ public class RoleSelectScreenUI : MonoBehaviour
     private const string HEALTH_PREFIX = "Vida: ";
     private const string ARMOR_PREFIX = "Armadura: ";
     private const string SPEED_PREFIX = "Velocidad: ";
-    private const string ROOM_CODE_PREFIX = "ROOM CODE: ";
 
     public static RoleSelectScreenUI instance { get; private set; }
 
     [SerializeField] private GameObject _screenRoot;
     [SerializeField] private RoleDatabaseSO _roleDatabase;
-    [SerializeField] private GameObject _tacticalHudRoot;
-    [SerializeField] private GameObject _minimapRoot;
+
     [SerializeField] private TMP_Text _roleNameText;
     [SerializeField] private TMP_Text _roleDescriptionText;
     [SerializeField] private TMP_Text _roleHealthText;
     [SerializeField] private TMP_Text _roleArmorText;
     [SerializeField] private TMP_Text _roleSpeedText;
+
     [SerializeField] private Slider _healthSlider;
     [SerializeField] private Slider _armorSlider;
     [SerializeField] private Slider _speedSlider;
     [SerializeField] private float _sliderAnimationSpeed = 8f;
-    [SerializeField] private TMP_Text _roomCodeText;
-    [SerializeField] private Button _copyCodeButton;
-    [SerializeField] private Button _lockInButton;
-    [SerializeField] private Button _confirmButton;
-    [SerializeField] private Button _selectTerroristButton;
-    [SerializeField] private Button _selectCounterTerroristButton;
-    [SerializeField] private Image _terroristButtonBackground;
-    [SerializeField] private Image _counterTerroristButtonBackground;
-    [SerializeField] private Color _teamSelectedColor = Color.white;
-    [SerializeField] private Color _teamUnselectedColor = new Color(0.35f, 0.35f, 0.35f, 1f);
+
+    [SerializeField] private Button _primaryWeaponButton;
+    [SerializeField] private Button _secondaryWeaponButton;
+    [SerializeField] private Button _utilityButton;
+
+    [SerializeField] private string _defaultPrimaryAnimState = "infantry_combat_idle";
+    [SerializeField] private string _defaultSecondaryAnimState = "handgun_combat_idle";
+
+    [SerializeField] private GameObject _floatingTooltipPanel;
+    [SerializeField] private TMP_Text _floatingTitleText;
+    [SerializeField] private TMP_Text _floatingDescriptionText;
+    [SerializeField] private Image _floatingIconImage;
+
     [SerializeField] private RoleButtonUI[] _roleButtons;
     [SerializeField] private float _radialRadius = 300f;
     [SerializeField] private float _angleSpacing = 25f;
@@ -59,21 +63,25 @@ public class RoleSelectScreenUI : MonoBehaviour
     [SerializeField] private float _animationSpeed = 10f;
     [SerializeField] private Color _selectedRoleColor = new Color(1f, 0.8f, 0.2f, 1f);
     [SerializeField] private Color _unselectedRoleColor = Color.white;
+
     [SerializeField] private RolePreviewModel[] _roleModels;
 
-    private Team _selectedTeam = Team.Blue;
+    [SerializeField] private Button _lockInButton;
+    [SerializeField] private Button _confirmButton;
+
+    private Team _assignedTeam = Team.Red;
     private PlayerRoleType _selectedRole = PlayerRoleType.Assault;
     private int _selectedRoleIndex = 0;
     private bool _hasLockedIn = false;
-    private string _currentJoinCode = string.Empty;
     private float _targetHealth;
     private float _targetArmor;
     private float _targetSpeed;
+    private GameObject _currentEquippedWeaponInstance;
 
     public bool hasLockedIn => _hasLockedIn;
     public bool isRoleSelectionActive => !_hasLockedIn && _screenRoot != null && _screenRoot.activeSelf;
     public PlayerRoleType SelectedRole => _selectedRole;
-    public Team SelectedTeam => _selectedTeam;
+    public Team SelectedTeam => _assignedTeam;
     public RoleDatabaseSO RoleDatabase => _roleDatabase;
 
     private void Awake()
@@ -85,10 +93,13 @@ public class RoleSelectScreenUI : MonoBehaviour
         }
         instance = this;
 
-        BindButtonCallbacks();
+        if (_floatingTooltipPanel != null)
+        {
+            _floatingTooltipPanel.SetActive(false);
+        }
 
-        if (_tacticalHudRoot != null) _tacticalHudRoot.SetActive(false);
-        if (_minimapRoot != null) _minimapRoot.SetActive(false);
+        BindButtonCallbacks();
+        SetupEquipmentTriggers();
     }
 
     private void Start()
@@ -123,9 +134,12 @@ public class RoleSelectScreenUI : MonoBehaviour
 
     private void HandleNetworkButtons()
     {
-        bool canLockIn = !_hasLockedIn && NetworkManager.Singleton != null && NetworkManager.Singleton.IsConnectedClient;
-        if (_confirmButton != null) _confirmButton.interactable = canLockIn;
-        if (_lockInButton != null) _lockInButton.interactable = canLockIn;
+        if (_hasLockedIn) return;
+
+        bool canLockIn = NetworkManager.Singleton == null || NetworkManager.Singleton.IsConnectedClient || NetworkManager.Singleton.IsListening;
+
+        if (_confirmButton != null && _confirmButton.interactable != canLockIn) _confirmButton.interactable = canLockIn;
+        if (_lockInButton != null && _lockInButton.interactable != canLockIn) _lockInButton.interactable = canLockIn;
     }
 
     private void AnimateRadialMenu()
@@ -135,7 +149,7 @@ public class RoleSelectScreenUI : MonoBehaviour
         for (int i = 0; i < _roleButtons.Length; i++)
         {
             RoleButtonUI btn = _roleButtons[i];
-            if (btn.RectTransform == null) continue;
+            if (btn == null || btn.RectTransform == null) continue;
 
             float diff = i - _selectedRoleIndex;
             float angleDeg = diff * _angleSpacing;
@@ -183,23 +197,132 @@ public class RoleSelectScreenUI : MonoBehaviour
 
     private void BindButtonCallbacks()
     {
-        if (_selectTerroristButton != null) _selectTerroristButton.onClick.AddListener(() => SelectTeam(Team.Red));
-        if (_selectCounterTerroristButton != null) _selectCounterTerroristButton.onClick.AddListener(() => SelectTeam(Team.Blue));
         if (_confirmButton != null) _confirmButton.onClick.AddListener(ConfirmSelection);
         if (_lockInButton != null) _lockInButton.onClick.AddListener(ConfirmSelection);
-        if (_copyCodeButton != null) _copyCodeButton.onClick.AddListener(CopyRoomCodeToClipboard);
 
-        for (int i = 0; i < _roleButtons.Length; i++)
+        if (_roleButtons != null)
         {
-            int index = i;
-            if (_roleButtons[i].RoleButton != null)
+            for (int i = 0; i < _roleButtons.Length; i++)
             {
+                if (_roleButtons[i] == null || _roleButtons[i].RoleButton == null) continue;
+
+                int index = i;
                 _roleButtons[i].RoleButton.onClick.AddListener(() =>
                 {
-                    _selectedRoleIndex = index;
-                    SelectRolePreview(_roleButtons[index].RoleType);
+                    OnRoleClicked(index);
                 });
             }
+        }
+
+        if (_primaryWeaponButton != null)
+        {
+            _primaryWeaponButton.onClick.AddListener(() => EquipWeaponOnPreviewSoldier(true));
+        }
+
+        if (_secondaryWeaponButton != null)
+        {
+            _secondaryWeaponButton.onClick.AddListener(() => EquipWeaponOnPreviewSoldier(false));
+        }
+    }
+
+    private void SetupEquipmentTriggers()
+    {
+        SetupSingleEquipmentTrigger(_primaryWeaponButton, 0, () => EquipWeaponOnPreviewSoldier(true));
+        SetupSingleEquipmentTrigger(_secondaryWeaponButton, 1, () => EquipWeaponOnPreviewSoldier(false));
+        SetupSingleEquipmentTrigger(_utilityButton, 2, null);
+    }
+
+    private void SetupSingleEquipmentTrigger(Button btn, int index, System.Action onAction)
+    {
+        if (btn == null) return;
+
+        AddTrigger(btn.gameObject, EventTriggerType.PointerEnter, () =>
+        {
+            ShowEquipmentTooltip(index);
+            onAction?.Invoke();
+        });
+        AddTrigger(btn.gameObject, EventTriggerType.PointerExit, HideEquipmentTooltip);
+
+        AddTrigger(btn.gameObject, EventTriggerType.Select, () =>
+        {
+            ShowEquipmentTooltip(index);
+            onAction?.Invoke();
+        });
+        AddTrigger(btn.gameObject, EventTriggerType.Deselect, HideEquipmentTooltip);
+    }
+
+    private void AddTrigger(GameObject target, EventTriggerType type, System.Action action)
+    {
+        EventTrigger trigger = target.GetComponent<EventTrigger>();
+        if (trigger == null) trigger = target.AddComponent<EventTrigger>();
+
+        EventTrigger.Entry entry = new EventTrigger.Entry { eventID = type };
+        entry.callback.AddListener((_) => action?.Invoke());
+        trigger.triggers.Add(entry);
+    }
+
+    private void OnRoleClicked(int index)
+    {
+        if (_hasLockedIn) return;
+        _selectedRoleIndex = index;
+        SelectRolePreview(_roleButtons[index].RoleType);
+    }
+
+    private void ShowEquipmentTooltip(int equipmentIndex)
+    {
+        if (_floatingTooltipPanel == null || _roleDatabase == null) return;
+
+        RoleDataSO roleData = _roleDatabase.GetRole(_selectedRole);
+        if (roleData == null) return;
+
+        string title = string.Empty;
+        string description = string.Empty;
+        Sprite icon = null;
+
+        switch (equipmentIndex)
+        {
+            case 0:
+                title = roleData.primaryWeaponName;
+                description = roleData.primaryWeaponDescription;
+                icon = roleData.primaryWeaponIcon;
+                break;
+            case 1:
+                title = roleData.secondaryWeaponName;
+                description = roleData.secondaryWeaponDescription;
+                icon = roleData.secondaryWeaponIcon;
+                break;
+            case 2:
+                title = roleData.utilityName;
+                description = roleData.utilityDescription;
+                icon = roleData.utilityIcon;
+                break;
+        }
+
+        if (_floatingTitleText != null) _floatingTitleText.text = title;
+        if (_floatingDescriptionText != null) _floatingDescriptionText.text = description;
+
+        if (_floatingIconImage != null)
+        {
+            if (icon != null)
+            {
+                _floatingIconImage.sprite = icon;
+                _floatingIconImage.enabled = true;
+            }
+            else
+            {
+                _floatingIconImage.enabled = false;
+            }
+        }
+
+        _floatingTooltipPanel.SetActive(true);
+        _floatingTooltipPanel.transform.SetAsLastSibling();
+    }
+
+    private void HideEquipmentTooltip()
+    {
+        if (_floatingTooltipPanel != null)
+        {
+            _floatingTooltipPanel.SetActive(false);
         }
     }
 
@@ -208,6 +331,7 @@ public class RoleSelectScreenUI : MonoBehaviour
         if (_hasLockedIn) return;
         _selectedRole = role;
 
+        HideEquipmentTooltip();
         Update3DModel(role);
 
         if (_roleDatabase == null) return;
@@ -216,13 +340,19 @@ public class RoleSelectScreenUI : MonoBehaviour
 
         if (_roleNameText != null) _roleNameText.text = roleData.roleName;
         if (_roleDescriptionText != null) _roleDescriptionText.text = roleData.roleDescription;
-        if (_roleHealthText != null) _roleHealthText.text = string.Concat(HEALTH_PREFIX, roleData.maxHealth, "/100");
-        if (_roleArmorText != null) _roleArmorText.text = string.Concat(ARMOR_PREFIX, roleData.maxArmor, "/100");
-        if (_roleSpeedText != null) _roleSpeedText.text = string.Concat(SPEED_PREFIX, roleData.walkSpeed.ToString("F1"), "%");
+        if (_roleHealthText != null) _roleHealthText.text = string.Concat(HEALTH_PREFIX, roleData.maxHealth);
+        if (_roleArmorText != null) _roleArmorText.text = string.Concat(ARMOR_PREFIX, roleData.maxArmor);
+        if (_roleSpeedText != null) _roleSpeedText.text = string.Concat(SPEED_PREFIX, roleData.walkSpeed.ToString("F1"));
+
+        if (_healthSlider != null) _healthSlider.maxValue = Mathf.Max(150f, roleData.maxHealth);
+        if (_armorSlider != null) _armorSlider.maxValue = 100f;
+        if (_speedSlider != null) _speedSlider.maxValue = 7f;
 
         _targetHealth = roleData.maxHealth;
         _targetArmor = roleData.maxArmor;
         _targetSpeed = roleData.walkSpeed;
+
+        EquipWeaponOnPreviewSoldier(true);
     }
 
     private void Update3DModel(PlayerRoleType role)
@@ -231,62 +361,156 @@ public class RoleSelectScreenUI : MonoBehaviour
 
         foreach (var modelData in _roleModels)
         {
-            if (modelData.ModelRoot != null)
+            if (modelData != null && modelData.ModelRoot != null)
             {
                 modelData.ModelRoot.SetActive(modelData.RoleType == role);
             }
         }
     }
 
-    public void SelectTeam(Team team)
+    public void EquipWeaponOnPreviewSoldier(bool isPrimary)
     {
-        if (_hasLockedIn) return;
-        _selectedTeam = team;
-        UpdateTeamFeedbackUI();
+        if (_roleDatabase == null) return;
+        RoleDataSO roleData = _roleDatabase.GetRole(_selectedRole);
+        if (roleData == null) return;
+
+        GameObject weaponPrefab = isPrimary ? roleData.tpPrimaryWeaponPrefab : roleData.tpSecondaryWeaponPrefab;
+        if (weaponPrefab == null) return;
+
+        RolePreviewModel currentRoleModel = null;
+        if (_roleModels != null)
+        {
+            for (int i = 0; i < _roleModels.Length; i++)
+            {
+                if (_roleModels[i] != null && _roleModels[i].RoleType == _selectedRole && _roleModels[i].ModelRoot != null)
+                {
+                    currentRoleModel = _roleModels[i];
+                    break;
+                }
+            }
+        }
+
+        if (currentRoleModel == null || currentRoleModel.ModelRoot == null) return;
+
+        Transform handSocket = currentRoleModel.HandSocketOverride;
+        if (handSocket == null)
+        {
+            handSocket = AutoFindHandSocket(currentRoleModel.ModelRoot.transform);
+        }
+
+        if (handSocket == null) handSocket = currentRoleModel.ModelRoot.transform;
+
+        for (int i = handSocket.childCount - 1; i >= 0; i--)
+        {
+            Transform child = handSocket.GetChild(i);
+            if (_currentEquippedWeaponInstance != null && child == _currentEquippedWeaponInstance.transform)
+            {
+                Destroy(child.gameObject);
+            }
+            else
+            {
+                child.gameObject.SetActive(false);
+            }
+        }
+
+        if (_currentEquippedWeaponInstance != null)
+        {
+            Destroy(_currentEquippedWeaponInstance);
+            _currentEquippedWeaponInstance = null;
+        }
+
+        _currentEquippedWeaponInstance = Instantiate(weaponPrefab, handSocket);
+
+        Vector3 posOffset = isPrimary ? roleData.primaryPositionOffset : roleData.secondaryPositionOffset;
+        Vector3 rotOffset = isPrimary ? roleData.primaryRotationOffset : roleData.secondaryRotationOffset;
+
+        _currentEquippedWeaponInstance.transform.localPosition = posOffset;
+        _currentEquippedWeaponInstance.transform.localRotation = Quaternion.Euler(rotOffset);
+        _currentEquippedWeaponInstance.transform.localScale = weaponPrefab.transform.localScale;
+
+        Collider[] cols = _currentEquippedWeaponInstance.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
+
+        WeaponBase weaponScript = _currentEquippedWeaponInstance.GetComponentInChildren<WeaponBase>();
+        if (weaponScript != null) weaponScript.enabled = false;
+
+        string targetAnim = isPrimary ? roleData.primaryAnimState : roleData.secondaryAnimState;
+        if (string.IsNullOrEmpty(targetAnim))
+        {
+            targetAnim = isPrimary ? _defaultPrimaryAnimState : _defaultSecondaryAnimState;
+        }
+
+        Animator anim = currentRoleModel.ModelRoot.GetComponentInChildren<Animator>();
+        if (anim != null && anim.runtimeAnimatorController != null && !string.IsNullOrEmpty(targetAnim))
+        {
+            int animHash = Animator.StringToHash(targetAnim);
+            if (anim.HasState(0, animHash))
+            {
+                anim.CrossFadeInFixedTime(targetAnim, 0.2f);
+            }
+        }
     }
 
-    private void UpdateTeamFeedbackUI()
+    private Transform AutoFindHandSocket(Transform root)
     {
-        bool isTerrorist = _selectedTeam == Team.Red;
-        if (_terroristButtonBackground != null) _terroristButtonBackground.color = isTerrorist ? _teamSelectedColor : _teamUnselectedColor;
-        if (_counterTerroristButtonBackground != null) _counterTerroristButtonBackground.color = !isTerrorist ? _teamSelectedColor : _teamUnselectedColor;
+        string[] priorityNames = new string[]
+        {
+            "WeaponContainer",
+            "WeaponContainer_R",
+            "Bip001 R Hand",
+            "Bip01 R Hand",
+            "RightHand",
+            "R_Hand",
+            "Hand_R"
+        };
+
+        Transform[] allTransforms = root.GetComponentsInChildren<Transform>(true);
+        for (int p = 0; p < priorityNames.Length; p++)
+        {
+            for (int i = 0; i < allTransforms.Length; i++)
+            {
+                if (allTransforms[i].name.Equals(priorityNames[p], System.StringComparison.OrdinalIgnoreCase) ||
+                    allTransforms[i].name.IndexOf(priorityNames[p], System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return allTransforms[i];
+                }
+            }
+        }
+        return null;
     }
 
     public void ConfirmSelection()
     {
         if (_hasLockedIn) return;
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening) return;
 
         _hasLockedIn = true;
         SetLockInText(_confirmButton);
         SetLockInText(_lockInButton);
 
-        ulong localClientId = NetworkManager.Singleton.LocalClientId;
-        CustomLobbyManager.SavePlayerData(localClientId, _selectedTeam, _selectedRole);
-
-        if (NetworkManager.Singleton.LocalClient?.PlayerObject != null)
+        if (NetworkManager.Singleton != null)
         {
-            var controller = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<NetworkPlayerController>();
-            if (controller != null) controller.RequestSelectRoleServerRpc(_selectedRole);
+            ulong localClientId = NetworkManager.Singleton.LocalClientId;
+            CustomLobbyManager.SavePlayerData(localClientId, _assignedTeam, _selectedRole);
 
-            var playerTeam = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponentInChildren<PlayerTeam>();
-            if (playerTeam != null && NetworkManager.Singleton.IsServer)
+            if (NetworkManager.Singleton.LocalClient?.PlayerObject != null)
             {
-                playerTeam.CurrentTeam.Value = _selectedTeam;
+                var controller = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<NetworkPlayerController>();
+                if (controller != null) controller.RequestSelectRoleServerRpc(_selectedRole);
+
+                var playerTeam = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponentInChildren<PlayerTeam>();
+                if (playerTeam != null && NetworkManager.Singleton.IsServer)
+                {
+                    playerTeam.CurrentTeam.Value = _assignedTeam;
+                }
             }
 
-            var playerCanvas = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponentInChildren<Canvas>(true);
-            if (playerCanvas != null) playerCanvas.gameObject.SetActive(true);
-        }
-
-        if (RoleLobbyManager.Instance != null && RoleLobbyManager.Instance.IsSpawned)
-        {
-            RoleLobbyManager.Instance.ConfirmRoleSelection(_selectedRole, _selectedTeam);
+            if (RoleLobbyManager.Instance != null && RoleLobbyManager.Instance.IsSpawned)
+            {
+                RoleLobbyManager.Instance.ConfirmRoleSelection(_selectedRole, _assignedTeam);
+            }
         }
 
         CloseRoleScreen();
-        if (_tacticalHudRoot != null) _tacticalHudRoot.SetActive(true);
-        if (_minimapRoot != null) _minimapRoot.SetActive(true);
     }
 
     private void SetLockInText(Button btn)
@@ -300,54 +524,39 @@ public class RoleSelectScreenUI : MonoBehaviour
     public void OpenRoleScreen()
     {
         if (_screenRoot != null) _screenRoot.SetActive(true);
-        if (_tacticalHudRoot != null) _tacticalHudRoot.SetActive(false);
-        if (_minimapRoot != null) _minimapRoot.SetActive(false);
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
         if (CustomLobbyManager.Instance != null && NetworkManager.Singleton != null)
         {
-            Team assignedTeam = CustomLobbyManager.Instance.GetPlayerAssignedTeam(NetworkManager.Singleton.LocalClientId);
-            if (assignedTeam != Team.Neutral) _selectedTeam = assignedTeam;
+            Team teamFromLobby = CustomLobbyManager.Instance.GetPlayerAssignedTeam(NetworkManager.Singleton.LocalClientId);
+            if (teamFromLobby != Team.Neutral) _assignedTeam = teamFromLobby;
         }
 
-        UpdateTeamFeedbackUI();
-
-        for (int i = 0; i < _roleButtons.Length; i++)
+        if (_roleButtons != null)
         {
-            if (_roleButtons[i].RoleType == _selectedRole)
+            for (int i = 0; i < _roleButtons.Length; i++)
             {
-                _selectedRoleIndex = i;
-                break;
+                if (_roleButtons[i] != null && _roleButtons[i].RoleType == _selectedRole)
+                {
+                    _selectedRoleIndex = i;
+                    break;
+                }
             }
         }
 
+        HideEquipmentTooltip();
         SelectRolePreview(_selectedRole);
-        SnapSliders(); 
-
-        if (!string.IsNullOrEmpty(_currentJoinCode) && _roomCodeText != null)
-        {
-            _roomCodeText.text = string.Concat(ROOM_CODE_PREFIX, _currentJoinCode);
-        }
+        SnapSliders();
     }
 
     public void CloseRoleScreen()
     {
+        HideEquipmentTooltip();
         if (_screenRoot != null) _screenRoot.SetActive(false);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-    }
-
-    public void SetRoomCode(string code)
-    {
-        _currentJoinCode = code;
-        if (_roomCodeText != null) _roomCodeText.text = string.Concat(ROOM_CODE_PREFIX, code);
-    }
-
-    public void CopyRoomCodeToClipboard()
-    {
-        if (!string.IsNullOrEmpty(_currentJoinCode)) GUIUtility.systemCopyBuffer = _currentJoinCode;
     }
 
     private void HandlePhaseChanged(RoundPhase previousPhase, RoundPhase currentPhase)

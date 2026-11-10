@@ -21,7 +21,23 @@ MonoBehaviour:
   maxArmor: 80
   walkSpeed: 5
   jumpForce: 1.5
-  primaryWeaponPrefab: {fileID: 7904622146041607645, guid: 66b21236603c7124cbe7c5eda54de385, type: 3}
-  secondaryWeaponPrefab: {fileID: 1978381668156629706, guid: b2b691b9bf54e074ea544fb911929835, type: 3}
-  tpPrimaryWeaponPrefab: {fileID: 7904622146041607645, guid: 66b21236603c7124cbe7c5eda54de385, type: 3}
-  tpSecondaryWeaponPrefab: {fileID: 1978381668156629706, guid: b2b691b9bf54e074ea544fb911929835, type: 3}
+  primaryWeaponPrefab: {fileID: 1768128536278844255, guid: 0e835f20e187c3b4993dc4a1c02748a1, type: 3}
+  secondaryWeaponPrefab: {fileID: 6660587985181892251, guid: a17805d5de8633142bd29acb6ab5bc33, type: 3}
+  tpPrimaryWeaponPrefab: {fileID: 1768128536278844255, guid: 0e835f20e187c3b4993dc4a1c02748a1, type: 3}
+  tpSecondaryWeaponPrefab: {fileID: 6660587985181892251, guid: a17805d5de8633142bd29acb6ab5bc33, type: 3}
+  thirdPersonModelPrefab: {fileID: 152650, guid: 5197bf90a75a5cc45ae1fe0742d601f6, type: 3}
+  primaryPositionOffset: {x: 0, y: 0, z: 0.1}
+  primaryRotationOffset: {x: 0, y: 0, z: 0}
+  secondaryPositionOffset: {x: 0, y: 0, z: 0}
+  secondaryRotationOffset: {x: 0, y: 0, z: 0}
+  primaryWeaponName: Minigun
+  primaryWeaponDescription: "Fusil autom\xE1tico de media y larga distancia."
+  primaryWeaponIcon: {fileID: 0}
+  secondaryWeaponName: Revolver
+  secondaryWeaponDescription: "Arma secundaria para remates r\xE1pidos."
+  secondaryWeaponIcon: {fileID: 0}
+  utilityName: "Granada de fragmentaci\xF3n"
+  utilityDescription: Utilidad arrojadiza para control de zona.
+  utilityIcon: {fileID: 0}
+  primaryAnimState: heavy_combat_idle
+  secondaryAnimState: handgun_combat_idle
