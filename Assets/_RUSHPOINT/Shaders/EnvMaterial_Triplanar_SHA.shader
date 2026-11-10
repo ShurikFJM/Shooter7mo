@@ -1,5 +1,5 @@
 // =============================================================================
-//  Env/Universal environment Material (UV + Triplanar)   -   URP, un solo archivo
+//  Instrucciones de uso
 //
 //  UN shader, UN selector "Projection":
 //     Mesh      -> UV0 de la malla (props, paredes modulares, todo lo que ya tiene UVs)
