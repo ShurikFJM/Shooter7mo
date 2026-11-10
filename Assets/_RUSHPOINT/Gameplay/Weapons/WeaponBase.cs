@@ -108,6 +108,11 @@ public class WeaponBase : NetworkBehaviour
             _weaponModelTransform.localPosition = _defaultLocalPosition;
             _weaponModelTransform.localRotation = _defaultLocalRotation;
         }
+
+        if (_firePoint == null)
+        {
+            _firePoint = transform;
+        }
     }
 
     private void Start()
@@ -140,18 +145,19 @@ public class WeaponBase : NetworkBehaviour
             return;
         }
 
-        Transform foundFp = transform.Find("FirePoint");
-        if (foundFp == null)
+        Transform foundFp = null;
+        Transform[] children = GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < children.Length; i++)
         {
-            Transform[] children = GetComponentsInChildren<Transform>(true);
-            for (int i = 0; i < children.Length; i++)
+            string childName = children[i].name;
+
+            if (childName.IndexOf("Firepoint", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                childName.IndexOf("Fire_Point", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                childName.IndexOf("Muzzle", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                childName.IndexOf("Barrel", System.StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                if (children[i].name.Equals("FirePoint", System.StringComparison.OrdinalIgnoreCase) ||
-                    children[i].name.Equals("MuzzlePoint", System.StringComparison.OrdinalIgnoreCase))
-                {
-                    foundFp = children[i];
-                    break;
-                }
+                foundFp = children[i];
+                break;
             }
         }
 
@@ -161,10 +167,7 @@ public class WeaponBase : NetworkBehaviour
             return;
         }
 
-        if (_playerController != null && _playerController.PlayerCamera != null)
-        {
-            _firePoint = _playerController.PlayerCamera.transform;
-        }
+        _firePoint = transform;
     }
 
     private void PreloadAddressableVfx()
@@ -297,6 +300,12 @@ public class WeaponBase : NetworkBehaviour
         if (_weaponAnimator != null)
         {
             _weaponAnimator.SetTrigger(_shootTriggerHash);
+        }
+
+        if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
+        if (_playerController != null)
+        {
+            _playerController.TriggerShootTPS();
         }
 
         Vector3 rayOrigin = transform.position;
@@ -683,6 +692,12 @@ public class WeaponBase : NetworkBehaviour
             _weaponAnimator.SetTrigger(_reloadTriggerHash);
         }
 
+        if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
+        if (_playerController != null)
+        {
+            _playerController.TriggerReloadTPS();
+        }
+
         if (weaponData.reloadSound != null && _audioSource != null)
         {
             _audioSource.PlayOneShot(weaponData.reloadSound);
@@ -690,7 +705,6 @@ public class WeaponBase : NetworkBehaviour
 
         _reloadCoroutine = StartCoroutine(ReloadCoroutine());
     }
-
 
     private IEnumerator ReloadCoroutine()
     {
@@ -735,4 +749,4 @@ public class WeaponBase : NetworkBehaviour
             _weaponAnimator.ResetTrigger(_reloadTriggerHash);
         }
     }
-} 
+}
