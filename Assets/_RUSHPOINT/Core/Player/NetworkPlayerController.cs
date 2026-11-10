@@ -36,7 +36,7 @@ public class NetworkPlayerController : NetworkBehaviour
     [SerializeField] private GameObject _firstPersonRoot;
     [SerializeField] private GameObject _thirdPersonRoot;
 
-    [Header("Modelos de Soldados (Auto-detectables)")]
+    [Header("Modelos de Soldados (Auto-detectables incluso con _Variant)")]
     [SerializeField] private GameObject _infantryModel;
     [SerializeField] private GameObject _gunnerModel;
     [SerializeField] private GameObject _medicModel;
@@ -46,6 +46,9 @@ public class NetworkPlayerController : NetworkBehaviour
 
     [SerializeField] private Transform _hitboxesRoot;
     [SerializeField] private LayerMask _obstacleLayers;
+
+    [Header("Animación del Soldado")]
+    private Animator _activeAnimator;
 
     public NetworkVariable<PlayerRoleType> selectedRole = new NetworkVariable<PlayerRoleType>(
         PlayerRoleType.Tank,
@@ -72,6 +75,8 @@ public class NetworkPlayerController : NetworkBehaviour
     private PlayerTeam _playerTeam;
     private WeaponInventory _weaponInventory;
     private PlayerMovementAudio _playerMovementAudio;
+    private Transform _spineBone;
+
     private float _verticalVelocity;
     private Vector2 _eventMoveInput;
     private Vector2 _eventLookInput;
@@ -101,6 +106,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
         EnsureRoleDatabaseReference();
         EnsureModelReferences();
+        LocateSpineBone();
     }
 
     private void EnsureRoleDatabaseReference()
@@ -137,20 +143,45 @@ public class NetworkPlayerController : NetworkBehaviour
             }
         }
 
-        if (_gunnerModel == null)
+        Transform[] allChildren = tpRoot.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < allChildren.Length; i++)
         {
-            Transform t = tpRoot.Find("ToonSoldiers_gunner");
-            if (t != null) _gunnerModel = t.gameObject;
+            string childName = allChildren[i].name;
+            if (_gunnerModel == null && childName.IndexOf("gunner", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                _gunnerModel = allChildren[i].gameObject;
+            }
+            else if (_medicModel == null && childName.IndexOf("medic", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                _medicModel = allChildren[i].gameObject;
+            }
+            else if (_infantryModel == null && childName.IndexOf("infantry", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                _infantryModel = allChildren[i].gameObject;
+            }
         }
-        if (_medicModel == null)
+    }
+
+    private void LocateSpineBone()
+    {
+        Animator anim = GetComponentInChildren<Animator>(true);
+        if (anim != null && anim.isHuman)
         {
-            Transform t = tpRoot.Find("ToonSoldiers_medic");
-            if (t != null) _medicModel = t.gameObject;
+            _spineBone = anim.GetBoneTransform(HumanBodyBones.Spine);
+            if (_spineBone == null) _spineBone = anim.GetBoneTransform(HumanBodyBones.Chest);
         }
-        if (_infantryModel == null)
+
+        if (_spineBone == null)
         {
-            Transform t = tpRoot.Find("ToonSoldiers_infantry");
-            if (t != null) _infantryModel = t.gameObject;
+            Transform[] transforms = GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                if (transforms[i].name.IndexOf("Spine", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    _spineBone = transforms[i];
+                    break;
+                }
+            }
         }
     }
 
@@ -159,6 +190,7 @@ public class NetworkPlayerController : NetworkBehaviour
         base.OnNetworkSpawn();
         EnsureRoleDatabaseReference();
         EnsureModelReferences();
+        LocateSpineBone();
 
         selectedRole.OnValueChanged += HandleRoleChanged;
         if (_weaponInventory == null) _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
@@ -186,7 +218,6 @@ public class NetworkPlayerController : NetworkBehaviour
             if (_audioListener != null) _audioListener.enabled = true;
             if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
 
-            // En True First Person, el cuerpo de tercera persona se mantiene activo para el jugador
             if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
             if (localPlayerCanvas != null) localPlayerCanvas.gameObject.SetActive(false);
 
@@ -415,12 +446,10 @@ public class NetworkPlayerController : NetworkBehaviour
             }
         }
 
-        // Activación del modelo correspondiente al rol
         if (_infantryModel != null) _infantryModel.SetActive(roleType == PlayerRoleType.Assault);
         if (_gunnerModel != null) _gunnerModel.SetActive(roleType == PlayerRoleType.Tank);
         if (_medicModel != null) _medicModel.SetActive(roleType == PlayerRoleType.Medic);
 
-        // Salvaguarda: si por algún motivo ninguno quedó activo, encendemos el Gunner
         bool anyActive = (_infantryModel != null && _infantryModel.activeSelf) ||
                          (_gunnerModel != null && _gunnerModel.activeSelf) ||
                          (_medicModel != null && _medicModel.activeSelf);
@@ -428,6 +457,9 @@ public class NetworkPlayerController : NetworkBehaviour
         {
             _gunnerModel.SetActive(true);
         }
+
+        _activeAnimator = null;
+        LocateSpineBone();
 
         PlayerTeamVisualizer visualizer = GetComponent<PlayerTeamVisualizer>();
         if (visualizer != null)
@@ -488,9 +520,62 @@ public class NetworkPlayerController : NetworkBehaviour
             HandleCameraRotation();
             HandleMovementExecution();
             HandleWeaponCombatInput();
+            UpdateSoldierAnimator();
         }
 
         HandleCrouchHeightTransition();
+    }
+
+    private void LateUpdate()
+    {
+        if (IsOwner && _spineBone != null && _characterController != null && _characterController.enabled)
+        {
+            _spineBone.Rotate(Vector3.right, _cameraPitch * 0.7f, Space.Self);
+        }
+    }
+
+    private void UpdateSoldierAnimator()
+    {
+        if (_activeAnimator == null || !_activeAnimator.gameObject.activeInHierarchy)
+        {
+            _activeAnimator = GetComponentInChildren<Animator>(false);
+        }
+
+        if (_activeAnimator == null) return;
+
+        Vector3 horizontalVelocity = new Vector3(_characterController.velocity.x, 0f, _characterController.velocity.z);
+        float currentSpeed = horizontalVelocity.magnitude;
+
+        _activeAnimator.SetFloat("Speed", currentSpeed);
+        _activeAnimator.SetBool("IsCrouched", isCrouchedNet.Value);
+        _activeAnimator.SetBool("IsGrounded", _characterController.isGrounded);
+    }
+
+    public void TriggerShootTPS()
+    {
+        if (_activeAnimator == null || !_activeAnimator.gameObject.activeInHierarchy)
+        {
+            _activeAnimator = GetComponentInChildren<Animator>(false);
+        }
+
+        if (_activeAnimator != null)
+        {
+            _activeAnimator.SetTrigger("Shoot");
+        }
+    }
+
+    public void TriggerReloadTPS()
+    {
+        if (_activeAnimator == null || !_activeAnimator.gameObject.activeInHierarchy)
+        {
+            _activeAnimator = GetComponentInChildren<Animator>(false);
+        }
+
+        if (_activeAnimator != null)
+        {
+            _activeAnimator.ResetTrigger("Shoot");
+            _activeAnimator.SetTrigger("Reload");
+        }
     }
 
     private void HandleWeaponCombatInput()
@@ -608,6 +693,7 @@ public class NetworkPlayerController : NetworkBehaviour
         _verticalVelocity = 0f;
         _currentMoveInput = Vector2.zero;
         _currentLookRotation = Vector2.zero;
+        _eventMoveInput = Vector2.zero;
         _hasInitiatedSpectate = false;
         _isWalkingSlow = false;
 
@@ -615,6 +701,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
         if (IsOwner)
         {
+            if (SpectatorManager.Instance != null) SpectatorManager.Instance.StopSpectating();
             if (_playerCamera != null) _playerCamera.gameObject.SetActive(true);
             if (_characterController != null) _characterController.enabled = true;
         }
@@ -792,20 +879,15 @@ public class NetworkPlayerController : NetworkBehaviour
             _cameraRoot.localPosition = targetCameraPosition;
         }
 
-        float targetScaleY = crouched ? 0.5f : 1f;
-
-        if (_thirdPersonRoot != null)
+        // Mantenemos la escala del modelo en 1 sin deformarlo: la animación se encarga de la postura
+        if (_thirdPersonRoot != null && _thirdPersonRoot.transform.localScale != Vector3.one)
         {
-            Vector3 visualScale = _thirdPersonRoot.transform.localScale;
-            visualScale.y = Mathf.Lerp(visualScale.y, targetScaleY, Time.deltaTime * CROUCH_TRANSITION_SPEED);
-            _thirdPersonRoot.transform.localScale = visualScale;
+            _thirdPersonRoot.transform.localScale = Vector3.one;
         }
 
-        if (_hitboxesRoot != null)
+        if (_hitboxesRoot != null && _hitboxesRoot.localScale != Vector3.one)
         {
-            Vector3 hitboxScale = _hitboxesRoot.localScale;
-            hitboxScale.y = Mathf.Lerp(hitboxScale.y, targetScaleY, Time.deltaTime * CROUCH_TRANSITION_SPEED);
-            _hitboxesRoot.localScale = hitboxScale;
+            _hitboxesRoot.localScale = Vector3.one;
         }
     }
 
