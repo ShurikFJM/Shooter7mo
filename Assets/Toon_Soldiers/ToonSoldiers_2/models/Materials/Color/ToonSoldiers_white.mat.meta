@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5d1bfd22e7fe7e14c8a95db8f332a3ae
+timeCreated: 1517335512
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/models/Materials/Color/ToonSoldiers_white.mat
+  uploadId: 981072

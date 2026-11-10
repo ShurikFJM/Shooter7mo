@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5197bf90a75a5cc45ae1fe0742d601f6
+timeCreated: 1517336934
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/prefabs/ToonSoldiers_gunner.prefab
+  uploadId: 981072

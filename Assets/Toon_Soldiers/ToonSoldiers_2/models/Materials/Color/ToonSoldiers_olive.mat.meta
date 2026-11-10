@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 6b6f9aa5988075448baf9b78830fa582
+timeCreated: 1517335511
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/models/Materials/Color/ToonSoldiers_olive.mat
+  uploadId: 981072

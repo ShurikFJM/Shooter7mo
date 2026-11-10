@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 12efc0156ef93bf4dbd81f58690e4e51
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4890085278179872738
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/scene/ToonSoldiers_sample_sceneSettings.lighting
+  uploadId: 981072

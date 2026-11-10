@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0b66b9bdf70fc964fa924cea4e45c3d8
+timeCreated: 1517336928
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/prefabs/ToonSoldiers_infantry.prefab
+  uploadId: 981072

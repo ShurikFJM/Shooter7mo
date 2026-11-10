@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7ea467a8a39159544a49e880768006bc
+timeCreated: 1517335561
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/models/Materials/Color/ToonSoldiers_yellow.mat
+  uploadId: 981072

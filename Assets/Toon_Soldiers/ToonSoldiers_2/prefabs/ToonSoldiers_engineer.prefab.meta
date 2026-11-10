@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0da9de283a7ba434d96430736add1c30
+timeCreated: 1517336940
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/prefabs/ToonSoldiers_engineer.prefab
+  uploadId: 981072

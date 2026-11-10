@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 84129433048be0546a7ee423cb15e7df
+timeCreated: 1517272696
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/models/Materials/ToonSoldiers_equipment.mat
+  uploadId: 981072

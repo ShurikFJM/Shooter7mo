@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 530d6d9ff8e3ac94195d5aa36a098fcb
+timeCreated: 1517335511
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/models/Materials/Color/ToonSoldiers_grey.mat
+  uploadId: 981072

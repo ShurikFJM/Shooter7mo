@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8df00e537d06c7a49b1696af4f1835e4
+timeCreated: 1517336931
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/prefabs/ToonSoldiers_scout.prefab
+  uploadId: 981072

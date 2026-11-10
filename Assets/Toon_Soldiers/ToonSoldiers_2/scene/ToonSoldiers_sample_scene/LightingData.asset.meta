@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 07c0d8cbe0009f048b3caee8fcd8dfae
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 112000000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/scene/ToonSoldiers_sample_scene/LightingData.asset
+  uploadId: 981072

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e3a19d9629539d64399b855cd6e9be30
+timeCreated: 1517336900
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52220
+  packageName: Toon Soldiers
+  packageVersion: 2.2
+  assetPath: Assets/Toon_Soldiers/ToonSoldiers_2/scene/ToonSoldiers_sample_scene.unity
+  uploadId: 981072
