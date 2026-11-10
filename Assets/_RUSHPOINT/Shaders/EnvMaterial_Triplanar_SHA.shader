@@ -126,13 +126,11 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         }
         LOD 300
 
-        // =====================================================================
-        //  CODIGO COMPARTIDO por todos los pases
-        // =====================================================================
+
         HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-        // ---- Keywords -> features internas
+
         #if defined(_NORMALMAP)
             #define USE_NORMAL_MAP 1
         #endif
@@ -162,10 +160,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             #define USE_VORONOI 1
         #endif
 
-        // ---- Proyeccion
-        //  ENV_TRIPLANAR : triplanar
-        //  ENV_UV_WORLD  : planar en mundo (UV derivada de la posicion)
-        //  ENV_UV_MESH   : UV0 de la malla
+
         #if defined(_PROJ_TRIPLANAR)
             #define ENV_TRIPLANAR 1
             #if defined(_TRISPACE_OBJECTSCALED)
@@ -196,7 +191,6 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             #define ENV_PSPACE_WORLD 1
         #endif
 
-        // ---- Displacement
         #if defined(_DISP_OFFSET)
             #define USE_PARALLAX_OFFSET 1
             #define ENV_PARALLAX 1
@@ -211,7 +205,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             #define ENV_USE_HEIGHT 1
         #endif
 
-        // ---- Recursos (un solo sampler: el del Albedo)
+
         TEXTURE2D(_AlbedoTex);  SAMPLER(sampler_AlbedoTex);
         TEXTURE2D(_NormalTex);
         TEXTURE2D(_ARMTex);
@@ -219,7 +213,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         TEXTURE2D(_EmissionTex);
         #define ENV_SAMPLER sampler_AlbedoTex
 
-        // ---- Propiedades (SRP Batcher)
+
         CBUFFER_START(UnityPerMaterial)
             float4 _BaseColor;
             float4 _TriAxisWeights;
@@ -252,7 +246,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             float3 emissive;
         };
 
-        // ---- Espacio de proyeccion ------------------------------------------
+
         float3 EnvObjectScale()
         {
             float4x4 m = GetObjectToWorldMatrix();
@@ -261,15 +255,13 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
                               length(float3(m[0][2], m[1][2], m[2][2]))), 1e-5);
         }
 
-        // Posicion y normal en el espacio donde se proyecta la textura.
-        // Siempre con la malla SIN desplazar: la textura se queda pegada a la malla.
-        // (En Mesh UV estos valores no se usan y el compilador los elimina.)
+
         void EnvProjInputs(float3 posOS, float3 normalOS, out float3 posP, out float3 nP)
         {
         #if defined(ENV_PSPACE_OBJSCALED)
             float3 sc = EnvObjectScale();
             posP = posOS * sc;
-            nP   = normalize(normalOS / sc);      // normal bajo transformacion de escala
+            nP   = normalize(normalOS / sc);      
         #elif defined(ENV_PSPACE_OBJECT)
             posP = posOS;
             nP   = normalOS;
@@ -279,8 +271,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         #endif
         }
 
-        // ---- UV -----------------------------------------------------------
-        // UV base del modo UV (Mesh o planar en mundo)
+
         float2 EnvGetBaseUV(float2 uv, float3 posP)
         {
         #if defined(USE_WORLD_UV_XZ)
@@ -294,7 +285,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         #endif
         }
 
-        // (sin, cos) de la rotacion global: se calcula por VERTICE y llega sin interpolar
+
         float2 EnvSinCos()
         {
             float s, c;
@@ -304,22 +295,21 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
 
         float4 EnvRotMatrix(float2 sc) { return float4(sc.y, -sc.x, sc.x, sc.y); }
 
-        // uv' = (Rot * Tiling) * uv + offset    (2 dot + 1 add)
+
         float2 EnvTransformUV(float2 uv, float4 R)
         {
             float4 M = R * float4(_TilingX, _TilingY, _TilingX, _TilingY);
             return float2(dot(uv, M.xy), dot(uv, M.zw)) + float2(_OffsetX, _OffsetY);
         }
 
-        // Misma transformacion para vectores (derivadas): sin offset
+
         float2 EnvTransformDir(float2 d, float4 R)
         {
             float4 M = R * float4(_TilingX, _TilingY, _TilingX, _TilingY);
             return float2(dot(d, M.xy), dot(d, M.zw));
         }
 
-        // Base tangente del modo UV. En planar de mundo se deduce del eje de
-        // proyeccion (pensado para caras hacia +Y en XZ, +Z en XY y +X en ZY).
+
         void EnvGetTangentFrame(float3 N, float4 tangentWS, out float3 T, out float3 B)
         {
             float sgn;
@@ -341,18 +331,15 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             B = cross(N, T) * sgn;
         }
 
-        // ---- Voronoi ------------------------------------------------------
-        // Se buscan las DOS celdas mas cercanas. Cada celda remapea la textura con
-        // su propio offset / rotacion / escala alrededor del CENTRO de la textura.
-        // Cerca del borde entre celdas se mezclan A y B (solo ahi hay 2 samples).
+
         struct EnvVoro
         {
-            float4 mA, mB;        // rotacion*escala de cada celda (2x2)
-            float4 rA, rB;        // rotacion pura (para girar la normal)
-            float2 cA, cB;        // centro de la celda (espacio tuv)
-            float2 tA, tB;        // punto de la textura donde cae el centro
-            float2 gAx, gAy, gBx, gBy;   // gradientes remapeados (mipmaps correctos)
-            float  w;             // peso de A (1 = solo A)
+            float4 mA, mB;        
+            float4 rA, rB;        
+            float2 cA, cB;        
+            float2 tA, tB;        
+            float2 gAx, gAy, gBx, gBy;  
+            float  w;             
         };
 
         float2 EnvHash22(float2 p)
@@ -410,7 +397,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
                 }
             }
 
-            // peso: 0.5 justo en el borde entre celdas, 1 dentro de la celda
+            
             float diff = sqrt(d2) - sqrt(d1);
             v.w = 0.5 + 0.5 * smoothstep(0.0, 1.0, saturate(diff / _VoronoiBlend));
 
@@ -441,12 +428,12 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             return lerp(b, a, v.w);
         }
 
-        #endif // USE_VORONOI
+        #endif
 
-        // ---- Normal -------------------------------------------------------
+        
         float3 EnvUnpackNormal(float4 s)
         {
-            // UnpackNormalScale maneja BC5 / DXT5nm / ASTC segun plataforma
+            
             float3 n = UnpackNormalScale(s, _NormalStrength);
         #ifdef NORMAL_MAP_FLIP_Y
             n.y = -n.y;
@@ -455,7 +442,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         }
 
         #if defined(USE_VORONOI) && defined(USE_NORMAL_MAP)
-        // Cada muestra gira su normal con la rotacion de SU celda antes de mezclar
+        
         float3 EnvSampleNormalVoro(float2 tuv, EnvVoro v)
         {
             float2 uvA = EnvVoroUV(tuv, v.mA, v.cA, v.tA);
@@ -474,7 +461,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         }
         #endif
 
-        // ---- Height -------------------------------------------------------
+        
         #ifdef ENV_USE_HEIGHT
         float EnvFinalHeight(float h)
         {
@@ -499,8 +486,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         #endif
         }
 
-        // Height en una UV arbitraria usando las celdas voronoi YA elegidas para el
-        // pixel (A y B se mezclan con el mismo peso -> el parallax es continuo).
+        
         float EnvHeightAt(float2 uv, EnvVoro v, float2 gx, float2 gy)
         {
         #ifdef USE_VORONOI
@@ -528,7 +514,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             return EnvSampleHeightLOD0(uv);
         #endif
         }
-        #endif // ENV_USE_HEIGHT
+        #endif 
 
         #ifdef ENV_PARALLAX
         float2 EnvParallaxUV(float2 tuv, float3 viewTS, float distFade, float4 R,
@@ -538,13 +524,13 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             float refPl = _HeightRef;
 
             [branch]
-            if (distFade < 0.001) return tuv;   // lejos: costo cero
+            if (distFade < 0.001) return tuv;   
 
         #if defined(USE_POM)
             float2 shiftTS = viewTS.xy / max(viewTS.z, 0.1) * scale;
             float2 shiftUV = float2(dot(R.xy, shiftTS), dot(R.zw, shiftTS));
 
-            // Pasos adaptativos: de frente = pocos, rasante = muchos
+           
             float  layers     = lerp(_POMMaxSteps, _POMMinSteps, saturate(viewTS.z));
             float  layerDepth = rcp(layers);
             float2 deltaUV    = shiftUV * layerDepth;
@@ -575,26 +561,16 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             return tuv - shiftUV * (d - refPl);
         #endif
         }
-        #endif // ENV_PARALLAX
+        #endif
 
-        // =====================================================================
-        //  PROYECCION: contexto de UNA proyeccion (UV, o eje X / Y / Z del triplanar)
-        // =====================================================================
         struct EnvAxis
         {
-            float2 uv;      // UV transformada (tiling / rotacion / offset)
-            float2 gx, gy;  // gradientes de esa UV
-            float  flipU;   // signo aplicado a la U base (para corregir normales)
-            float3 vTS;     // vector de vista en el espacio tangente de esta proyeccion
+            float2 uv;      
+            float2 gx, gy;  
+            float  flipU;   
+            float3 vTS;     
         };
 
-        // Construye la proyeccion del eje 'a' (0 = X, 1 = Y, 2 = Z) del triplanar.
-        //  Convencion de Unity (mano izquierda): para que la textura no salga
-        //  espejada en caras opuestas la U se multiplica por:
-        //    eje X (uv = z, y): +signo(nx)     eje Y (uv = x, z): +signo(ny)
-        //    eje Z (uv = x, y): -signo(nz)
-        //  vTS = (dot(V,T), dot(V,B), dot(V,N)) con T, B las direcciones en el
-        //  espacio de proyeccion de +u y +v, y N la normal del eje hacia el lado visible.
         EnvAxis EnvMakeAxis(int a, float3 p, float3 dpx, float3 dpy, float3 sgn, float3 V, float4 R)
         {
             EnvAxis o;
@@ -635,7 +611,6 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             return o;
         }
 
-        // Normaliza y descarta ejes con peso menor al umbral (el dominante siempre se conserva)
         float3 EnvNormalizeCull(float3 w)
         {
             w /= max(w.x + w.y + w.z, 1e-5);
@@ -644,17 +619,15 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             return w / max(w.x + w.y + w.z, 1e-5);
         }
 
-        // Pesos de mezcla por eje (solo dependen de la normal)
         float3 EnvTriWeights(float3 nP)
         {
             float3 a  = abs(nP);
             float  mx = max(max(a.x, a.y), a.z);
-            float3 r  = a / max(mx, 1e-5);                               // el eje dominante vale 1
+            float3 r  = a / max(mx, 1e-5);                              
             r = saturate((r - _TriBlendOffset) / max(1.0 - _TriBlendOffset, 1e-3));
             float3 w  = pow(r, _TriSharpness) * _TriAxisWeights.xyz;
 
         #ifdef USE_TRI_TWO_AXES
-            // quitar solo el eje mas debil (maximo 2 proyecciones por pixel)
             float mn = min(min(w.x, w.y), w.z);
             if (w.z <= mn)      w.z = 0.0;
             else if (w.y <= mn) w.y = 0.0;
@@ -662,17 +635,14 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         #endif
             return EnvNormalizeCull(w);
         }
-
-        // Mezcla de normales de una proyeccion. 't' = normal tangente ya corregida
-        // (rotacion y flip de U aplicados). Devuelve la normal en espacio de proyeccion.
         float3 EnvBlendAxisNormal(int a, float3 t, float3 nP)
         {
-            // normal de la malla "swizzleada" al espacio tangente de este eje
+           
             float3 nT = (a == 0) ? nP.zyx : ((a == 1) ? nP.xzy : nP.xyz);
             float3 t2;
 
         #if defined(_TRINORMALBLEND_RNM)
-            // Reoriented Normal Mapping
+            
             float3 n1 = float3(nT.xy, abs(nT.z));
             n1.z += 1.0;
             float3 n2 = float3(-t.xy, t.z);
@@ -681,15 +651,12 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         #elif defined(_TRINORMALBLEND_UDN)
             t2 = float3(t.xy + nT.xy, nT.z);
         #else
-            // Whiteout (por defecto)
+            
             t2 = float3(t.xy + nT.xy, abs(t.z) * nT.z);
-        #endif
-
-            // de espacio tangente del eje de vuelta al espacio de proyeccion
+        #endif           
             return (a == 0) ? t2.zyx : ((a == 1) ? t2.xzy : t2.xyz);
         }
 
-        // Resultado de muestrear todas las texturas en UNA proyeccion
         struct EnvAxisOut
         {
             float4 albedo;
@@ -718,7 +685,6 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         #elif defined(ENV_TRIPLANAR) || defined(ENV_PARALLAX)
             #define ENV_SAMPLE(tex, uvv) SAMPLE_TEXTURE2D_GRAD(tex, ENV_SAMPLER, uvv, ax.gx, ax.gy)
         #else
-            // Modo UV simple: muestreo normal (hardware calcula los gradientes)
             #define ENV_SAMPLE(tex, uvv) SAMPLE_TEXTURE2D(tex, ENV_SAMPLER, uvv)
         #endif
 
@@ -734,9 +700,9 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
           #else
             float3 nTS = EnvUnpackNormal(ENV_SAMPLE(_NormalTex, tuv));
           #endif
-            // 1) girar la normal junto con la rotacion global (inversa = transpuesta)
+          
             nTS.xy = mul(nTS.xy, float2x2(R.x, R.y, R.z, R.w));
-            // 2) corregir el flip de U de esta proyeccion (1 en modo UV)
+           
             nTS.x *= ax.flipU;
             o.nTS = nTS;
         #endif
@@ -749,7 +715,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             return o;
         }
 
-        // Acumulador ponderado de las proyecciones
+       
         struct EnvAcc
         {
             float4 alb;
@@ -770,7 +736,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         #endif
         }
 
-        // ---- Vertex displacement --------------------------------------------
+       
         #ifdef USE_VERTEX_DISPLACEMENT
         float EnvAxisHeightLOD0(EnvAxis ax)
         {

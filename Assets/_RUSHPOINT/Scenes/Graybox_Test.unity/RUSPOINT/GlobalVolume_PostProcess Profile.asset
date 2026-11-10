@@ -170,11 +170,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f17acff6deb4f089d110375635d4e37, type: 3}
   m_Name: HTraceSSGIVolume
   m_EditorClassIdentifier: HTraceSSGI::HTraceSSGI.Scripts.Infrastructure.URP.HTraceSSGIVolume
-  active: 1
+  active: 0
   Enable:
     m_OverrideState: 1
     m_Value: 1
-  Preset: 1
+  Preset: 4
   DebugMode:
     m_OverrideState: 1
     m_Value: 0
@@ -241,22 +241,22 @@ MonoBehaviour:
     m_Value: 0
   RayCount:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 4
   StepCount:
     m_OverrideState: 1
-    m_Value: 28
+    m_Value: 36
   RefineIntersection:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   FullResolutionDepth:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   Checkerboard:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   RenderScale:
     m_OverrideState: 1
-    m_Value: 0.5
+    m_Value: 1
   BrightnessClamp:
     m_OverrideState: 1
     m_Value: 0
@@ -268,28 +268,28 @@ MonoBehaviour:
     m_Value: 3
   HalfStepValidation:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   SpatialOcclusionValidation:
     m_OverrideState: 1
     m_Value: 1
   TemporalLightingValidation:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   TemporalOcclusionValidation:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   SpatialRadius:
     m_OverrideState: 1
-    m_Value: 0.65
+    m_Value: 0.6
   Adaptivity:
     m_OverrideState: 1
-    m_Value: 0.7
+    m_Value: 0.9
   RecurrentBlur:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   FireflySuppression:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   ShowBowels:
     m_OverrideState: 0
     m_Value: 0
