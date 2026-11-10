@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a2578560f514a8a488c151ed7db841fb
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 336896
+  packageName: 'HTrace: Screen Space Global Illumination URP'
+  packageVersion: 1.4.0
+  assetPath: Assets/HTraceSSGI/Sample Scene/Sample Scene SSGI URP/HTrace SSGI Sample
+    Scene URP.unity
+  uploadId: 1018308

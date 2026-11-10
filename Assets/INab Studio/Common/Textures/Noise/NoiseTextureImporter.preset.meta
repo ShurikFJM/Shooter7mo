@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c4558371a0550bf4fbf5cfa767c9269a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2655988077585873504
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 337724
+  packageName: Procedural Weapon Trails
+  packageVersion: 2.0.1
+  assetPath: Assets/INab Studio/Common/Textures/Noise/NoiseTextureImporter.preset
+  uploadId: 1023822

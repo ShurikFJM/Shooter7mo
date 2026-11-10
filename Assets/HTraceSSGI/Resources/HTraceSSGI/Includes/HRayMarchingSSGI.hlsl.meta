@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: d70f0a4fb67872c4eb21e7facb552b46
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 336896
+  packageName: 'HTrace: Screen Space Global Illumination URP'
+  packageVersion: 1.4.0
+  assetPath: Assets/HTraceSSGI/Resources/HTraceSSGI/Includes/HRayMarchingSSGI.hlsl
+  uploadId: 1018308

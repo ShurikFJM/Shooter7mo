@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: d679baea620540848a56ae993ea8ef81
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 60072b568d64c40a485e0fc55012dc9f, type: 3}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 337724
+  packageName: Procedural Weapon Trails
+  packageVersion: 2.0.1
+  assetPath: Assets/INab Studio/Common/Subgraphs/Utilities/Multi Directional Distortion.shadersubgraph
+  uploadId: 1023822

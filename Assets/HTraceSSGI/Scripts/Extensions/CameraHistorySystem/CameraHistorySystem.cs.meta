@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: c3e05482e5474c74ac2640b07596bc39
+timeCreated: 1756743219
+AssetOrigin:
+  serializedVersion: 1
+  productId: 336896
+  packageName: 'HTrace: Screen Space Global Illumination URP'
+  packageVersion: 1.4.0
+  assetPath: Assets/HTraceSSGI/Scripts/Extensions/CameraHistorySystem/CameraHistorySystem.cs
+  uploadId: 1018308

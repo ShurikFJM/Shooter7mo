@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7b83869f2e6367b40b23690ba98249d4
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4890085278179872738
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 336896
+  packageName: 'HTrace: Screen Space Global Illumination URP'
+  packageVersion: 1.4.0
+  assetPath: Assets/HTraceSSGI/Scripts/New Lighting Settings.lighting
+  uploadId: 1018308

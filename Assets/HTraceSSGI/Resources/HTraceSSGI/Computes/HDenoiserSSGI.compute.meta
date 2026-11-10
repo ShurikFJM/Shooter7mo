@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 4e9dcd36d21eeca4a93de42f47c188ce
+ComputeShaderImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 336896
+  packageName: 'HTrace: Screen Space Global Illumination URP'
+  packageVersion: 1.4.0
+  assetPath: Assets/HTraceSSGI/Resources/HTraceSSGI/Computes/HDenoiserSSGI.compute
+  uploadId: 1018308

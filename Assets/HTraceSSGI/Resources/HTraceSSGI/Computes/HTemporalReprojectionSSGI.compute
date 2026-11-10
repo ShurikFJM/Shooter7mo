@@ -1,0 +1,449 @@
+#pragma kernel TemporalReprojection
+#pragma kernel ColorReprojection
+#pragma kernel CopyHistory
+#pragma kernel LuminanceMomentsGeneration
+#pragma kernel LuminanceMomentsClear
+
+#include "../Includes/HReservoirSSGI.hlsl"
+#include "../Includes/HFallbackSSGI.hlsl"
+#pragma multi_compile _ _GBUFFER_NORMALS_OCT
+
+#pragma multi_compile _ REPROJECT_COLOR
+#pragma multi_compile _ AUTOMATIC_BRIGHTNESS_CLAMP
+#pragma multi_compile _ REPROJECT_TEMPORAL_INVALIDITY
+#pragma multi_compile _ REPROJECT_SPATIAL_OCCLUSION
+#pragma multi_compile _ FULL_RESOLUTION_REPROJECTION
+
+H_TEXTURE(_HTraceBufferGI);
+H_TEXTURE(_Color_History);
+H_TEXTURE(_NormalDepth_History);
+H_TEXTURE(_Radiance_History);
+H_TEXTURE(_Samplecount_History);
+H_TEXTURE(_SpatialOcclusion_History);
+H_TEXTURE(_TemporalInvalidity_History);
+H_TEXTURE(_AmbientOcclusion_History);
+
+H_RW_TEXTURE(float, _AmbientOcclusion_Output);
+H_RW_TEXTURE(float2, _TemporalInvalidity_Output);
+H_RW_TEXTURE(float, _Samplecount_Output);
+H_RW_TEXTURE(float, _SpatialOcclusion_Output);
+H_RW_TEXTURE(float4, _Radiance_Output);
+H_RW_TEXTURE(uint, _ReprojectedColor_Output);
+
+groupshared uint GroupMoment1;
+groupshared uint GroupMoment2;
+RWStructuredBuffer<uint> _LuminanceMoments;
+
+float _BrightnessClamp;
+float _MaxDeviation;
+
+float GetExposureMultiplier()
+{
+    return 1.0f;
+}
+
+float3 ApplyExposure(float3 Color)
+{
+    return Color * GetExposureMultiplier();
+}
+
+// ------------------------ REPROJECTION STRUCTS -----------------------
+struct CurrentFrameData
+{
+    float3  Normal;
+    float3  WorldPos;
+    float   DepthRaw;
+    float   DepthLinear;
+    float2  RejectionPower;
+};
+
+struct PreviousFrameData
+{
+    float3  Normal;
+    float3  WorldPos;
+    float   DepthLinear;
+};
+
+
+// ------------------------ REPROJECTION STRUCTS -----------------------
+float Disocclusion(CurrentFrameData CurrentData, PreviousFrameData PreviousData)
+{
+    float Diosocclusion = 1;
+    
+    float PlaneDistance = abs(dot(PreviousData.WorldPos - CurrentData.WorldPos, CurrentData.Normal));
+    float RelativeDepthDifference = PlaneDistance / CurrentData.DepthLinear;
+    if (exp2(-CurrentData.RejectionPower.x * (RelativeDepthDifference * RelativeDepthDifference)) < 0.1f)
+        Diosocclusion = 0.0f; 
+    
+    if (abs((PreviousData.DepthLinear - CurrentData.DepthLinear) / CurrentData.DepthLinear) >= CurrentData.RejectionPower.y)
+        Diosocclusion = 0.0f;
+    
+    if (dot(PreviousData.Normal, CurrentData.Normal) < 0.5)
+        Diosocclusion = 0.0f;
+    
+    return Diosocclusion;
+}
+
+
+// ------------------------ COLOR REPROJECTION -----------------------
+[numthreads(8, 8, 1)]
+void ColorReprojection(uint3 pixCoord : SV_DispatchThreadID)
+{
+    
+    bool MovingPixel = HBUFFER_MOTION_MASK(pixCoord.xy);
+    float2 pixCoordNDC = (pixCoord.xy + 0.5f) / _ScreenSize.xy;
+
+    float3 Sky = EvaluateFallbackSky(H_GET_VIEW_VECTOR_WS(pixCoordNDC));
+
+    float LumaThreshold = _BrightnessClamp;
+    
+    if (AUTOMATIC_BRIGHTNESS_CLAMP)
+    {
+        uint2 MomentsPacked;
+        MomentsPacked.x = _LuminanceMoments[0];
+        MomentsPacked.y = _LuminanceMoments[1];
+    
+        float2 Moments;
+        float Scale = 4294967295.0f / (30.0f * 30.0f);
+        Moments.x = float(MomentsPacked.x) / Scale;
+        Moments.y = float(MomentsPacked.y) / Scale;
+    
+        float Variance = (max(0.0, Moments.y - Moments.x * Moments.x));
+        float StdDev = sqrt(Variance);
+        LumaThreshold = Moments.x + _MaxDeviation * StdDev; 
+    }
+    
+    CurrentFrameData CurrentData;
+    CurrentData.DepthRaw = HBUFFER_DEPTH(pixCoord.xy);
+    CurrentData.Normal = HBUFFER_NORMAL_WS(pixCoord.xy);
+    CurrentData.DepthLinear = H_LINEAR_EYE_DEPTH(CurrentData.DepthRaw);
+    CurrentData.WorldPos = H_COMPUTE_POSITION_WS(pixCoordNDC, CurrentData.DepthRaw, H_MATRIX_I_VP);
+  
+    const float DepthAligment = 1.0f - dot(-normalize(H_GET_ABSOLUTE_POSITION_WS((CurrentData.WorldPos)) - _WorldSpaceCameraPos), CurrentData.Normal);
+    CurrentData.RejectionPower.x = 100000.0f * (MovingPixel ? 0.0001 * CurrentData.DepthLinear * CurrentData.DepthLinear : 1); 
+    CurrentData.RejectionPower.y = lerp(1e-2f, 1e-1f, pow(DepthAligment, 8)) * (MovingPixel ? 50 / CurrentData.DepthLinear : 1);
+
+    if (!REPROJECT_COLOR)
+    {
+        float3 ReprojectedColor = CurrentData.DepthRaw <= UNITY_RAW_FAR_CLIP_VALUE ? Sky : HBUFFER_COLOR(pixCoord.xy).xyz;
+            
+        float ReprojectedColorLuma = Luminance(ReprojectedColor);
+        if (ReprojectedColorLuma > LumaThreshold)
+            ReprojectedColor *= (LumaThreshold / ReprojectedColorLuma);
+        
+        _ReprojectedColor_Output[H_COORD(pixCoord.xy)] = PackColorHit(ReprojectedColor, MovingPixel);
+        //return;
+    }
+        
+    float2 ReprojectionCoord = float2(pixCoord.xy) - HBUFFER_MOTION_VECTOR(pixCoord.xy) * floor(_ScreenSize.xy);
+    ReprojectionCoord /= (HRenderScale.xy / HRenderScalePrevious.xy);
+    
+    float UVx = frac(ReprojectionCoord.x);
+    float UVy = frac(ReprojectionCoord.y);
+
+    float4 ReprojectionWeights;
+    ReprojectionWeights.x = (1.0f - UVx) * (1.0f - UVy);
+    ReprojectionWeights.y = (UVx) * (1.0f - UVy);
+    ReprojectionWeights.z = (1.0f - UVx) * (UVy);
+    ReprojectionWeights.w = (UVx) * (UVy);
+    
+    const uint2 ReprojectionOffsets[4] = {uint2(0, 0), uint2(1, 0), uint2(0, 1), uint2(1, 1)};
+    
+    UNITY_UNROLL
+    for (int i = 0; i < 4; i++)
+    {
+        int2 SampleCoord = ReprojectionCoord + ReprojectionOffsets[i];
+        uint HistoryNormalDepthPacked = asuint(H_LOAD(_NormalDepth_History, SampleCoord).x);
+        float4 HistoryNormalDepth = UnpackNormalDepth(HistoryNormalDepthPacked);
+
+        SampleCoord /= (HRenderScalePrevious.xy / HRenderScale.xy);
+        
+        PreviousFrameData PreviousData;
+        PreviousData.Normal = HistoryNormalDepth.xyz;
+        PreviousData.WorldPos = H_COMPUTE_POSITION_WS((SampleCoord + 0.5f) * _ScreenSize.zw, HistoryNormalDepth.w, H_MATRIX_PREV_I_VP);
+        PreviousData.DepthLinear = H_LINEAR_EYE_DEPTH(PreviousData.WorldPos, UNITY_MATRIX_V);
+        
+        ReprojectionWeights[i] *= Disocclusion(CurrentData, PreviousData);
+        
+        if (CurrentData.DepthRaw <= UNITY_RAW_FAR_CLIP_VALUE)
+            ReprojectionWeights[i] = 1;
+
+        if (any(SampleCoord.xy >= _ScreenSize.xy))
+            ReprojectionWeights[i] = 0;
+    }
+
+    float WeightsTotal = ReprojectionWeights.x + ReprojectionWeights.y + ReprojectionWeights.z + ReprojectionWeights.w;
+
+    float ReprojectedSamplecount = 0;
+    float3 ReprojectedRadiance = 0;
+    float3 ReprojectedColor = 0;
+    
+    if (WeightsTotal > 0.15f)
+    {
+        ReprojectionWeights = WeightsTotal > 0 ? ReprojectionWeights / WeightsTotal : 0;
+        
+        float BestWeight = 0;
+        uint2 BestOffset = 0;
+        
+        UNITY_UNROLL
+        for (int i = 0; i < 4; i++)
+        {
+            float4 RadianceSamplecountHistory = H_LOAD(_Radiance_History, ReprojectionCoord + ReprojectionOffsets[i]) * ReprojectionWeights[i];
+            ReprojectedSamplecount += RadianceSamplecountHistory.w;
+            ReprojectedRadiance += ApplyExposure(RadianceSamplecountHistory.xyz);
+            
+            // Select best reprojection for color
+            if (ReprojectionWeights[i] > BestWeight)
+            {
+                BestWeight = ReprojectionWeights[i];
+                BestOffset = ReprojectionOffsets[i];
+            }
+        }
+
+        if (REPROJECT_COLOR)
+        {
+            ReprojectedColor = CurrentData.DepthRaw <= UNITY_RAW_FAR_CLIP_VALUE ? Sky : ApplyExposure(H_LOAD(_Color_History, ReprojectionCoord + BestOffset).xyz);
+            
+            float ReprojectedColorLuma = Luminance(ReprojectedColor);
+            if (ReprojectedColorLuma > LumaThreshold)
+                ReprojectedColor *= (LumaThreshold / ReprojectedColorLuma);   
+        }
+    }
+
+    _Radiance_Output[H_COORD(pixCoord.xy)] = float4(ReprojectedRadiance.xyz, ReprojectedSamplecount.x);
+    _ReprojectedColor_Output[H_COORD(pixCoord.xy)] = PackColorHit(ReprojectedColor, MovingPixel);
+}
+
+
+// ------------------------ TEMPORAL REPROJECTION -----------------------
+[numthreads(8, 8, 1)]
+void TemporalReprojection(uint3 pixCoord : SV_DispatchThreadID)
+{
+    
+    uint2 pixCoordUnscaled = GetUnscaledCoords(pixCoord.xy);
+    float2 pixCoordNDC = (float2(pixCoordUnscaled) + 0.5f) / _ScreenSize.xy;
+
+    float3 Sky = EvaluateFallbackSky(H_GET_VIEW_VECTOR_WS(pixCoordNDC));
+
+    float LumaThreshold = _BrightnessClamp;
+    
+    if (AUTOMATIC_BRIGHTNESS_CLAMP)
+    {
+        uint2 MomentsPacked;
+        MomentsPacked.x = _LuminanceMoments[0];
+        MomentsPacked.y = _LuminanceMoments[1];
+    
+        float2 Moments;
+        float Scale = 4294967295.0f / (30.0f * 30.0f);
+        Moments.x = float(MomentsPacked.x) / Scale;
+        Moments.y = float(MomentsPacked.y) / Scale;
+    
+        float Variance = (max(0.0, Moments.y - Moments.x * Moments.x));
+        float StdDev = sqrt(Variance);
+        LumaThreshold = Moments.x + _MaxDeviation * StdDev;
+    }
+    
+    CurrentFrameData CurrentData;
+    CurrentData.DepthRaw = HBUFFER_DEPTH(pixCoordUnscaled);
+    CurrentData.Normal = HBUFFER_NORMAL_WS(pixCoordUnscaled);
+    CurrentData.DepthLinear = H_LINEAR_EYE_DEPTH(CurrentData.DepthRaw);
+    CurrentData.WorldPos = H_COMPUTE_POSITION_WS(pixCoordNDC, CurrentData.DepthRaw, H_MATRIX_I_VP);
+    
+    bool MovingPixel = HBUFFER_MOTION_MASK(pixCoordUnscaled);
+    float DepthAligment = 1.0f - dot(-normalize(H_GET_ABSOLUTE_POSITION_WS((CurrentData.WorldPos)) - _WorldSpaceCameraPos), CurrentData.Normal);
+    CurrentData.RejectionPower.x = 100000.0f * (MovingPixel ? 0.0001 * CurrentData.DepthLinear * CurrentData.DepthLinear : 1); 
+    CurrentData.RejectionPower.y = lerp(1e-2f, 1e-1f, pow(DepthAligment, 8)) * (MovingPixel ? 50 / CurrentData.DepthLinear : 1);
+
+    float2 MotionVectors = HBUFFER_MOTION_VECTOR(pixCoordUnscaled);
+    float2 ReprojectionCoord = float2(pixCoord.xy) - MotionVectors * floor(_ScreenSize.xy / _HScaleFactorSSGI);
+    ReprojectionCoord /= (_HPreviousScaleFactorSSGI.xx / _HScaleFactorSSGI.xx);
+    ReprojectionCoord /= (HRenderScale.xy / HRenderScalePrevious.xy);
+    
+    float UVx = frac(ReprojectionCoord.x);
+    float UVy = frac(ReprojectionCoord.y);
+
+    float4 ReprojectionWeights;
+    ReprojectionWeights.x = (1.0f - UVx) * (1.0f - UVy);
+    ReprojectionWeights.y = (UVx) * (1.0f - UVy);
+    ReprojectionWeights.z = (1.0f - UVx) * (UVy);
+    ReprojectionWeights.w = (UVx) * (UVy);
+    
+    const uint2 ReprojectionOffsets[4] = {uint2(0, 0), uint2(1, 0), uint2(0, 1), uint2(1, 1)};
+    
+    UNITY_UNROLL
+    for (int i = 0; i < 4; i++)
+    {
+        int2 SampleCoord = ReprojectionCoord + ReprojectionOffsets[i];
+        
+        uint HistoryNormalDepthPacked = asuint(H_LOAD(_NormalDepth_History, SampleCoord).x);
+        float4 HistoryNormalDepth = UnpackNormalDepth(HistoryNormalDepthPacked);
+
+        SampleCoord /= (HRenderScalePrevious.xy / HRenderScale.xy);
+        
+        PreviousFrameData PreviousData;
+        PreviousData.Normal = HistoryNormalDepth.xyz;
+        PreviousData.WorldPos = H_COMPUTE_POSITION_WS((SampleCoord * _HPreviousScaleFactorSSGI + 0.5f) * _ScreenSize.zw, HistoryNormalDepth.w, H_MATRIX_PREV_I_VP);
+        PreviousData.DepthLinear = H_LINEAR_EYE_DEPTH(PreviousData.WorldPos, UNITY_MATRIX_V);
+
+        ReprojectionWeights[i] *= Disocclusion(CurrentData, PreviousData);
+
+        if (CurrentData.DepthRaw <= UNITY_RAW_FAR_CLIP_VALUE)
+            ReprojectionWeights[i] = 1;
+      
+        if (any(SampleCoord.xy >= _ScreenSize.xy / _HPreviousScaleFactorSSGI))
+            ReprojectionWeights[i] = 0;        
+    }
+
+    float WeightsTotal = ReprojectionWeights.x + ReprojectionWeights.y + ReprojectionWeights.z + ReprojectionWeights.w;
+
+    TemporalReservoir Reservoir = (TemporalReservoir)0;
+    float3 Diffuse = GetReservoirDiffuse(pixCoordUnscaled);
+
+    float Samplecount = 0;
+    float ReprojectedAmbientOcclusion = 1;
+    float ReprojectedSpatialOcclusion = 1;
+    float2 ReprojectedTemporalInvalidity = 1;
+    float3 ReprojectedColor = 0;
+    float3 ReprojectedRadiance = 0;
+    
+    if (WeightsTotal > 0.15f)
+    {
+        ReprojectionWeights /= WeightsTotal;
+        
+        float BestWeight = 0;
+        uint2 BestOffset = 0;
+        ReprojectedSpatialOcclusion = 0;
+        ReprojectedTemporalInvalidity = 0;
+        ReprojectedAmbientOcclusion = 0;
+        
+        uint ReservoirUpdateRandom = Hash3(uint3(pixCoord.xy, _FrameCount));
+        
+        UNITY_UNROLL
+        for (int i = 0; i < 4; i++)
+        {
+            // Reproject Spatial Occlusion
+            if (REPROJECT_TEMPORAL_INVALIDITY) { ReprojectedTemporalInvalidity += H_LOAD(_TemporalInvalidity_History, ReprojectionCoord + ReprojectionOffsets[i]).xy * ReprojectionWeights[i]; }
+            if (REPROJECT_SPATIAL_OCCLUSION) { ReprojectedSpatialOcclusion += H_LOAD(_SpatialOcclusion_History, ReprojectionCoord + ReprojectionOffsets[i]).x * ReprojectionWeights[i]; }
+            ReprojectedAmbientOcclusion += H_LOAD(_AmbientOcclusion_History, ReprojectionCoord + ReprojectionOffsets[i]).x * ReprojectionWeights[i];
+            ReprojectedRadiance += ApplyExposure(H_LOAD(_Radiance_History, ReprojectionCoord + ReprojectionOffsets[i]).xyz) * ReprojectionWeights[i];
+            Samplecount += H_LOAD(_Samplecount_History, ReprojectionCoord + ReprojectionOffsets[i]).x * ReprojectionWeights[i];
+            
+            // Reproject ReSTIR reservoir
+            TemporalReservoir HistoryReservoir = (TemporalReservoir)0;
+            UnpackTemporalReservoir(asuint(H_LOAD(_Reservoir, ReprojectionCoord + ReprojectionOffsets[i])), Diffuse, HistoryReservoir);
+
+            float ExposureMultiplier = GetExposureMultiplier();
+            HistoryReservoir.Wsum *= ExposureMultiplier;
+            HistoryReservoir.Wsum *= ReprojectionWeights[i];
+            HistoryReservoir.M *= ReprojectionWeights[i];
+        
+            ReservoirUpdate(HistoryReservoir, Reservoir, ReservoirUpdateRandom);
+       
+            // Select best reprojection for color
+            if (ReprojectionWeights[i] > BestWeight)
+            {
+                BestWeight = ReprojectionWeights[i];
+                BestOffset = ReprojectionOffsets[i];
+            } 
+        }
+        
+        // Reproject Color
+        if (FULL_RESOLUTION_REPROJECTION && REPROJECT_COLOR)
+        {
+            // Use original reprojection coord to avoid reading Color buffer in wrong location (scaled by _HScaleFactorSSGI / _HPreviousScaleFactorSSGI)
+            float2 ReprojectionCoord = float2(pixCoord.xy) - MotionVectors * floor(_ScreenSize.xy / _HScaleFactorSSGI);
+            ReprojectionCoord /= (HRenderScale.xy / HRenderScalePrevious.xy);
+            
+            ReprojectedColor = CurrentData.DepthRaw <= UNITY_RAW_FAR_CLIP_VALUE ? Sky : ApplyExposure(H_LOAD(_Color_History, ReprojectionCoord + BestOffset).xyz);
+            
+            float ReprojectedColorLuma = Luminance(ReprojectedColor);
+            if (ReprojectedColorLuma > LumaThreshold) 
+                ReprojectedColor *= (LumaThreshold / ReprojectedColorLuma);
+            
+        }
+    }
+    
+    Reservoir.W = Reservoir.Wsum / max(Reservoir.M * Luminance(Reservoir.Color * Diffuse), 1e-8);
+    
+    _Samplecount_Output[H_COORD(pixCoord.xy)] = Samplecount;
+    _Radiance_Output[H_COORD(pixCoord.xy)] = float4(ReprojectedRadiance.xyz, 0);
+    _Reservoir_Output[H_COORD(pixCoord.xy)] = PackTemporalReservoir(Reservoir);
+    _AmbientOcclusion_Output[H_COORD(pixCoord.xy)] = ReprojectedAmbientOcclusion;
+
+    if (!REPROJECT_COLOR)
+    {
+        ReprojectedColor = CurrentData.DepthRaw <= UNITY_RAW_FAR_CLIP_VALUE ? Sky : HBUFFER_COLOR(pixCoord.xy).xyz;
+            
+        float ReprojectedColorLuma = Luminance(ReprojectedColor);
+        if (ReprojectedColorLuma > LumaThreshold)
+            ReprojectedColor *= (LumaThreshold / ReprojectedColorLuma);
+    }
+    
+    if (FULL_RESOLUTION_REPROJECTION) { _ReprojectedColor_Output[H_COORD(pixCoordUnscaled)] = PackColorHit(ReprojectedColor, MovingPixel); }
+    if (REPROJECT_SPATIAL_OCCLUSION) { _SpatialOcclusion_Output[H_COORD(pixCoord.xy)] = ReprojectedSpatialOcclusion; }
+    if (REPROJECT_TEMPORAL_INVALIDITY) { _TemporalInvalidity_Output[H_COORD(pixCoord.xy)] = ReprojectedTemporalInvalidity; }
+}
+
+
+// ------------------------ HISTORY COPYING -----------------------
+[numthreads(8, 8, 1)]
+void CopyHistory(uint3 pixCoord : SV_DispatchThreadID)
+{
+    
+    float3 IndirectLighting = H_LOAD(_HTraceBufferGI, pixCoord.xy).xyz;
+    float3 DiffuseColor = HBUFFER_DIFFUSE(pixCoord.xy).xyz;
+    float Metallic = H_LOAD(g_HTraceGBuffer1, pixCoord.xy).x;
+
+    // No Indirect Intensity multiplier here to avoid overblown lighting through the temporal loop
+    float3 FinalIndirectLighting = IndirectLighting * DiffuseColor * (1 - Metallic);
+    
+    _Radiance_Output[H_COORD(pixCoord.xy)] = float4(HBUFFER_COLOR(pixCoord.xy).xyz + FinalIndirectLighting, 0);
+}
+
+
+// ------------------------ LUMINANCE MOMENTS GENERATION ------------------------
+[numthreads(8, 8, 1)]
+void LuminanceMomentsGeneration(uint3 pixCoord : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
+{   
+    if (groupIndex == 0)
+    { GroupMoment1 = 0; GroupMoment2 = 0;}
+    GroupMemoryBarrierWithGroupSync();
+
+    // We don't reproject this buffer even if it's from the prev. frame because it's fine for this operation
+    float2 pixCoordNDC = float2(pixCoord.xy + 0.5) * _ScreenSize.zw;
+    float3 Color = HBUFFER_DEPTH(pixCoord.xy).x <= UNITY_RAW_FAR_CLIP_VALUE ? EvaluateFallbackSky(H_GET_VIEW_VECTOR_WS(pixCoordNDC)) : ApplyExposure(H_LOAD(_Color_History, pixCoord.xy).xyz);
+    float Luma = Luminance(Color); 
+    Luma = clamp(Luma, 0.0, 30);
+
+    float Scale = 4294967295.0f / (30.0f * 30.0f);
+    uint Moment1 = uint(Luma * Scale / 64.0f);
+    uint Moment2 = uint(Luma * Luma * Scale / 64.0f);
+    
+    InterlockedAdd(GroupMoment1, Moment1);
+    InterlockedAdd(GroupMoment2, Moment2);
+    GroupMemoryBarrierWithGroupSync();
+    
+    UNITY_BRANCH
+    if (groupIndex == 0)
+    {
+        float2 Moments = 0;
+        Moments.x = float(GroupMoment1);
+        Moments.y = float(GroupMoment2);
+        
+        GroupMoment1 = uint(Moments.x / (_ScreenSize.x * _ScreenSize.y / 64));
+        GroupMoment2 = uint(Moments.y / (_ScreenSize.x * _ScreenSize.y / 64));
+        
+        uint Index = 0;
+        InterlockedAdd(_LuminanceMoments[0], GroupMoment1, Index);
+        InterlockedAdd(_LuminanceMoments[1], GroupMoment2, Index);
+    }
+}
+
+
+// ------------------------ LUMINANCE MOMENTS CLEAR ------------------------
+[numthreads(1, 1, 1)]
+void LuminanceMomentsClear(uint3 pixCoord : SV_DispatchThreadID, uint2 groupThreadID : SV_GroupThreadID)
+{
+    _LuminanceMoments[0] = 0;
+    _LuminanceMoments[1] = 0;
+}

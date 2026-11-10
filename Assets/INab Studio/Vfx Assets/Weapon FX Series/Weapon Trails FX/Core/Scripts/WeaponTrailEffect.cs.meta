@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 8b5c9fc992b8314429748bdcfc671867
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 337724
+  packageName: Procedural Weapon Trails
+  packageVersion: 2.0.1
+  assetPath: Assets/INab Studio/Vfx Assets/Weapon FX Series/Weapon Trails FX/Core/Scripts/WeaponTrailEffect.cs
+  uploadId: 1023822

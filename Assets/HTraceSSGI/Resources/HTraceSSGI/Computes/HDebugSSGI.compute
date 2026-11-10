@@ -1,0 +1,116 @@
+#pragma kernel Debug
+
+#include "../Includes/HCommonSSGI.hlsl"
+#include "../Includes/HFallbackSSGI.hlsl"
+#pragma multi_compile _ _GBUFFER_NORMALS_OCT
+
+H_TEXTURE(_SampleCountSSGI);
+H_TEXTURE(_HTraceBufferGI);
+
+H_RW_TEXTURE(float4, _Debug_Output);
+
+uint _DebugSwitch;
+uint _BuffersSwitch;
+float _IndirectLightingIntensity;
+
+void DebugFinal(uint3 pixCoord)
+{
+    if (_DebugSwitch == 1)
+    {
+        if (_BuffersSwitch == 0) // Multi
+        {
+            uint2 AuadSize = _ScreenSize.xy / 2;
+            uint2 AuadIndex = pixCoord.xy / AuadSize; // (0,0), (1,0), (0,1), (1,1)
+            uint2 LocalCoord = pixCoord.xy % AuadSize;
+            uint2 SampleCoord = LocalCoord * 2;
+        
+            float4 Output = float4(0, 0, 0, 1);
+
+            if (HBUFFER_DEPTH(SampleCoord.xy) <= UNITY_RAW_FAR_CLIP_VALUE)
+            {
+                _Debug_Output[H_COORD(pixCoord.xy)] = Output;
+                return;
+            }
+            
+            if (AuadIndex.x == 0 && AuadIndex.y == 0) // Bottom Left
+            {
+                Output = float4(HBUFFER_NORMAL_WS(SampleCoord).xyz, 1);
+            }
+            else if (AuadIndex.x == 1 && AuadIndex.y == 0) // Bottom Right
+            {
+                float2 motionVector = HBUFFER_MOTION_VECTOR(SampleCoord).xy;
+                float motionMask = HBUFFER_MOTION_MASK(SampleCoord).x;
+                Output = float4(motionVector * 5, motionMask * 0.05, 1);
+            }
+            else if (AuadIndex.x == 0 && AuadIndex.y == 1) // Top Left
+            {
+                Output = float4(H_LINEAR_EYE_DEPTH(H_LOAD(g_HTraceDepthPyramidSSGI, SampleCoord).x).xxx  / 20.0f, 1);
+            }
+            else if (AuadIndex.x == 1 && AuadIndex.y == 1) // Top Right
+            {
+                Output = float4(HBUFFER_DIFFUSE(SampleCoord).xyz, 1);
+            }
+            
+            _Debug_Output[H_COORD(pixCoord.xy)] = Output;
+            return;
+        }
+        
+        if (HBUFFER_DEPTH(pixCoord.xy) <= UNITY_RAW_FAR_CLIP_VALUE)
+        {
+            _Debug_Output[H_COORD(pixCoord.xy)] = 0;
+            return;
+        }
+        
+        if (_BuffersSwitch == 1) // Depth
+        {
+            _Debug_Output[H_COORD(pixCoord.xy)] = float4(H_LINEAR_EYE_DEPTH(H_LOAD(g_HTraceDepthPyramidSSGI, pixCoord.xy).x).xxx  / 20.0f, 1);
+        }
+        if (_BuffersSwitch == 2) // Diffuse
+        {
+            _Debug_Output[H_COORD(pixCoord.xy)] = float4(HBUFFER_DIFFUSE(pixCoord.xy).xyz, 1);
+        }
+        if (_BuffersSwitch == 3) // Normal
+        {
+            _Debug_Output[H_COORD(pixCoord.xy)] = float4(HBUFFER_NORMAL_WS(pixCoord.xy).xyz, 1);
+        }
+        if (_BuffersSwitch == 4) // Motion Mask
+        {
+            _Debug_Output[H_COORD(pixCoord.xy)] = float4(HBUFFER_MOTION_MASK(pixCoord.xy).xxx, 1);
+        }
+        if (_BuffersSwitch == 5)  // Motion Vectors
+        {
+            _Debug_Output[H_COORD(pixCoord.xy)] = float4(HBUFFER_MOTION_VECTOR(pixCoord.xy).xy * 5, 0, 1);
+        }
+    }
+
+    if (HBUFFER_DEPTH(pixCoord.xy) <= UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        float3 Sky = 0;
+        if (_DebugSwitch == 2)
+            Sky = EvaluateFallbackSky(H_GET_VIEW_VECTOR_WS((pixCoord.xy + 0.5f) * _ScreenSize.zw));
+        
+        _Debug_Output[H_COORD(pixCoord.xy)] = float4(Sky, 1);
+        return;
+    }
+    if (_DebugSwitch == 2)
+    {
+        _Debug_Output[H_COORD(pixCoord.xy)] = HBUFFER_COLOR(pixCoord.xy);
+    }
+    if (_DebugSwitch == 3)
+    {
+        _Debug_Output[H_COORD(pixCoord.xy)] = H_LOAD(_HTraceBufferGI, pixCoord.xy) * _IndirectLightingIntensity;
+    }
+    if (_DebugSwitch == 4)
+    {
+        float Samplecount = H_LOAD(_SampleCountSSGI, pixCoord.xy / _HScaleFactorSSGI).x;
+        float3 Output = Samplecount < 1 ? float3(1,0,0) : Samplecount.xxx / 16.0f;
+        _Debug_Output[H_COORD(pixCoord.xy)] = float4(Output, 1);
+    }
+}
+
+[numthreads(8, 8, 1)]
+void Debug(uint3 pixCoord : SV_DispatchThreadID)
+{
+    
+    DebugFinal(pixCoord);
+}

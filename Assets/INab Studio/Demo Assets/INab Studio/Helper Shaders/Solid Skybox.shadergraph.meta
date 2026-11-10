@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: a409df60a42cefa4892a479966f512b5
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 337724
+  packageName: Procedural Weapon Trails
+  packageVersion: 2.0.1
+  assetPath: Assets/INab Studio/Demo Assets/INab Studio/Helper Shaders/Solid Skybox.shadergraph
+  uploadId: 1023822

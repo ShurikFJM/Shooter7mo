@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cfa758cbcc84a509b4fbdd3a170a992, type: 3}
+  m_Name: Default HTrace SSGI Profile
+  m_EditorClassIdentifier: HTraceSSGI::HTraceSSGI.Scripts.Data.Private.HTraceSSGIProfile
+  GeneralSettings:
+    DebugMode: 0
+    HBuffer: 0
+    Multibounce: 1
+    ExcludeCastingMask:
+      serializedVersion: 0
+      m_Bits: 0
+    ExcludeReceivingMask:
+      serializedVersion: 0
+      m_Bits: 0
+    FallbackType: 0
+    _skyIntensity: 0.5
+    _viewBias: 0
+    _normalBias: 0.33
+    _samplingNoise: 0.1
+    _intensityMultiplier: 1
+    DenoiseFallback: 1
+  SSGISettings:
+    _backfaceLighting: 0
+    _maxRayLength: 100
+    ThicknessMode: 0
+    _thickness: 0.35
+    _falloff: 0
+    _rayCount: 4
+    _stepCount: 32
+    RefineIntersection: 1
+    FullResolutionDepth: 1
+    Checkerboard: 0
+    _renderScale: 1
+  DenoisingSettings:
+    BrightnessClamp: 1
+    _maxValueBrightnessClamp: 12
+    _maxDeviationBrightnessClamp: 2
+    HalfStepValidation: 0
+    SpatialOcclusionValidation: 1
+    TemporalLightingValidation: 1
+    TemporalOcclusionValidation: 1
+    _spatialRadius: 0.6
+    _adaptivity: 0.9
+    RecurrentBlur: 0
+    FireflySuppression: 1
+  DebugSettings:
+    ShowBowels: 0
+    ShowFullDebugLog: 0
+    HInjectionPoint: 1
+    HTraceLayer:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    TestCheckBox1: 0
+    TestCheckBox2: 0
+    TestCheckBox3: 0

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 67fcf4336f6079b499741f9409bb9602
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 336896
+  packageName: 'HTrace: Screen Space Global Illumination URP'
+  packageVersion: 1.4.0
+  assetPath: Assets/HTraceSSGI/Sample Scene/Sample Scene SSGI URP/Material Red.mat
+  uploadId: 1018308

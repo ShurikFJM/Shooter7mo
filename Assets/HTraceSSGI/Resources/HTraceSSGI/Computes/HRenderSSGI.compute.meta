@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: a19906341f84b914a88dd6966db40d78
+ComputeShaderImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 336896
+  packageName: 'HTrace: Screen Space Global Illumination URP'
+  packageVersion: 1.4.0
+  assetPath: Assets/HTraceSSGI/Resources/HTraceSSGI/Computes/HRenderSSGI.compute
+  uploadId: 1018308

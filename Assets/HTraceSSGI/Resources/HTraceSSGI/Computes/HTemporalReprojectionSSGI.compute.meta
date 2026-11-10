@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c91b570672b56b14ca13f188b77120ab
+ComputeShaderImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 336896
+  packageName: 'HTrace: Screen Space Global Illumination URP'
+  packageVersion: 1.4.0
+  assetPath: Assets/HTraceSSGI/Resources/HTraceSSGI/Computes/HTemporalReprojectionSSGI.compute
+  uploadId: 1018308

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ccf5b31bbaabf9743a4815ee150b202e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 337724
+  packageName: Procedural Weapon Trails
+  packageVersion: 2.0.1
+  assetPath: Assets/INab Studio/Common URP/URP Volume Profile.asset
+  uploadId: 1023822

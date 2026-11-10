@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 74af88849d7685d4bbef88fed36242e6
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 60072b568d64c40a485e0fc55012dc9f, type: 3}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 337724
+  packageName: Procedural Weapon Trails
+  packageVersion: 2.0.1
+  assetPath: Assets/INab Studio/Common/Subgraphs/Utilities/Depth Based Refraction.shadersubgraph
+  uploadId: 1023822

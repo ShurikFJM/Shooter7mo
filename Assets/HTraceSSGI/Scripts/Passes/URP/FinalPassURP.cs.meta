@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 38d0808db5cb55c4b820dedf6eaec8aa
+timeCreated: 1729952288
+AssetOrigin:
+  serializedVersion: 1
+  productId: 336896
+  packageName: 'HTrace: Screen Space Global Illumination URP'
+  packageVersion: 1.4.0
+  assetPath: Assets/HTraceSSGI/Scripts/Passes/URP/FinalPassURP.cs
+  uploadId: 1018308

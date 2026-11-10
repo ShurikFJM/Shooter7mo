@@ -1,0 +1,504 @@
+#pragma kernel TemporalResampling
+#pragma kernel FireflySuppression
+#pragma kernel SpatialResampling SpatialResamplingValidation = SpatialResampling 
+#pragma kernel SpatialValidation SpatialResamplingValidation = SpatialValidation VALIDATION_STAGE
+
+#include "../Includes/HRayMarchingSSGI.hlsl"
+#include "../Headers/HSpaceTransforms.hlsl"
+#include "../Headers/HDRP files/RaytracingSampling.hlsl"
+
+#pragma multi_compile _ _GBUFFER_NORMALS_OCT
+
+#pragma multi_compile _ CHECKERBOARDING
+#pragma multi_compile _ VALIDATE_SPATIAL_OCCLUSION
+#pragma multi_compile _ VALIDATE_TEMPORAL_LIGHTING
+#pragma multi_compile _ VALIDATE_TEMPORAL_OCCLUSION
+
+// Tracing keywords
+#pragma multi_compile _ REFINE_INTERSECTION
+#pragma multi_compile _ HALF_STEP_VALIDATION
+#pragma multi_compile _ FULL_RESOLUTION_DEPTH
+#pragma multi_compile LINEAR_THICKNESS UNIFORM_THICKNESS
+
+#ifdef VALIDATION_STAGE
+#define SECOND_SPATIAL_PASS 1
+#else
+#define SECOND_SPATIAL_PASS 0
+#endif
+
+#ifdef CHECKERBOARDING
+#define RESTIR_HISTORY_MAX_LENGTH 32
+#define RESTIR_HISTORY_MIN_LENGTH 1
+#else
+#define RESTIR_HISTORY_MAX_LENGTH 32
+#define RESTIR_HISTORY_MIN_LENGTH 0
+#endif
+
+H_TEXTURE(_SpatialGuidance);
+H_TEXTURE(_SampleCount);
+H_TEXTURE (_AmbientOcclusion);
+H_TEXTURE(_AmbientOcclusionReprojected);
+H_TEXTURE(_SpatialOcclusion);
+H_TEXTURE(_TemporalInvalidity);
+
+H_RW_TEXTURE(float3, _Radiance_Output);
+H_RW_TEXTURE(float2, _TemporalInvalidity_Output);
+H_RW_TEXTURE(float, _AmbientOcclusion_Output);
+H_RW_TEXTURE(float, _SpatialOcclusion_Output);
+H_RW_TEXTURE(uint2, _SpatialGuidance_Output);
+H_RW_TEXTURE(uint, _NormalDepth_HistoryOutput);
+
+StructuredBuffer<float3> _PointDistribution;
+
+float _FilterRadius;
+float _FilterAdaptivity;
+int _DenoiseFallback;
+int _RayCount;
+
+
+// ------------------------ TEMPORAL RESAMPLING + VALIDATION -------------------------
+[numthreads(8, 8, 1)]
+void TemporalResampling(uint3 pixCoord : SV_DispatchThreadID)
+{
+    
+    uint2 pixCoordUnscaled = GetUnscaledCoords(pixCoord.xy);
+    float DepthCenter = HBUFFER_DEPTH(pixCoordUnscaled);
+    
+    if (DepthCenter <= UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _ReservoirLuminance_Output[H_COORD(pixCoord.xy)] = -1;
+        _NormalDepth_HistoryOutput[H_COORD(pixCoord.xy)] = 0;
+        _ReservoirSpatial_Output[H_COORD(pixCoord.xy)] = 0;
+        _ReservoirTemporal_Output[H_COORD(pixCoord.xy)] = 0;
+        _AmbientOcclusion_Output[H_COORD(pixCoord.xy)] = 0;
+        _TemporalInvalidity_Output[H_COORD(pixCoord.xy)] = 0;
+        return;
+    }
+    
+    float3 Diffuse = GetReservoirDiffuse(pixCoordUnscaled);
+    uint ReservoirUpdateRandom = Hash3(uint3(pixCoord.xy, _FrameCount));
+
+    // Load and unpack current and reprojected reservoirs
+    TemporalReservoir TemporalRes = (TemporalReservoir)0;
+    TemporalReservoir TemporalReprojectedRes = (TemporalReservoir)0;
+    UnpackTemporalReservoir(asuint(H_LOAD(_Reservoir, pixCoord.xy)), Diffuse, TemporalRes);
+    UnpackTemporalReservoir(asuint(H_LOAD(_ReservoirReprojected, pixCoord.xy)), Diffuse, TemporalReprojectedRes);
+
+    float MaxHistoryClamp = RESTIR_HISTORY_MAX_LENGTH * max((uint(_RayCount) / 4), 1);
+    MaxHistoryClamp = clamp(MaxHistoryClamp, 0, 100);
+    
+    // Backup current Color and W for replacement
+    float4 OriginalColorW = float4(TemporalRes.Color, TemporalRes.W);
+    float SamplecountReprojected = H_LOAD(_SampleCount, pixCoord.xy).x;
+    bool CullCheckerboard = true;
+
+    float AmbientOcclusion = H_LOAD(_AmbientOcclusion, pixCoord.xy).x;
+    float AmbientOcclusionInvalidity = sign(AmbientOcclusion) < 0 ? 0 : 1;
+    
+    // Checkerboarding logic
+    if (ENABLE_TEMPORAL_RESTIR)
+    {
+        if (CHECKERBOARDING)
+        {
+            CullCheckerboard = false;
+            if (((pixCoord.x + pixCoord.y) % 2 == 0 && uint(_FrameCount) % 2 == 0) || SamplecountReprojected <= 1) CullCheckerboard = true;
+            if (((pixCoord.x + pixCoord.y) % 2 != 0 && uint(_FrameCount) % 2 != 0) || SamplecountReprojected <= 1) CullCheckerboard = true;
+    
+            if (CullCheckerboard == false)
+            {
+                TemporalRes.Color = TemporalReprojectedRes.Color;
+                TemporalRes.Wsum = TemporalReprojectedRes.Wsum;
+                TemporalRes.W = TemporalReprojectedRes.W;
+                TemporalRes.M = TemporalReprojectedRes.M;
+                TemporalRes.OriginNormal = TemporalReprojectedRes.OriginNormal;
+                TemporalRes.Direction = TemporalReprojectedRes.Direction;
+                TemporalRes.Distance = TemporalReprojectedRes.Distance;
+                TemporalRes.HitFound = TemporalReprojectedRes.HitFound;
+            }
+            else
+            { ReservoirUpdate(TemporalReprojectedRes, TemporalRes, ReservoirUpdateRandom); } 
+        }
+        else
+        { ReservoirUpdate(TemporalReprojectedRes, TemporalRes, ReservoirUpdateRandom); }
+    } 
+    
+    bool HitIsMoving = false;
+    float3 NormalCenterWS = HBUFFER_NORMAL_WS(pixCoordUnscaled);
+    float2 pixCoordNDC = (float2(pixCoordUnscaled) + 0.5f) / _ScreenSize.xy;
+    float3 PositionCenterWS = H_COMPUTE_POSITION_WS(pixCoordNDC, DepthCenter, H_MATRIX_I_VP);
+
+    bool IsOcclusionValidation = false;
+    if (!TemporalRes.HitFound && TemporalRes.Distance > 0 && TemporalRes.Distance < 1)
+        IsOcclusionValidation = true;
+    
+    bool ReplaceRadiance = false;
+    if (VALIDATE_TEMPORAL_OCCLUSION)
+    {
+        // If the distance is in [0,1] and a hit wasn't found then we store occlusion data
+        bool IsOcclusionValidation = false;
+        if (!TemporalRes.HitFound && TemporalRes.Distance > 0 && TemporalRes.Distance < 1)
+            IsOcclusionValidation = true;
+    
+        float StepJitter = Jitter((pixCoord.xy) * 2 - 1);
+        float3 RayOriginBiasedWS, RayStartPositionNDC, RayEndPositionNDC;
+        GetRayOriginAndDirectionNDC(_RayLength, DepthCenter, pixCoordNDC, PositionCenterWS, TemporalRes.Direction, NormalCenterWS, RayOriginBiasedWS, RayStartPositionNDC, RayEndPositionNDC);
+        float4 HitData = RayMarchValidation(RayStartPositionNDC, RayEndPositionNDC, StepJitter);
+        
+        if (HitData.w) 
+        {
+            float3 HitPosition = H_COMPUTE_POSITION_WS(HitData.xy, HitData.z, H_MATRIX_I_VP);
+            float HitDistance = distance(PositionCenterWS, HitPosition);
+            HitIsMoving = HBUFFER_MOTION_MASK(HitData.xy * _ScreenSize.xy);
+    
+            // We did hit something, but it was the wrong spot
+            if (abs(HitDistance - TemporalRes.Distance) / (TemporalRes.Distance + TemporalRes.Distance) > 0.2f)
+            {
+                // Clamp history (smoother reaction)
+                if (TemporalRes.HitFound && HitDistance < TemporalRes.Distance ) // && HitDistance > 0 && TemporalRes.Distance > 0)
+                    MaxHistoryClamp = 0;
+    
+                // Replace radiance (faster reaction) if it was occlusion validation
+                if (IsOcclusionValidation && HitDistance < 1) // && dot(normalize(PositionCenterWS - HitPosition), TemporalRes.Direction) < 0)
+                    ReplaceRadiance = true; 
+            }
+        }
+        else if (IsOcclusionValidation)
+        {
+            // If we didn't hit anything but should have (because it was occlusion validation).
+            ReplaceRadiance = true;
+        }
+    }
+    
+    bool SampleIsOffscreen = false;
+    if (VALIDATE_TEMPORAL_LIGHTING && TemporalRes.HitFound)
+    {
+        float LightingInvalidity = 1.0f;
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int y = -1; y <= 1; y++)
+            {
+                bool MovingHitPoint;
+                float2 HitCoordNDC = H_COMPUTE_NDC_Z(PositionCenterWS + TemporalRes.Direction * TemporalRes.Distance, H_MATRIX_VP).xy;
+                float3 HitRadiance = UnpackColorHit(asuint(H_LOAD(_Color, floor(HitCoordNDC * _ScreenSize.xy) + int2(x,y)).x), MovingHitPoint);
+                
+                HitRadiance *= ExponentialFalloff(TemporalRes.Distance, _RayLength);
+                
+                if (any(HitCoordNDC < 0) || any(HitCoordNDC > 1))
+                    SampleIsOffscreen = true;
+        
+                float3 LuminanceCurrent = (HitRadiance);
+                float3 LuminanceHistory = (TemporalRes.Color);
+                
+                float LightingDifference = length(abs(LuminanceHistory - LuminanceCurrent) / max(1e-3, LuminanceHistory + LuminanceCurrent));
+                LightingInvalidity = min(LightingInvalidity, LightingDifference);
+            }
+        }
+    
+        if (!SampleIsOffscreen)
+        MaxHistoryClamp *= (1.0f - LightingInvalidity);
+    }
+
+    if (ENABLE_EXPOSURE_CONTROL)
+    {
+        float ExposurePrevious = HGetPreviousExposureMultiplier;
+        float ExposureCurrent = HGetCurrentExposureMultiplier;
+        
+        float ExposureRatio = (ExposurePrevious * ExposureCurrent) != 0.0 ? ExposureCurrent / ExposurePrevious : 100.0;
+        
+        if (max(ExposureRatio, 1.0 / ExposureRatio) > 2.0)
+            MaxHistoryClamp = MaxHistoryClamp * HGetInversePreviousExposureMultiplier * ExposureCurrent;   
+    }
+    
+    TemporalRes.W = TemporalRes.Wsum / max(TemporalRes.M * Luminance(TemporalRes.Color * Diffuse), 1e-8);
+    TemporalRes.M = clamp(TemporalRes.M, RESTIR_HISTORY_MIN_LENGTH, max(RESTIR_HISTORY_MIN_LENGTH, MaxHistoryClamp));
+    
+    if (ReplaceRadiance || SampleIsOffscreen || (AmbientOcclusionInvalidity == 0 && !TemporalRes.HitFound))
+    {
+        MaxHistoryClamp = 0;
+        if (CullCheckerboard == true)
+        {
+            // Tried setting W and Color to 0, looks similar in certain cases, but worse in others
+            TemporalRes.W = OriginalColorW.w;
+            TemporalRes.Color = OriginalColorW.xyz;
+        }
+    }
+    
+    float Samplecount = min(8, SamplecountReprojected + 1);
+    float TemporalWeight = 1.0f - (1.0f / float(Samplecount));
+    
+    float2 TemporalInvalidity = float2(1,1);
+    if (VALIDATE_TEMPORAL_OCCLUSION || VALIDATE_TEMPORAL_LIGHTING)
+    {
+        TemporalInvalidity.x = MaxHistoryClamp / RESTIR_HISTORY_MAX_LENGTH;
+        TemporalInvalidity.y = MaxHistoryClamp < (RESTIR_HISTORY_MAX_LENGTH && HitIsMoving) ? 0 : 1;
+
+        if (TemporalRes.HitFound == false)
+        { TemporalInvalidity.x *= AmbientOcclusionInvalidity; } 
+    
+        float2 TemporalInvalidityReprojected = H_LOAD(_TemporalInvalidity, pixCoord.xy).xy;
+        TemporalInvalidity = lerp(TemporalInvalidity, TemporalInvalidityReprojected, CullCheckerboard ? TemporalWeight : 1);
+
+        _TemporalInvalidity_Output[H_COORD(pixCoord.xy)] = TemporalInvalidity;
+    }
+
+    float AmbientOcclusionReprojected = H_LOAD(_AmbientOcclusionReprojected, pixCoord.xy).x;
+    AmbientOcclusion = lerp(abs(AmbientOcclusion), AmbientOcclusionReprojected, CullCheckerboard ? TemporalWeight * pow(TemporalInvalidity.y, 2) * AmbientOcclusionInvalidity : 1);
+    
+    // Transfer data from temporal to spatial reservoir
+    SpatialReservoir SpatialRes;
+    SpatialRes.Color = TemporalRes.Color;
+    SpatialRes.W = TemporalRes.W;
+    SpatialRes.M = TemporalRes.M;
+    SpatialRes.HitFound = TemporalRes.HitFound;
+    SpatialRes.Occlusion = H_LOAD(_SpatialOcclusion, pixCoord.xy).x;
+    SpatialRes.Direction = TemporalRes.Direction;
+    SpatialRes.Distance = TemporalRes.Distance;
+    SpatialRes.Normal = NormalCenterWS;
+    SpatialRes.Depth = DepthCenter;
+    
+    _ReservoirSpatial_Output[H_COORD(pixCoord.xy)] = PackSpatialReservoir(SpatialRes);
+    _ReservoirTemporal_Output[H_COORD(pixCoord.xy)] = PackTemporalReservoir(TemporalRes);
+    _ReservoirLuminance_Output[H_COORD(pixCoord.xy)] = Luminance(TemporalRes.Color * TemporalRes.W);
+    
+    _AmbientOcclusion_Output[H_COORD(pixCoord.xy)] =  AmbientOcclusion;
+    _NormalDepth_HistoryOutput[H_COORD(pixCoord.xy)] = PackNormalDepth(NormalCenterWS, DepthCenter);
+    
+     // _Radiance_Output[H_COORD(pixCoord.xy)] = TemporalRes.Color * TemporalRes.W; 
+     // if (Luminance(TemporalRes.Color * TemporalRes.W) > 0.01)
+     // _Radiance_Output[H_COORD(pixCoord.xy)] = lerp(float3(1,0,0), TemporalRes.Color * TemporalRes.W, saturate(MaxHistoryClamp / RESTIR_HISTORY_MAX_LENGTH));
+}
+
+
+// ------------------------ FIREFLY SUPPRESSION -------------------------
+[numthreads(8, 8, 1)]
+void FireflySuppression(uint3 pixCoord : SV_DispatchThreadID)
+{
+
+    int2 pixCoordMax = _ScreenSize.xy / _HScaleFactorSSGI.xx - 1;
+    if (any(int2(pixCoord.xy) > pixCoordMax))
+        return;
+    
+    float LumaCenter = H_LOAD(_ReservoirLuminance, pixCoord.xy).x;
+    if (LumaCenter < 0)
+        return;
+
+    float2 Moments;
+    Moments.x = 0;
+    Moments.y = 0;
+
+    float TotalWeight = 0;
+    
+    UNITY_UNROLL
+    for (int x = -3; x <= 3; x++)
+    {
+        UNITY_UNROLL
+        for (int y = -3; y <= 3; y++)
+        {
+            int2 SampleCoord = pixCoord.xy + int2(x, y);
+            SampleCoord = clamp(SampleCoord, 0, pixCoordMax);
+            
+            float LumaSample = H_LOAD(_ReservoirLuminance, SampleCoord).x;
+
+            // Sky pixels are marked as -1
+            if (LumaSample < 0)
+                continue;
+            
+            Moments.x += LumaSample;
+            Moments.y += LumaSample * LumaSample;
+
+            TotalWeight += 1;
+        }
+    }
+    
+    Moments.x /= TotalWeight;
+    Moments.y /= TotalWeight;
+    
+    float Variance = (max(0.0, Moments.y - Moments.x * Moments.x));
+    float StdDev = sqrt(Variance);
+
+    float SamplecountReprojected = H_LOAD(_SampleCount, pixCoord.xy).x;
+    
+    // Avoid applying firefly suppression for the first 4 frames of temporal accumulation
+    float SamplecountScale = clamp(4 - SamplecountReprojected, 1, 2);
+    float LumaThreshold = Moments.x + SamplecountScale * StdDev;
+
+    // If Luma is above threshold - unpack the reservoir, clamp W and pack it back
+    if (LumaCenter > LumaThreshold)
+    {
+        uint4 ReservoirMW = _ReservoirSpatial_Output[H_COORD(pixCoord.xy)];
+
+        float W = f16tof32(ReservoirMW.y >> 16);
+        W *= (LumaThreshold / max(LumaCenter, 1e-5));
+
+        uint PackedW = f32tof16(W);
+        PackedW = PackedW << 16;
+
+        ReservoirMW.y &= 0x0000FFFF;
+        ReservoirMW.y |= PackedW;
+        _ReservoirSpatial_Output[H_COORD(pixCoord.xy)] = ReservoirMW; 
+    }
+}
+
+
+
+// ------------------------ SPATIAL RESAMPLING + VALIDATION -------------------------
+[numthreads(8, 8, 1)]
+void SpatialResamplingValidation(uint3 pixCoord : SV_DispatchThreadID)
+{
+    
+    uint2 pixCoordUnscaled = GetUnscaledCoords(pixCoord.xy);
+    int2 pixCoordMax = _ScreenSize.xy / _HScaleFactorSSGI.xx - 1;
+    float2 pixCoordNDC = (float2(pixCoordUnscaled) + 0.5f) * _ScreenSize.zw;
+    
+    float3 Diffuse = GetReservoirDiffuse(pixCoordUnscaled);
+    uint ReservoirUpdateRandom = Hash3(uint3(pixCoord.xy, _FrameCount));
+    SpatialReservoir Reservoir = (SpatialReservoir)0;
+    UnpackSpatialReservoir(asuint(H_LOAD(_Reservoir, pixCoord.xy)), Diffuse, Reservoir);
+
+    if (Reservoir.Depth <= UNITY_RAW_FAR_CLIP_VALUE) { return; }
+    
+    float DepthCetnerLinear = H_LINEAR_EYE_DEPTH(Reservoir.Depth);
+    float3 NormalCenterVS = H_TRANSFORM_WORLD_TO_VIEW_NORMAL(Reservoir.Normal);
+    float3 PositionCenterWS = H_COMPUTE_POSITION_WS(pixCoordNDC, Reservoir.Depth, H_MATRIX_I_VP);
+    float3 PositionCenterVS = ComputeFastViewSpacePosition(pixCoordNDC, Reservoir.Depth, DepthCetnerLinear);
+    float4 NormalPlaneVS = float4(NormalCenterVS.xyz, dot(PositionCenterVS, NormalCenterVS.xyz));
+    
+    float SamplecountReprojected = H_LOAD(_SampleCount, pixCoord.xy).x;
+    float AmbientOcclusion = H_LOAD(_AmbientOcclusion, pixCoord.xy).x;
+    
+    #if SECOND_SPATIAL_PASS
+        uint2 SpatialGuidancePacked = asuint(H_LOAD(_SpatialGuidance, pixCoord.xy).xy);
+        float AmbientOcclusionFilterScale = UnpackAmbientOcclusion(SpatialGuidancePacked.y);
+        uint SpatialGuidance = SpatialGuidancePacked.x;
+        float FilterRadius = _FilterRadius;
+        uint BufferOffset = 0;
+    #else
+        float AmbientOcclusionFilterScale = H_LOAD(_AmbientOcclusion, pixCoord.xy).x;
+    
+        if (Luminance(Reservoir.Color * Reservoir.W) < 0.001)
+        AmbientOcclusionFilterScale = AmbientOcclusionFilterScale > 0.4 ? 1 : AmbientOcclusionFilterScale;
+    
+        float FilterRadius = _FilterRadius / 2.0f;
+        uint SpatialGuidance = 0;
+        uint BufferOffset = 8;
+    #endif
+
+    float AdaptiveFilterScale;
+    if (_DenoiseFallback) AdaptiveFilterScale = min(saturate(Reservoir.Distance / 2 + !Reservoir.HitFound), AmbientOcclusionFilterScale);
+    else AdaptiveFilterScale = min(saturate(Reservoir.Distance / 2), AmbientOcclusionFilterScale);
+
+    float MinFilterRadius = lerp(0.01f, 0.1f, AmbientOcclusion);
+    float AdaptivePlaneWeight = lerp(500.0f, 100.0f, AdaptiveFilterScale);
+    
+    FilterRadius = max(MinFilterRadius, lerp(FilterRadius, FilterRadius * AdaptiveFilterScale, _FilterAdaptivity));
+    
+    float3x3 OrthoBasis = HGetLocalFrame(Reservoir.Normal);
+    float DistanceToPoint = length(H_GET_ABSOLUTE_POSITION_WS(PositionCenterWS) - H_GET_CAMERA_POSITION_WS());
+    float RadiusScale = lerp(5.0f, 50.0f, saturate(DistanceToPoint / 500.0f)); 
+    float Radius = DistanceToPoint * FilterRadius / RadiusScale;
+    float Sigma = 0.9f * Radius;
+    
+    float WeightTotal = 1;
+    float2 TemporalInvalidity = 1, TemporalInvalidityAccumulated = 1;
+
+    if (VALIDATE_TEMPORAL_OCCLUSION || VALIDATE_TEMPORAL_LIGHTING)
+    { TemporalInvalidity = H_LOAD(_TemporalInvalidity, pixCoord.xy).xy; TemporalInvalidityAccumulated = TemporalInvalidity; }
+    
+    UNITY_UNROLL
+    for (int i = 0; i < 8; i++)
+    {
+        float GuidanceAdaptivity = 1 - (0.75 * ((SpatialGuidance >> i) & 0x1));
+        float2 Point = _PointDistribution[i + BufferOffset].xy * Radius * GuidanceAdaptivity;
+  
+        float3 PositionPointWS = PositionCenterWS + OrthoBasis[0] * Point.x + OrthoBasis[1] * Point.y;
+        float2 SampleCoordNDC = H_COMPUTE_NDC_Z(PositionPointWS, H_MATRIX_VP).xy;
+        int2 SampleCoord = SampleCoordNDC * _ScreenSize.xy / _HScaleFactorSSGI;
+
+        int2 Overshoot = max(SampleCoord - pixCoordMax, 0);
+        SampleCoord = SampleCoord - 2 * Overshoot;
+        
+        SpatialReservoir SampleReservoir = (SpatialReservoir)0;
+        uint4 SampleReservoirPacked = asuint(H_LOAD(_Reservoir, SampleCoord));
+        UnpackSpatialReservoir(SampleReservoirPacked, Diffuse, SampleReservoir);
+    
+        float3 PositionSampleVS = ComputeFastViewSpacePosition(SampleCoordNDC, SampleReservoir.Depth, H_LINEAR_EYE_DEPTH(SampleReservoir.Depth));
+        float PlaneWeight = ProbePlaneWeighting(NormalPlaneVS, PositionSampleVS, DepthCetnerLinear, AdaptivePlaneWeight);
+        float NormalWeight = saturate(dot(Reservoir.Normal, SampleReservoir.Normal));
+        float GaussianWeight = GaussianWeighting(length(Point), Sigma);
+        float OcclusionWeight = 1.0f;
+
+        if (VALIDATE_SPATIAL_OCCLUSION)
+        { OcclusionWeight = exp2(-10 * abs(Reservoir.Occlusion - SampleReservoir.Occlusion)); }
+
+        float SampleWeight = PlaneWeight * NormalWeight * OcclusionWeight;
+        SpatialGuidance |= (uint(round(1 - SampleWeight)) << i);
+        
+        SampleWeight *= GaussianWeight * ENABLE_SPATIAL_RESTIR;
+        
+        SampleReservoir.Wsum *= SampleWeight;
+        SampleReservoir.M *= SampleWeight;
+        ReservoirUpdate(SampleReservoir, Reservoir, ReservoirUpdateRandom);
+
+        WeightTotal += NormalWeight * PlaneWeight * GaussianWeight;
+        
+       if (VALIDATE_TEMPORAL_OCCLUSION || VALIDATE_TEMPORAL_LIGHTING)
+       { TemporalInvalidityAccumulated += H_LOAD(_TemporalInvalidity, SampleCoord).xy * NormalWeight * PlaneWeight * GaussianWeight; }
+    }
+    
+    Reservoir.W = Reservoir.Wsum / max(Reservoir.M * Luminance(Reservoir.Color * Diffuse), 1e-8);
+    float3 FinalColor = Reservoir.Color * Reservoir.W;
+
+    if (SECOND_SPATIAL_PASS)
+    {
+        if (VALIDATE_SPATIAL_OCCLUSION) // && Reservoir.HitFound)
+        {
+            float SpatialOcclusion = 1;
+            const float3 RayDirectionWS = Reservoir.Direction;
+            float StepJitter = Jitter((pixCoord.xy) * 2 - 1);
+       
+            float3 RayOriginBiasedWS, RayStartPositionNDC, RayEndPositionNDC;
+            GetRayOriginAndDirectionNDC(min(3, Reservoir.Distance), Reservoir.Depth, pixCoordNDC, PositionCenterWS, RayDirectionWS, Reservoir.Normal, RayOriginBiasedWS, RayStartPositionNDC, RayEndPositionNDC);
+        
+            float4 HitData = RayMarchValidation(RayStartPositionNDC, RayEndPositionNDC, StepJitter);
+        
+            if (HitData.w)
+            {
+                float3 HitPosition = H_COMPUTE_POSITION_WS(HitData.xy, HitData.z, H_MATRIX_I_VP);
+                float HitDistance = distance(PositionCenterWS, HitPosition);
+                
+                if (abs(HitDistance - Reservoir.Distance) / (Reservoir.Distance + Reservoir.Distance) > 0.2)
+                {
+                    if (HitDistance < Reservoir.Distance)
+                    {
+                        SpatialOcclusion = saturate(HitDistance / 3.0f);
+
+                        if (Reservoir.HitFound)
+                        {
+                            if (dot(HBUFFER_NORMAL_WS(HitData.xy * _ScreenSize.xy), RayDirectionWS) > _BackfaceLighting)
+                            {
+                                FinalColor *= saturate(HitDistance / 1.0f); 
+                            }
+                        }
+                    }
+                }
+            }
+            
+            float Samplecount = min(16, SamplecountReprojected + 1);
+            float TemporalWeight = 1.0f - (1.0f / float(Samplecount));
+            
+            float SpatialOcclusionReprojected = H_LOAD(_SpatialOcclusion, pixCoord.xy).x;
+            SpatialOcclusion = lerp(SpatialOcclusion, SpatialOcclusionReprojected, TemporalWeight * pow(TemporalInvalidity.y, 2));
+            _SpatialOcclusion_Output[H_COORD(pixCoord.xy)] = SpatialOcclusion;
+        }
+        
+        _Radiance_Output[H_COORD(pixCoord.xy)] = FinalColor;
+    }
+    else
+    {
+        _SpatialGuidance_Output[H_COORD(pixCoord.xy)] = uint2(SpatialGuidance, PackAmbientOcclusion(AdaptiveFilterScale));
+        _Reservoir_Output[H_COORD(pixCoord.xy)] = PackSpatialReservoir(Reservoir);
+    }
+
+    if (VALIDATE_TEMPORAL_OCCLUSION || VALIDATE_TEMPORAL_LIGHTING)
+    { _TemporalInvalidity_Output[H_COORD(pixCoord.xy)] = TemporalInvalidityAccumulated / WeightTotal; }
+}

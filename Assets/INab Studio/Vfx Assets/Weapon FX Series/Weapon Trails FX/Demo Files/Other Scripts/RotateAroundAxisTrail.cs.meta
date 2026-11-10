@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 3ded6502f49f916479a9bba80cd97708
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 337724
+  packageName: Procedural Weapon Trails
+  packageVersion: 2.0.1
+  assetPath: Assets/INab Studio/Vfx Assets/Weapon FX Series/Weapon Trails FX/Demo
+    Files/Other Scripts/RotateAroundAxisTrail.cs
+  uploadId: 1023822

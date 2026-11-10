@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 6f27aac68f194270ad9353a4177fcf0a
+timeCreated: 1745943152
+AssetOrigin:
+  serializedVersion: 1
+  productId: 336896
+  packageName: 'HTrace: Screen Space Global Illumination URP'
+  packageVersion: 1.4.0
+  assetPath: Assets/HTraceSSGI/Resources/HTraceSSGI/Shaders/URP/MotionVectorsURP.shader
+  uploadId: 1018308

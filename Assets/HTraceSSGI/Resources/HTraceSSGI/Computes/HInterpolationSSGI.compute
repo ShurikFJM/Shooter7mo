@@ -1,0 +1,215 @@
+#pragma kernel Interpolation
+
+#include "../Includes/HReservoirSSGI.hlsl"
+#pragma multi_compile _ _GBUFFER_NORMALS_OCT
+
+#define INTERPOLATION_LANCZOS 0
+#define INTERPOLATION_SAMPLECOUNT 5
+#define NORMAL_REJECTION 1
+
+H_TEXTURE(_RadianceNormalDepth);
+
+H_RW_TEXTURE(float3, _Radiance_Output);
+H_RW_TEXTURE(uint, _NormalDepth_HistoryOutput);
+
+
+// ------------------------ INTERPOLATION STRUCTS -----------------------
+struct CenterPixelData
+{
+    float4  Plane;
+    float3  Normal;
+    float   DepthLinear;
+};
+
+
+// ------------------------ LANCZOS-SPECIFIC FUNCTIONS -------------------------
+float4 ProcessSample(float2 Offset, float4 DirectionLength, float2 LobeClip, float4 RadianceSample)
+{
+    float2 RotatedOffset = float2(dot(Offset, DirectionLength.xy), dot(Offset, float2(-DirectionLength.y, DirectionLength.x))) * DirectionLength.zw;
+    float DistanceDouble = min(dot(RotatedOffset, RotatedOffset), LobeClip.y);
+
+    float Window = 0.4 * DistanceDouble - 1.0;
+    float Base = LobeClip.x * DistanceDouble - 1.0;
+    Window *= Window;
+    Base *= Base;
+    Window = 1.5625 * Window - 0.5625;
+    float Weight = Window * Base * RadianceSample.w;
+
+    float4 AccumulatedData;
+    AccumulatedData.xyz = RadianceSample.xyz * Weight;
+    AccumulatedData.w = Weight;
+
+    return AccumulatedData;
+}
+
+
+void GatherData(inout float2 Direction, inout float Length, float Weight, float SampleA, float SampleB, float SampleC, float SampleD, float SampleE)
+{
+    float LengthX = max(abs(SampleD.x - SampleC.x), abs(SampleC.x - SampleB.x));
+    float DirectionX = SampleD.x - SampleB.x;
+    Direction.x += DirectionX * Weight;
+    LengthX = clamp(abs(DirectionX)/ LengthX, 0.0, 1.0);
+    LengthX *= LengthX;
+    Length += LengthX * Weight;
+
+    float LengthY = max(abs(SampleE.x - SampleC.x), abs(SampleC.x - SampleA.x));
+    float DirectionY = SampleE.x - SampleA.x;
+    Direction.y += DirectionY * Weight;
+    LengthY = clamp(abs(DirectionY) / LengthY, 0.0, 1.0);
+    LengthY *= LengthY;
+    Length += LengthY * Weight;
+}
+
+
+void AdaptiveLanczosData(float Samples[12], float2 PixelCoord, inout float4 DirLength, inout float2 LobeClip)
+{
+    float Length = 0;
+    float2 Direction = 0;
+    GatherData(Direction, Length, (1.0 -PixelCoord.x) * (1.0 -PixelCoord.y), Samples[0], Samples[5], Samples[4], Samples[9], Samples[3]);
+    GatherData(Direction, Length, PixelCoord.x * (1.0 -PixelCoord.y), Samples[1], Samples[4], Samples[9], Samples[8], Samples[6]);
+    GatherData(Direction, Length, (1.0 -PixelCoord.x) * PixelCoord.y, Samples[4], Samples[2], Samples[3], Samples[6], Samples[11]);
+    GatherData(Direction, Length, PixelCoord.x * PixelCoord.y, Samples[9], Samples[3], Samples[6], Samples[7], Samples[10]);
+    
+    float2 DirectionDouble = Direction * Direction;
+    float DirectionRadial = DirectionDouble.x + DirectionDouble.y;
+    bool IsNearZero = DirectionRadial < (1.0 / 32768.0);
+    DirectionRadial = rsqrt(DirectionRadial);
+    DirectionRadial = IsNearZero ? 1.0 : DirectionRadial;
+    Direction.x = IsNearZero ? 1.0 : Direction.x;
+    Direction *= float2(DirectionRadial, DirectionRadial);
+    Length = Length * 0.5;
+    Length *= Length;
+    
+    float Stretch = dot(Direction,Direction) / (max(abs(Direction.x), abs(Direction.y)));
+    float2 LengthDouble = float2(1.0 + (Stretch -1.0) * Length, 1.0 - 0.5 * Length);
+    float NegativeLobe = 0.5 - 0.29 * Length;
+    float Clip = 1.0 / NegativeLobe;
+    
+    DirLength = float4(Direction.xy, LengthDouble.xy);
+    LobeClip = float2(NegativeLobe, Clip);
+}
+
+
+float4 InterpolationSample(CenterPixelData CenterData, int2 SampleCoord, inout float LumaSample)
+{
+    uint2 RadianceNormalDepthPacked = asuint(H_LOAD(_RadianceNormalDepth, SampleCoord).xy);
+    float3 RadianceSample = UnpackFromR11G11B10f(RadianceNormalDepthPacked.x);
+    float4 NormalDepthSample = UnpackNormalDepth(RadianceNormalDepthPacked.y);
+
+    float3 WorldPos = ComputeFastViewSpacePosition((SampleCoord * _HScaleFactorSSGI + 0.5) / _ScreenSize.xy, NormalDepthSample.w, H_LINEAR_EYE_DEPTH(NormalDepthSample.w));
+    float PlaneWeight = ProbePlaneWeighting(CenterData.Plane, WorldPos, CenterData.DepthLinear, 5000);
+    float NormalWeight = 1;
+
+    if (NORMAL_REJECTION)
+    NormalWeight = saturate(dot(CenterData.Normal, NormalDepthSample.xyz));
+    
+    LumaSample = Luminance(RadianceSample) * PlaneWeight * NormalWeight;
+    return float4(RadianceSample, PlaneWeight * NormalWeight);
+}
+
+
+// ------------------------ INTERPOLATION -----------------------
+[numthreads(8, 8, 1)]
+void Interpolation(uint3 pixCoord : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex, uint groupID : SV_GroupID)
+{
+
+    const float DepthCenter = HBUFFER_DEPTH(pixCoord.xy).x;
+    if (DepthCenter <= 1e-7) { return; }
+    
+    const uint RadiancePacked = asuint(H_LOAD(_RadianceNormalDepth, floor(pixCoord.xy / _HScaleFactorSSGI)).x);
+    float3 RadianceCenter = UnpackFromR11G11B10f(RadiancePacked);
+   
+    const float3 NormalCenterWS = HBUFFER_NORMAL_WS(pixCoord.xy).xyz;
+    const float3 NormalCenterVS = H_TRANSFORM_WORLD_TO_VIEW_NORMAL(NormalCenterWS);
+    const float3 WorldPosCenter = ComputeFastViewSpacePosition((pixCoord.xy + 0.5f) * _ScreenSize.zw, DepthCenter, H_LINEAR_EYE_DEPTH(DepthCenter));
+    const int2 SampleOffsets[9] = {int2(0, 0), int2(1, 0), int2(0, 1), int2(-1, 0), int2(0, -1), int2(1, -1), int2(-1, 1), int2(-1, -1), int2(1, 1)};
+    
+    CenterPixelData CenterData;
+    CenterData.Normal = NormalCenterWS;
+    CenterData.Plane = float4(NormalCenterVS, dot(WorldPosCenter, NormalCenterVS));
+    CenterData.DepthLinear = H_LINEAR_EYE_DEPTH(DepthCenter);
+
+    float3 InterpolatedRadiance = 0;
+    uint Count  = 0;
+    
+    if (INTERPOLATION_LANCZOS)
+    {
+        float2 LanczosOffset = float2(pixCoord.xy) / _HScaleFactorSSGI; LanczosOffset -= floor(LanczosOffset);
+        int2 LanczosOffsetRounded = -floor(LanczosOffset );
+        int2 DownscaledRes = floor(pixCoord.xy / _HScaleFactorSSGI);
+        
+        float4 Samples[12];
+        float LumaSamples[12];
+        
+        Samples[0]  = InterpolationSample(CenterData, DownscaledRes + int2( 0,-1) + LanczosOffsetRounded, LumaSamples[0] );
+        Samples[1]  = InterpolationSample(CenterData, DownscaledRes + int2( 1,-1) + LanczosOffsetRounded, LumaSamples[1] );
+        Samples[2]  = InterpolationSample(CenterData, DownscaledRes + int2(-1, 1) + LanczosOffsetRounded, LumaSamples[2] );
+        Samples[3]  = InterpolationSample(CenterData, DownscaledRes + int2( 0, 1) + LanczosOffsetRounded, LumaSamples[3] );
+        Samples[4]  = InterpolationSample(CenterData, DownscaledRes + int2( 0, 0) + LanczosOffsetRounded, LumaSamples[4] );
+        Samples[5]  = InterpolationSample(CenterData, DownscaledRes + int2(-1, 0) + LanczosOffsetRounded, LumaSamples[5] );
+        Samples[6]  = InterpolationSample(CenterData, DownscaledRes + int2( 1, 1) + LanczosOffsetRounded, LumaSamples[6] );
+        Samples[7]  = InterpolationSample(CenterData, DownscaledRes + int2( 2, 1) + LanczosOffsetRounded, LumaSamples[7] );
+        Samples[8]  = InterpolationSample(CenterData, DownscaledRes + int2( 2, 0) + LanczosOffsetRounded, LumaSamples[8] );
+        Samples[9]  = InterpolationSample(CenterData, DownscaledRes + int2( 1, 0) + LanczosOffsetRounded, LumaSamples[9] );
+        Samples[10] = InterpolationSample(CenterData, DownscaledRes + int2( 1, 2) + LanczosOffsetRounded, LumaSamples[10]);
+        Samples[11] = InterpolationSample(CenterData, DownscaledRes + int2( 0, 2) + LanczosOffsetRounded, LumaSamples[11]);
+        
+        float4 DirLength; float2 LobeClip;
+        AdaptiveLanczosData(LumaSamples, LanczosOffset, DirLength, LobeClip);
+        
+        float3 MinNeighbourhood = min(min(Samples[4].xyz, Samples[9].xyz), min(Samples[3].xyz, Samples[6].xyz));
+        float3 MaxNeighbourhood = max(max(Samples[4].xyz, Samples[9].xyz), max(Samples[3].xyz, Samples[6].xyz));
+        
+        float4 AccumulatedData = 0;
+        AccumulatedData += ProcessSample(float2( 0,-1) -LanczosOffset, DirLength, LobeClip, Samples[0]);
+        AccumulatedData += ProcessSample(float2( 1,-1) -LanczosOffset, DirLength, LobeClip, Samples[1]);
+        AccumulatedData += ProcessSample(float2(-1, 1) -LanczosOffset, DirLength, LobeClip, Samples[2]);
+        AccumulatedData += ProcessSample(float2( 0, 1) -LanczosOffset, DirLength, LobeClip, Samples[3]);
+        AccumulatedData += ProcessSample(float2( 0, 0) -LanczosOffset, DirLength, LobeClip, Samples[4]);
+        AccumulatedData += ProcessSample(float2(-1, 0) -LanczosOffset, DirLength, LobeClip, Samples[5]);
+        AccumulatedData += ProcessSample(float2( 1, 1) -LanczosOffset, DirLength, LobeClip, Samples[6]);
+        AccumulatedData += ProcessSample(float2( 2, 1) -LanczosOffset, DirLength, LobeClip, Samples[7]);
+        AccumulatedData += ProcessSample(float2( 2, 0) -LanczosOffset, DirLength, LobeClip, Samples[8]);
+        AccumulatedData += ProcessSample(float2( 1, 0) -LanczosOffset, DirLength, LobeClip, Samples[9]);
+        AccumulatedData += ProcessSample(float2( 1, 2) -LanczosOffset, DirLength, LobeClip, Samples[10]);
+        AccumulatedData += ProcessSample(float2( 0, 2) -LanczosOffset, DirLength, LobeClip, Samples[11]);
+        
+        AccumulatedData.w = max(AccumulatedData.w, 0.1f);
+        AccumulatedData.xyz = AccumulatedData.w > 0 ?  AccumulatedData.xyz / AccumulatedData.w : RadianceCenter;
+        InterpolatedRadiance = min(MaxNeighbourhood, max(MinNeighbourhood, AccumulatedData.xyz ));
+    }
+    else
+    {
+        static const int2 SampleOffsets[9] = {int2(0, 0), int2(1, 0), int2(0, 1), int2(-1, 0), int2(0, -1), int2(1, -1), int2(-1, 1), int2(-1, -1), int2(1, 1)};
+
+        float2 pixCoordDownscaled = float2(pixCoord.xy) / _HScaleFactorSSGI;
+        float2 pixCoordDownscaledSnapped = floor(pixCoordDownscaled + 0.5 / _HScaleFactorSSGI); // or round(pixCoordDownscaled) ?
+        
+        float SigmaScale = pow(abs(_HScaleFactorSSGI - 1.0), 0.2);
+        float Sigma = lerp(0.3, 0.65, SigmaScale); 
+        float AccumulatedWeight = 0;
+        
+        for (int i = 0; i < 9; i++) 
+        {
+            float2 SampleCoord = pixCoordDownscaledSnapped + SampleOffsets[i];
+            int2 SampleCoordSnapped = clamp(SampleCoord, 0 , _ScreenSize.xy / _HScaleFactorSSGI - 1);
+        
+            float Unused;
+            float4 Sample = InterpolationSample(CenterData, SampleCoordSnapped, Unused);
+            Sample.xyz = SpatialDenoisingTonemap(Sample.xyz);
+            
+            float2 Delta = (pixCoordDownscaled - SampleCoord);
+            float DistanceSq = dot(Delta, Delta);
+            float Weight = exp(-DistanceSq / (2.0 * Sigma * Sigma));
+
+            Sample.w *= Weight;
+            InterpolatedRadiance += Sample.xyz * Sample.w;
+            AccumulatedWeight += Sample.w;
+        }
+        
+        InterpolatedRadiance = AccumulatedWeight > 0 ? SpatialDenoisingTonemapInverse((InterpolatedRadiance) / AccumulatedWeight) : RadianceCenter;
+    }
+    
+    _Radiance_Output[H_COORD(pixCoord.xy)] = InterpolatedRadiance;
+    _NormalDepth_HistoryOutput[H_COORD(pixCoord.xy)] = PackNormalDepth(NormalCenterWS, DepthCenter);
+}

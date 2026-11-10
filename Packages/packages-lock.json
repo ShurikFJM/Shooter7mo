@@ -98,6 +98,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.editorcoroutines": {
+      "version": "1.1.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.ext.nunit": {
       "version": "2.1.0",
       "depth": 1,
@@ -202,6 +209,16 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.postprocessing": {
+      "version": "3.5.4",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.imgui": "1.0.0",
+        "com.unity.modules.physics": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.probuilder": {
       "version": "6.1.2",
       "depth": 0,
@@ -262,7 +279,7 @@
     },
     "com.unity.searcher": {
       "version": "4.9.5",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
@@ -357,7 +374,7 @@
     },
     "com.unity.shadergraph": {
       "version": "17.5.0",
-      "depth": 1,
+      "depth": 0,
       "source": "builtin",
       "dependencies": {
         "com.unity.render-pipelines.core": "17.5.0",
@@ -416,6 +433,15 @@
         "com.unity.modules.audio": "1.0.0",
         "com.unity.modules.physics2d": "1.0.0",
         "com.unity.modules.physics": "1.0.0"
+      }
+    },
+    "com.unity.visualeffectgraph": {
+      "version": "17.5.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.shadergraph": "17.5.0",
+        "com.unity.render-pipelines.core": "17.5.0"
       }
     },
     "com.unity.visualscripting": {

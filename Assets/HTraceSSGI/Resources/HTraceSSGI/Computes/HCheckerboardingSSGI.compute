@@ -1,0 +1,85 @@
+#pragma kernel CheckerboardClassification
+#pragma kernel IndirectArguments
+
+#include "../Includes/HCommonSSGI.hlsl"
+#pragma multi_compile _ _GBUFFER_NORMALS_OCT
+
+H_TEXTURE(_SampleCount);
+
+RWStructuredBuffer<uint> _RayCounter;
+RWStructuredBuffer<uint> _RayCounter_Output;
+RWStructuredBuffer<uint2> _IndirectCoords_Output;
+RWStructuredBuffer<uint> _IndirectArguments_Output;
+
+uint _RayTracedCounter;
+
+groupshared uint SharedRayAllocator;
+groupshared uint SharedAllocationStartOffset;
+groupshared uint2 SharedAllocatedRays[8 * 8];
+
+
+// ------------------------ CHECKERBOARD CLASSIFICATION -------------------------
+[numthreads(8, 8, 1)]
+void CheckerboardClassification(uint3 pixCoord : SV_DispatchThreadID, uint2 groupThreadID : SV_GroupThreadID, uint groupIndex : SV_GroupIndex, uint2 groupID : SV_GroupID)
+{   
+
+    if (groupIndex == 0) SharedRayAllocator = 0;
+    GroupMemoryBarrierWithGroupSync();
+    
+    uint IndirectCoordOffsetVR = _ScreenSize.x * _ScreenSize.y * pixCoord.z / _HScaleFactorSSGI;
+    uint RayCounterOffsetVR = 2 * pixCoord.z;
+    
+    float Samplecount = H_LOAD(_SampleCount, pixCoord.xy).x;
+
+    bool CullCheckerboard = false;
+    if (((pixCoord.x + pixCoord.y) % 2 == 0 && uint(_FrameCount) % 2 == 0) || Samplecount <= 1)
+        CullCheckerboard = true;
+    if (((pixCoord.x + pixCoord.y) % 2 != 0 && uint(_FrameCount) % 2 != 0) || Samplecount <= 1)
+        CullCheckerboard = true;
+
+    if (CullCheckerboard)
+    {
+        // uint Index = 0;
+        // InterlockedAdd(_RayCounter_Output[0 + RayCounterOffsetVR], 1, Index);
+        // _IndirectCoords_Output[Index + IndirectCoordOffsetVR] = pixCoord.xy;
+        
+        uint SharedTexelOffset;
+        InterlockedAdd(SharedRayAllocator, 1, SharedTexelOffset);
+        SharedAllocatedRays[SharedTexelOffset] = pixCoord.xy; 
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+    
+    uint ThreadIndex = groupThreadID.y * 8 + groupThreadID.x;
+    
+    if (ThreadIndex == 0)
+    {
+        InterlockedAdd(_RayCounter_Output[0 + RayCounterOffsetVR], SharedRayAllocator, SharedAllocationStartOffset);
+    }
+    
+    GroupMemoryBarrierWithGroupSync();
+    
+    if (ThreadIndex < SharedRayAllocator)
+    {
+        _IndirectCoords_Output[SharedAllocationStartOffset + ThreadIndex + IndirectCoordOffsetVR] = SharedAllocatedRays[ThreadIndex];
+    }
+}
+
+
+// ------------------------ INDIRECT ARGUMENTS GENERATION -------------------------
+[numthreads(1, 1, 1)]
+void IndirectArguments(uint3 pixCoord : SV_DispatchThreadID, uint2 groupThreadID : SV_GroupThreadID, uint2 groupID : SV_GroupID)
+{
+    
+    uint IndirectArgumentsOffsetVR = 3 * pixCoord.z;
+    uint RayCounterOffsetVR = 2 * pixCoord.z;
+    
+    uint RayCounterBuffer = _RayCounter[0 + RayCounterOffsetVR];
+
+    _IndirectArguments_Output[0 + IndirectArgumentsOffsetVR] = (RayCounterBuffer + 63) / 64;
+    _IndirectArguments_Output[1 + IndirectArgumentsOffsetVR] = 1;	
+    _IndirectArguments_Output[2 + IndirectArgumentsOffsetVR] = 1;
+    
+    _RayCounter[0 + RayCounterOffsetVR] = 0;
+    _RayCounter[1 + RayCounterOffsetVR] = RayCounterBuffer;
+}

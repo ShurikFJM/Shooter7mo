@@ -299,6 +299,141 @@ MonoBehaviour:
   cropToFit:
     m_OverrideState: 1
     m_Value: 1
+--- !u!114 &-1981285050778251350
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f17acff6deb4f089d110375635d4e37, type: 3}
+  m_Name: HTraceSSGIVolume
+  m_EditorClassIdentifier: HTraceSSGI::HTraceSSGI.Scripts.Infrastructure.URP.HTraceSSGIVolume
+  active: 1
+  Enable:
+    m_OverrideState: 1
+    m_Value: 0
+  Preset: 3
+  DebugMode:
+    m_OverrideState: 1
+    m_Value: 0
+  HBuffer:
+    m_OverrideState: 1
+    m_Value: 0
+  ExcludeCastingMask:
+    m_OverrideState: 1
+    m_Value:
+      serializedVersion: 0
+      m_Bits: 0
+  ExcludeReceivingMask:
+    m_OverrideState: 1
+    m_Value:
+      serializedVersion: 0
+      m_Bits: 0
+  FallbackType:
+    m_OverrideState: 1
+    m_Value: 0
+  SkyIntensity:
+    m_OverrideState: 1
+    m_Value: 0.5
+  ViewBias:
+    m_OverrideState: 1
+    m_Value: 0.1
+  NormalBias:
+    m_OverrideState: 1
+    m_Value: 0.25
+  SamplingNoise:
+    m_OverrideState: 1
+    m_Value: 0.1
+  IntensityMultiplier:
+    m_OverrideState: 1
+    m_Value: 1
+  DenoiseFallback:
+    m_OverrideState: 1
+    m_Value: 1
+  MetallicIndirectFallback:
+    m_OverrideState: 1
+    m_Value: 0
+  AmbientOverride:
+    m_OverrideState: 1
+    m_Value: 1
+  Multibounce:
+    m_OverrideState: 1
+    m_Value: 1
+  BackfaceLighting:
+    m_OverrideState: 1
+    m_Value: 0.25
+  MaxRayLength:
+    m_OverrideState: 1
+    m_Value: 100
+  ThicknessMode:
+    m_OverrideState: 1
+    m_Value: 0
+  Thickness:
+    m_OverrideState: 1
+    m_Value: 0.35
+  Intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  Falloff:
+    m_OverrideState: 1
+    m_Value: 0
+  RayCount:
+    m_OverrideState: 1
+    m_Value: 3
+  StepCount:
+    m_OverrideState: 1
+    m_Value: 24
+  RefineIntersection:
+    m_OverrideState: 1
+    m_Value: 1
+  FullResolutionDepth:
+    m_OverrideState: 1
+    m_Value: 1
+  Checkerboard:
+    m_OverrideState: 1
+    m_Value: 0
+  RenderScale:
+    m_OverrideState: 1
+    m_Value: 1
+  BrightnessClamp:
+    m_OverrideState: 1
+    m_Value: 0
+  MaxValueBrightnessClamp:
+    m_OverrideState: 1
+    m_Value: 7
+  MaxDeviationBrightnessClamp:
+    m_OverrideState: 1
+    m_Value: 3
+  HalfStepValidation:
+    m_OverrideState: 1
+    m_Value: 0
+  SpatialOcclusionValidation:
+    m_OverrideState: 1
+    m_Value: 1
+  TemporalLightingValidation:
+    m_OverrideState: 1
+    m_Value: 1
+  TemporalOcclusionValidation:
+    m_OverrideState: 1
+    m_Value: 1
+  SpatialRadius:
+    m_OverrideState: 1
+    m_Value: 0.6
+  Adaptivity:
+    m_OverrideState: 1
+    m_Value: 0.9
+  RecurrentBlur:
+    m_OverrideState: 1
+    m_Value: 0
+  FireflySuppression:
+    m_OverrideState: 1
+    m_Value: 0
+  ShowBowels:
+    m_OverrideState: 1
+    m_Value: 0
 --- !u!114 &-1410297666881709256
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -468,6 +603,7 @@ MonoBehaviour:
   - {fileID: -6288072647309666549}
   - {fileID: 7518938298396184218}
   - {fileID: -1410297666881709256}
+  - {fileID: -1981285050778251350}
 --- !u!114 &853819529557874667
 MonoBehaviour:
   m_ObjectHideFlags: 3

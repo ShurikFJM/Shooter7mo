@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4b20d84daa4c7da478a5f7a10fead959
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 336896
+  packageName: 'HTrace: Screen Space Global Illumination URP'
+  packageVersion: 1.4.0
+  assetPath: Assets/HTraceSSGI/Sample Scene/Default HTrace SSGI Profile.asset
+  uploadId: 1018308
