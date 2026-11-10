@@ -70,7 +70,7 @@ public class RoleSelectScreenUI : MonoBehaviour
     [SerializeField] private Button _confirmButton;
 
     private Team _assignedTeam = Team.Red;
-    private PlayerRoleType _selectedRole = PlayerRoleType.Assault;
+    private PlayerRoleType _selectedRole = PlayerRoleType.Tank;
     private int _selectedRoleIndex = 0;
     private bool _hasLockedIn = false;
     private float _targetHealth;
@@ -331,6 +331,12 @@ public class RoleSelectScreenUI : MonoBehaviour
         if (_hasLockedIn) return;
         _selectedRole = role;
 
+        // Mantenemos sincronizado el RoleLobbyManager en tiempo real
+        if (RoleLobbyManager.Instance != null)
+        {
+            RoleLobbyManager.Instance.SelectRole(role);
+        }
+
         HideEquipmentTooltip();
         Update3DModel(role);
 
@@ -400,19 +406,7 @@ public class RoleSelectScreenUI : MonoBehaviour
 
         if (handSocket == null) handSocket = currentRoleModel.ModelRoot.transform;
 
-        for (int i = handSocket.childCount - 1; i >= 0; i--)
-        {
-            Transform child = handSocket.GetChild(i);
-            if (_currentEquippedWeaponInstance != null && child == _currentEquippedWeaponInstance.transform)
-            {
-                Destroy(child.gameObject);
-            }
-            else
-            {
-                child.gameObject.SetActive(false);
-            }
-        }
-
+        // Limpiar únicamente la instancia previa del arma para no desactivar huesos del soldado
         if (_currentEquippedWeaponInstance != null)
         {
             Destroy(_currentEquippedWeaponInstance);

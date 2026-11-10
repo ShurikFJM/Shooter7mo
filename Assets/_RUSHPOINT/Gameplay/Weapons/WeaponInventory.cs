@@ -10,7 +10,7 @@ public class WeaponInventory : NetworkBehaviour
     private const float _TRACER_ANIMATION_DURATION = 0.04f;
     private const float _TRACER_DISPLAY_HOLD_DURATION = 0.04f;
 
-    [SerializeField] private Transform _firstPersonWeaponHolder;
+    [Header("Holders")]
     [SerializeField] private Transform _tpPrimaryHolder;
     [SerializeField] private Transform _tpSecondaryHolder;
     [SerializeField] private GameObject _defaultMeleePrefab;
@@ -53,11 +53,6 @@ public class WeaponInventory : NetworkBehaviour
 
     public int ActiveSlotIndex => _currentSlotIndex;
 
-    private void Awake()
-    {
-        EnsureHolders();
-    }
-
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -66,32 +61,22 @@ public class WeaponInventory : NetworkBehaviour
 
         if (IsOwner)
         {
-            EnsureHolders();
-
-            if (_equippedWeapons[0] == null)
+            if (_equippedWeapons[0] != null)
             {
-                WeaponBase[] foundWeapons = GetComponentsInChildren<WeaponBase>(true);
-                for (int i = 0; i < foundWeapons.Length && i < _TOTAL_SLOTS; i++)
-                {
-                    _equippedWeapons[i] = foundWeapons[i];
-                    _weaponInstances[i] = foundWeapons[i].gameObject;
-                }
+                _hasEquippedLoadout = true;
+                _currentSlotIndex = 1;
 
-                if (_equippedWeapons[0] != null)
+                for (int i = 0; i < _weaponInstances.Length; i++)
                 {
-                    _hasEquippedLoadout = true;
-                    _currentSlotIndex = 1;
-
-                    for (int i = 0; i < _weaponInstances.Length; i++)
+                    if (_weaponInstances[i] != null)
                     {
-                        if (_weaponInstances[i] != null)
-                        {
-                            _weaponInstances[i].SetActive(i == 0);
-                        }
+                        _weaponInstances[i].SetActive(i == 0);
                     }
                 }
             }
-
+        }
+        else
+        {
             UpdateThirdPersonWeaponVisibility(_activeSlotNetworked.Value);
         }
     }
@@ -107,140 +92,159 @@ public class WeaponInventory : NetworkBehaviour
         HandleSlotInput();
     }
 
-    private void EnsureHolders()
-    {
-        if (_firstPersonWeaponHolder == null)
-        {
-            Camera playerCamera = GetComponentInChildren<Camera>(true);
-            if (playerCamera != null)
-            {
-                Transform foundHolder = playerCamera.transform.Find("WeaponHolder");
-                if (foundHolder != null) _firstPersonWeaponHolder = foundHolder;
-            }
-        }
-    }
-
     private Transform GetActiveHandSocket()
     {
-        string[] socketNames = new string[] { "WeaponContainer", "WeaponContainer_R", "Bip001 R Hand", "RightHand" };
-        Transform[] allActiveTransforms = GetComponentsInChildren<Transform>(false);
+        Animator animator = GetComponentInChildren<Animator>(true);
+        if (animator != null && animator.isHuman)
+        {
+            Transform handBone = animator.GetBoneTransform(HumanBodyBones.RightHand);
+            if (handBone != null) return handBone;
+        }
+
+        // 2. Búsqueda por nombres estándar de jerarquía
+        string[] socketNames = new string[] {
+            "WeaponContainer", "WeaponContainer_R", "mixamorig:RightHand",
+            "RightHand", "Bip001 R Hand", "Bip01 R Hand", "hand_r", "hand.r"
+        };
+        Transform[] allTransforms = GetComponentsInChildren<Transform>(true);
 
         for (int s = 0; s < socketNames.Length; s++)
         {
-            for (int i = 0; i < allActiveTransforms.Length; i++)
+            for (int i = 0; i < allTransforms.Length; i++)
             {
-                if (allActiveTransforms[i].name.Equals(socketNames[s], System.StringComparison.OrdinalIgnoreCase))
+                if (allTransforms[i].name.Equals(socketNames[s], System.StringComparison.OrdinalIgnoreCase))
                 {
-                    return allActiveTransforms[i];
+                    return allTransforms[i];
                 }
             }
         }
-        return null;
+
+        for (int i = 0; i < allTransforms.Length; i++)
+        {
+            string tName = allTransforms[i].name;
+            if (tName.IndexOf("RightHand", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                tName.IndexOf("WeaponContainer", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return allTransforms[i];
+            }
+        }
+
+        return transform;
     }
 
     public void SetupLoadoutForRole(GameObject primaryPrefab, GameObject secondaryPrefab, GameObject tpPrimaryPrefab, GameObject tpSecondaryPrefab)
     {
-        EnsureHolders();
         ClearAllWeapons();
 
-        if (IsOwner)
-        {
-            if (primaryPrefab != null) InstantiateWeaponSlot(0, primaryPrefab);
-            if (secondaryPrefab != null) InstantiateWeaponSlot(1, secondaryPrefab);
-            if (_defaultMeleePrefab != null) InstantiateWeaponSlot(2, _defaultMeleePrefab);
-        }
-
-        Transform autoSocket = GetActiveHandSocket();
-        Transform primaryHolder = _tpPrimaryHolder != null ? _tpPrimaryHolder : autoSocket;
-        Transform secondaryHolder = _tpSecondaryHolder != null ? _tpSecondaryHolder : autoSocket;
+        Transform handSocket = GetActiveHandSocket();
+        Transform primarySocket = _tpPrimaryHolder != null ? _tpPrimaryHolder : handSocket;
+        Transform secondarySocket = _tpSecondaryHolder != null ? _tpSecondaryHolder : handSocket;
 
         NetworkPlayerController pc = GetComponent<NetworkPlayerController>();
         if (pc == null) pc = GetComponentInParent<NetworkPlayerController>();
 
-        if (tpPrimaryPrefab != null && primaryHolder != null)
+        Vector3 primOffsetPos = Vector3.zero;
+        Quaternion primOffsetRot = Quaternion.identity;
+        Vector3 secOffsetPos = Vector3.zero;
+        Quaternion secOffsetRot = Quaternion.identity;
+
+        if (pc != null && pc.ActiveRole != null)
         {
-            _currentTpPrimary = Instantiate(tpPrimaryPrefab, primaryHolder);
-
-            Vector3 pos = tpPrimaryPrefab.transform.localPosition;
-            Quaternion rot = tpPrimaryPrefab.transform.localRotation;
-            if (pc != null && pc.ActiveRole != null && (pc.ActiveRole.primaryPositionOffset != Vector3.zero || pc.ActiveRole.primaryRotationOffset != Vector3.zero))
+            if (pc.ActiveRole.primaryPositionOffset != Vector3.zero || pc.ActiveRole.primaryRotationOffset != Vector3.zero)
             {
-                pos = pc.ActiveRole.primaryPositionOffset;
-                rot = Quaternion.Euler(pc.ActiveRole.primaryRotationOffset);
+                primOffsetPos = pc.ActiveRole.primaryPositionOffset;
+                primOffsetRot = Quaternion.Euler(pc.ActiveRole.primaryRotationOffset);
             }
-
-            _currentTpPrimary.transform.localPosition = pos;
-            _currentTpPrimary.transform.localRotation = rot;
-            _currentTpPrimary.transform.localScale = tpPrimaryPrefab.transform.localScale;
-
-            Collider[] cols = _currentTpPrimary.GetComponentsInChildren<Collider>(true);
-            for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
-
-            WeaponBase wb = _currentTpPrimary.GetComponentInChildren<WeaponBase>(true);
-            if (wb != null) wb.enabled = false;
-        }
-
-        if (tpSecondaryPrefab != null && secondaryHolder != null)
-        {
-            _currentTpSecondary = Instantiate(tpSecondaryPrefab, secondaryHolder);
-
-            Vector3 pos = tpSecondaryPrefab.transform.localPosition;
-            Quaternion rot = tpSecondaryPrefab.transform.localRotation;
-            if (pc != null && pc.ActiveRole != null && (pc.ActiveRole.secondaryPositionOffset != Vector3.zero || pc.ActiveRole.secondaryRotationOffset != Vector3.zero))
+            if (pc.ActiveRole.secondaryPositionOffset != Vector3.zero || pc.ActiveRole.secondaryRotationOffset != Vector3.zero)
             {
-                pos = pc.ActiveRole.secondaryPositionOffset;
-                rot = Quaternion.Euler(pc.ActiveRole.secondaryRotationOffset);
+                secOffsetPos = pc.ActiveRole.secondaryPositionOffset;
+                secOffsetRot = Quaternion.Euler(pc.ActiveRole.secondaryRotationOffset);
             }
-
-            _currentTpSecondary.transform.localPosition = pos;
-            _currentTpSecondary.transform.localRotation = rot;
-            _currentTpSecondary.transform.localScale = tpSecondaryPrefab.transform.localScale;
-
-            Collider[] cols = _currentTpSecondary.GetComponentsInChildren<Collider>(true);
-            for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
-
-            WeaponBase wb = _currentTpSecondary.GetComponentInChildren<WeaponBase>(true);
-            if (wb != null) wb.enabled = false;
         }
-
-        _hasEquippedLoadout = true;
-        _currentSlotIndex = 1;
 
         if (IsOwner)
         {
+            // Para el jugador local: instanciamos las armas funcionales directamente en la mano
+            if (primaryPrefab != null)
+            {
+                InstantiateFunctionalWeapon(0, primaryPrefab, primarySocket, primOffsetPos, primOffsetRot);
+            }
+            if (secondaryPrefab != null)
+            {
+                InstantiateFunctionalWeapon(1, secondaryPrefab, secondarySocket, secOffsetPos, secOffsetRot);
+            }
+            if (_defaultMeleePrefab != null)
+            {
+                InstantiateFunctionalWeapon(2, _defaultMeleePrefab, primarySocket, Vector3.zero, Quaternion.identity);
+            }
+
+            _hasEquippedLoadout = true;
+            _currentSlotIndex = 1;
+
             for (int i = 0; i < _weaponInstances.Length; i++)
             {
                 if (_weaponInstances[i] != null) _weaponInstances[i].SetActive(i == 0);
             }
+
             if (IsSpawned) _activeSlotNetworked.Value = 1;
         }
+        else
+        {
+            // Para jugadores remotos: instanciamos los modelos visuales en su mano
+            if (tpPrimaryPrefab != null && primarySocket != null)
+            {
+                _currentTpPrimary = Instantiate(tpPrimaryPrefab, primarySocket, false);
+                _currentTpPrimary.transform.localPosition = primOffsetPos;
+                _currentTpPrimary.transform.localRotation = primOffsetRot;
+                _currentTpPrimary.transform.localScale = tpPrimaryPrefab.transform.localScale;
 
-        UpdateThirdPersonWeaponVisibility(_activeSlotNetworked.Value);
+                Collider[] cols = _currentTpPrimary.GetComponentsInChildren<Collider>(true);
+                for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
+
+                WeaponBase wb = _currentTpPrimary.GetComponentInChildren<WeaponBase>(true);
+                if (wb != null) wb.enabled = false;
+            }
+
+            if (tpSecondaryPrefab != null && secondarySocket != null)
+            {
+                _currentTpSecondary = Instantiate(tpSecondaryPrefab, secondarySocket, false);
+                _currentTpSecondary.transform.localPosition = secOffsetPos;
+                _currentTpSecondary.transform.localRotation = secOffsetRot;
+                _currentTpSecondary.transform.localScale = tpSecondaryPrefab.transform.localScale;
+
+                Collider[] cols = _currentTpSecondary.GetComponentsInChildren<Collider>(true);
+                for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
+
+                WeaponBase wb = _currentTpSecondary.GetComponentInChildren<WeaponBase>(true);
+                if (wb != null) wb.enabled = false;
+            }
+
+            UpdateThirdPersonWeaponVisibility(_activeSlotNetworked.Value);
+        }
     }
 
-    private void InstantiateWeaponSlot(int slotArrayIndex, GameObject weaponPrefab)
+    private void InstantiateFunctionalWeapon(int slotIndex, GameObject prefab, Transform socket, Vector3 localPos, Quaternion localRot)
     {
-        if (_firstPersonWeaponHolder == null || weaponPrefab == null) return;
+        if (prefab == null || socket == null) return;
 
-        GameObject weaponInstance = Instantiate(weaponPrefab, _firstPersonWeaponHolder, false);
+        GameObject instance = Instantiate(prefab, socket, false);
+        instance.transform.localPosition = localPos;
+        instance.transform.localRotation = localRot;
+        instance.transform.localScale = prefab.transform.localScale;
 
-        weaponInstance.transform.localPosition = weaponPrefab.transform.localPosition;
-        weaponInstance.transform.localRotation = weaponPrefab.transform.localRotation;
-        weaponInstance.transform.localScale = weaponPrefab.transform.localScale;
-
-        WeaponBase weaponBase = weaponInstance.GetComponent<WeaponBase>();
-        if (weaponBase == null) weaponBase = weaponInstance.GetComponentInChildren<WeaponBase>(true);
+        WeaponBase weaponBase = instance.GetComponent<WeaponBase>();
+        if (weaponBase == null) weaponBase = instance.GetComponentInChildren<WeaponBase>(true);
 
         if (weaponBase != null)
         {
-            weaponBase.UpdateDefaultTransform(weaponPrefab.transform.localPosition, weaponPrefab.transform.localRotation);
+            weaponBase.UpdateDefaultTransform(localPos, localRot);
             weaponBase.ResetAmmo();
             weaponBase.EnsureFirePoint();
         }
 
-        _weaponInstances[slotArrayIndex] = weaponInstance;
-        _equippedWeapons[slotArrayIndex] = weaponBase;
-        weaponInstance.SetActive(false);
+        _weaponInstances[slotIndex] = instance;
+        _equippedWeapons[slotIndex] = weaponBase;
+        instance.SetActive(false);
     }
 
     private void ClearAllWeapons()
@@ -253,14 +257,6 @@ public class WeaponInventory : NetworkBehaviour
                 _weaponInstances[i] = null;
             }
             _equippedWeapons[i] = null;
-        }
-
-        if (_firstPersonWeaponHolder != null)
-        {
-            for (int i = _firstPersonWeaponHolder.childCount - 1; i >= 0; i--)
-            {
-                Destroy(_firstPersonWeaponHolder.GetChild(i).gameObject);
-            }
         }
 
         if (_currentTpPrimary != null)
@@ -315,28 +311,39 @@ public class WeaponInventory : NetworkBehaviour
 
         _currentSlotIndex = slotIndex;
 
-        for (int i = 0; i < _weaponInstances.Length; i++)
+        if (IsOwner)
         {
-            if (_weaponInstances[i] != null)
+            for (int i = 0; i < _weaponInstances.Length; i++)
             {
-                _weaponInstances[i].SetActive(i == (_currentSlotIndex - 1));
+                if (_weaponInstances[i] != null)
+                {
+                    _weaponInstances[i].SetActive(i == (_currentSlotIndex - 1));
+                }
             }
-        }
 
-        if (IsSpawned && IsOwner) _activeSlotNetworked.Value = _currentSlotIndex;
-        UpdateThirdPersonWeaponVisibility(_currentSlotIndex);
+            if (IsSpawned) _activeSlotNetworked.Value = _currentSlotIndex;
+        }
+        else
+        {
+            UpdateThirdPersonWeaponVisibility(_currentSlotIndex);
+        }
     }
 
     private void HandleActiveSlotChanged(int previousSlot, int currentSlot)
     {
-        UpdateThirdPersonWeaponVisibility(currentSlot);
+        if (!IsOwner)
+        {
+            UpdateThirdPersonWeaponVisibility(currentSlot);
+        }
     }
 
     private void UpdateThirdPersonWeaponVisibility(int activeSlot)
     {
-        bool showThirdPersonWeapon = !IsOwner;
-        if (_currentTpPrimary != null) _currentTpPrimary.SetActive(showThirdPersonWeapon && activeSlot == 1);
-        if (_currentTpSecondary != null) _currentTpSecondary.SetActive(showThirdPersonWeapon && activeSlot == 2);
+        if (_currentTpPrimary != null)
+            _currentTpPrimary.SetActive(activeSlot == 1);
+
+        if (_currentTpSecondary != null)
+            _currentTpSecondary.SetActive(activeSlot == 2);
     }
 
     public void ResetAllWeaponsAmmo()
@@ -344,12 +351,6 @@ public class WeaponInventory : NetworkBehaviour
         for (int i = 0; i < _equippedWeapons.Length; i++)
         {
             if (_equippedWeapons[i] != null) _equippedWeapons[i].ResetAmmo();
-        }
-
-        WeaponBase[] childWeapons = GetComponentsInChildren<WeaponBase>(true);
-        for (int i = 0; i < childWeapons.Length; i++)
-        {
-            if (childWeapons[i] != null) childWeapons[i].ResetAmmo();
         }
     }
 

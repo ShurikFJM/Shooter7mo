@@ -35,14 +35,20 @@ public class NetworkPlayerController : NetworkBehaviour
     [SerializeField] private RoleDatabaseSO _roleDatabase;
     [SerializeField] private GameObject _firstPersonRoot;
     [SerializeField] private GameObject _thirdPersonRoot;
+
+    [Header("Modelos de Soldados (Auto-detectables)")]
     [SerializeField] private GameObject _infantryModel;
     [SerializeField] private GameObject _gunnerModel;
     [SerializeField] private GameObject _medicModel;
+
+    [Header("Rol por defecto para Pruebas directas")]
+    [SerializeField] private PlayerRoleType _defaultTestingRole = PlayerRoleType.Tank;
+
     [SerializeField] private Transform _hitboxesRoot;
     [SerializeField] private LayerMask _obstacleLayers;
 
     public NetworkVariable<PlayerRoleType> selectedRole = new NetworkVariable<PlayerRoleType>(
-        PlayerRoleType.Assault,
+        PlayerRoleType.Tank,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
@@ -94,6 +100,7 @@ public class NetworkPlayerController : NetworkBehaviour
         _playerMovementAudio = GetComponent<PlayerMovementAudio>();
 
         EnsureRoleDatabaseReference();
+        EnsureModelReferences();
     }
 
     private void EnsureRoleDatabaseReference()
@@ -113,10 +120,45 @@ public class NetworkPlayerController : NetworkBehaviour
         }
     }
 
+    private void EnsureModelReferences()
+    {
+        Transform tpRoot = _thirdPersonRoot != null ? _thirdPersonRoot.transform : null;
+        if (tpRoot == null)
+        {
+            Transform foundTp = transform.Find("ThirdPersonModel");
+            if (foundTp != null)
+            {
+                _thirdPersonRoot = foundTp.gameObject;
+                tpRoot = foundTp;
+            }
+            else
+            {
+                tpRoot = transform;
+            }
+        }
+
+        if (_gunnerModel == null)
+        {
+            Transform t = tpRoot.Find("ToonSoldiers_gunner");
+            if (t != null) _gunnerModel = t.gameObject;
+        }
+        if (_medicModel == null)
+        {
+            Transform t = tpRoot.Find("ToonSoldiers_medic");
+            if (t != null) _medicModel = t.gameObject;
+        }
+        if (_infantryModel == null)
+        {
+            Transform t = tpRoot.Find("ToonSoldiers_infantry");
+            if (t != null) _infantryModel = t.gameObject;
+        }
+    }
+
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
         EnsureRoleDatabaseReference();
+        EnsureModelReferences();
 
         selectedRole.OnValueChanged += HandleRoleChanged;
         if (_weaponInventory == null) _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
@@ -142,8 +184,10 @@ public class NetworkPlayerController : NetworkBehaviour
 
             if (_playerCamera != null) _playerCamera.gameObject.SetActive(true);
             if (_audioListener != null) _audioListener.enabled = true;
-            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(true);
-            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(false);
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+
+            // En True First Person, el cuerpo de tercera persona se mantiene activo para el jugador
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
             if (localPlayerCanvas != null) localPlayerCanvas.gameObject.SetActive(false);
 
             if (CursorStateManager.Instance != null)
@@ -176,7 +220,7 @@ public class NetworkPlayerController : NetworkBehaviour
             Camera lobbyCamera = GameObject.FindWithTag(LOBBY_CAMERA_TAG)?.GetComponent<Camera>();
             if (lobbyCamera != null) lobbyCamera.gameObject.SetActive(false);
 
-            PlayerRoleType intendedRole = selectedRole.Value;
+            PlayerRoleType intendedRole = _defaultTestingRole;
             if (RoleSelectScreenUI.instance != null && RoleSelectScreenUI.instance.hasLockedIn)
             {
                 intendedRole = RoleSelectScreenUI.instance.SelectedRole;
@@ -184,6 +228,10 @@ public class NetworkPlayerController : NetworkBehaviour
             else if (CustomLobbyManager.SavedRoles != null && CustomLobbyManager.SavedRoles.TryGetValue(NetworkManager.Singleton.LocalClientId, out PlayerRoleType savedRole))
             {
                 intendedRole = savedRole;
+            }
+            else if (selectedRole.Value != PlayerRoleType.Assault)
+            {
+                intendedRole = selectedRole.Value;
             }
 
             RequestSelectRoleServerRpc(intendedRole);
@@ -306,6 +354,16 @@ public class NetworkPlayerController : NetworkBehaviour
         yield return null;
     }
 
+    public void SetFirstPersonVisibility(bool visible)
+    {
+        if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(visible);
+        if (_firstPersonRoot != null) _firstPersonRoot.SetActive(visible);
+        if (_weaponInventory != null && _weaponInventory.ActiveWeapon != null)
+        {
+            _weaponInventory.ActiveWeapon.gameObject.SetActive(visible);
+        }
+    }
+
     public override void OnNetworkDespawn()
     {
         selectedRole.OnValueChanged -= HandleRoleChanged;
@@ -339,6 +397,8 @@ public class NetworkPlayerController : NetworkBehaviour
     private void ApplyRoleData(PlayerRoleType roleType)
     {
         EnsureRoleDatabaseReference();
+        EnsureModelReferences();
+
         if (_roleDatabase == null) return;
 
         _activeRole = _roleDatabase.GetRole(roleType);
@@ -355,9 +415,19 @@ public class NetworkPlayerController : NetworkBehaviour
             }
         }
 
+        // Activación del modelo correspondiente al rol
         if (_infantryModel != null) _infantryModel.SetActive(roleType == PlayerRoleType.Assault);
         if (_gunnerModel != null) _gunnerModel.SetActive(roleType == PlayerRoleType.Tank);
         if (_medicModel != null) _medicModel.SetActive(roleType == PlayerRoleType.Medic);
+
+        // Salvaguarda: si por algún motivo ninguno quedó activo, encendemos el Gunner
+        bool anyActive = (_infantryModel != null && _infantryModel.activeSelf) ||
+                         (_gunnerModel != null && _gunnerModel.activeSelf) ||
+                         (_medicModel != null && _medicModel.activeSelf);
+        if (!anyActive && _gunnerModel != null)
+        {
+            _gunnerModel.SetActive(true);
+        }
 
         PlayerTeamVisualizer visualizer = GetComponent<PlayerTeamVisualizer>();
         if (visualizer != null)
@@ -468,9 +538,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
         if (currentWeapon.CanFire())
         {
-            if (currentWeapon is HealingPistol healingPistol) healingPistol.PerformHealShot();
-            else currentWeapon.Fire();
-
+            currentWeapon.Fire();
             if (!isAutomatic) _isFirePressed = false;
         }
     }
@@ -511,7 +579,7 @@ public class NetworkPlayerController : NetworkBehaviour
             _isWalkingSlow = false;
 
             if (_characterController != null) _characterController.enabled = false;
-            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(false);
 
             if (_weaponInventory != null && _weaponInventory.ActiveWeapon != null)
             {
@@ -522,15 +590,6 @@ public class NetworkPlayerController : NetworkBehaviour
             {
                 SpectatorManager.Instance.StartSpectating(_playerTeam.CurrentTeam.Value, _playerCamera, transform, _defaultCameraLocalY);
             }
-        }
-    }
-
-    public void SetFirstPersonVisibility(bool visible)
-    {
-        if (_firstPersonRoot != null) _firstPersonRoot.SetActive(visible);
-        if (_weaponInventory != null && _weaponInventory.ActiveWeapon != null)
-        {
-            _weaponInventory.ActiveWeapon.gameObject.SetActive(visible);
         }
     }
 
@@ -552,15 +611,12 @@ public class NetworkPlayerController : NetworkBehaviour
         _hasInitiatedSpectate = false;
         _isWalkingSlow = false;
 
+        if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
+
         if (IsOwner)
         {
-            SetFirstPersonVisibility(true);
             if (_playerCamera != null) _playerCamera.gameObject.SetActive(true);
             if (_characterController != null) _characterController.enabled = true;
-        }
-        else
-        {
-            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
         }
     }
 
@@ -808,16 +864,13 @@ public class NetworkPlayerController : NetworkBehaviour
         _hasInitiatedSpectate = false;
         _isWalkingSlow = false;
 
+        if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
+
         if (IsOwner)
         {
             if (SpectatorManager.Instance != null) SpectatorManager.Instance.StopSpectating();
-            SetFirstPersonVisibility(true);
             if (_playerCamera != null) _playerCamera.gameObject.SetActive(true);
             if (_characterController != null) _characterController.enabled = true;
-        }
-        else
-        {
-            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
         }
     }
 

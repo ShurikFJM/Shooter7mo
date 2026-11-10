@@ -25,7 +25,7 @@ MonoBehaviour:
   secondaryWeaponPrefab: {fileID: 2375206337446572558, guid: 8e628a0b5f572d447ba72a8c12ce0c55, type: 3}
   tpPrimaryWeaponPrefab: {fileID: 1551484714283485593, guid: 545d3b2e725204543baff55b7304ff68, type: 3}
   tpSecondaryWeaponPrefab: {fileID: 2375206337446572558, guid: 8e628a0b5f572d447ba72a8c12ce0c55, type: 3}
-  thirdPersonModelPrefab: {fileID: 133738, guid: 482fb19898afc38419a5799f9a76bf75, type: 3}
+  thirdPersonModelPrefab: {fileID: 2813004596553635260, guid: 50e46b059c17e4e4b8ad58ed2381c7b8, type: 3}
   primaryPositionOffset: {x: 0, y: 0, z: 0}
   primaryRotationOffset: {x: 0, y: 0, z: 0}
   secondaryPositionOffset: {x: 0, y: 0, z: 0}
