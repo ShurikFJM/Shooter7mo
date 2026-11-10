@@ -180,6 +180,7 @@ public class WeaponInventory : NetworkBehaviour
         {
             weaponBase.UpdateDefaultTransform(weaponPrefab.transform.localPosition, weaponPrefab.transform.localRotation);
             weaponBase.ResetAmmo();
+            weaponBase.EnsureFirePoint();
         }
 
         _weaponInstances[slotArrayIndex] = weaponInstance;
@@ -360,7 +361,6 @@ public class WeaponInventory : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void BroadcastShootClientRpc(Vector3 hitPoint, Vector3 hitNormal, byte impactType)
     {
-        // El tirador local ya dibujó su propio trazador, sonido e impactos en WeaponBase.Shoot()
         if (IsOwner) return;
 
         WeaponData activeWeaponData = GetActiveWeaponDataSynced();
@@ -401,7 +401,16 @@ public class WeaponInventory : NetworkBehaviour
         Transform thirdPersonWeapon = slot == 1 ? (_currentTpPrimary != null ? _currentTpPrimary.transform : null) :
                                       slot == 2 ? (_currentTpSecondary != null ? _currentTpSecondary.transform : null) : null;
 
-        Vector3 tracerStart = thirdPersonWeapon != null ? thirdPersonWeapon.position : (transform.position + (Vector3.up * 1.5f));
+        Vector3 tracerStart;
+        if (thirdPersonWeapon != null)
+        {
+            Transform tpFp = thirdPersonWeapon.Find("FirePoint");
+            tracerStart = tpFp != null ? tpFp.position : thirdPersonWeapon.position;
+        }
+        else
+        {
+            tracerStart = transform.position + (Vector3.up * 1.5f);
+        }
 
         if (PoolManager.Instance != null)
         {

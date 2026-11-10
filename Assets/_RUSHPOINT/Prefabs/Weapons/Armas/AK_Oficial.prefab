@@ -139,9 +139,9 @@ Transform:
   m_GameObject: {fileID: 6019295611145176075}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.12753333, y: 0.23, z: 4.62}
-  m_LocalScale: {x: 3.333333, y: 3.333333, z: 3.333333}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: 0, y: 0.265, z: 4.483}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 6332633925144325434}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -472,8 +472,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
   ShowTopMostFoldoutHeaderGroup: 1
   weaponData: {fileID: 11400000, guid: 7cfe7f91b1b9ec34d9ae422b379a66c7, type: 2}
-  muzzleFlashPrefab: {fileID: 3554205152219781041, guid: 1528b682d16df25418a61fb0294bdf33, type: 3}
-  bulletTracerPrefab: {fileID: 7680071452175567256, guid: 5f905e88f05ce4547811846a4c8ac8cb, type: 3}
+  muzzleFlashPrefab: {fileID: 1291653246976116, guid: 8a59b00a5849b5c429774bed6cc7a086, type: 3}
+  bulletTracerPrefab: {fileID: 6775555633505714487, guid: beeeff3cf7fbf2044af81125d54eb20c, type: 3}
   _firePoint: {fileID: 7104995611434977514}
   _weaponModelTransform: {fileID: 6332633925144325434}
   _weaponAnimator: {fileID: 0}

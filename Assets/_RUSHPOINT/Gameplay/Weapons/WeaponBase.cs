@@ -23,7 +23,7 @@ public class WeaponBase : NetworkBehaviour
     private const float MOVEMENT_BASE_SPREAD_OFFSET = 0.004f;
     private const float AIR_BASE_SPREAD_OFFSET = 0.012f;
     private const float RESET_COOLDOWN_PADDING = 0.1f;
-    private const float MUZZLE_FLASH_DURATION = 0.08f;
+    private const float MUZZLE_FLASH_DURATION = 0.035f;
     private const float IMPACT_LIFETIME = 8f;
     private const float PARTICLE_IMPACT_LIFETIME = 0.6f;
     private const float TRACER_DURATION = 0.04f;
@@ -84,6 +84,7 @@ public class WeaponBase : NetworkBehaviour
             _defaultLocalRotation = _weaponModelTransform.localRotation;
         }
 
+        EnsureFirePoint();
         PreloadAddressableVfx();
     }
 
@@ -91,10 +92,7 @@ public class WeaponBase : NetworkBehaviour
     {
         if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
 
-        if (_firePoint == null && _playerController != null && _playerController.PlayerCamera != null)
-        {
-            _firePoint = _playerController.PlayerCamera.transform;
-        }
+        EnsureFirePoint();
 
         if (!_isAmmoInitialized)
         {
@@ -119,10 +117,7 @@ public class WeaponBase : NetworkBehaviour
             ResetAmmo();
         }
 
-        if (_firePoint == null && _playerController != null && _playerController.PlayerCamera != null)
-        {
-            _firePoint = _playerController.PlayerCamera.transform;
-        }
+        EnsureFirePoint();
     }
 
     private void OnDisable()
@@ -136,6 +131,40 @@ public class WeaponBase : NetworkBehaviour
         if (_muzzleHandle.IsValid()) Addressables.Release(_muzzleHandle);
         if (_wallHandle.IsValid()) Addressables.Release(_wallHandle);
         if (_playerHandle.IsValid()) Addressables.Release(_playerHandle);
+    }
+
+    public void EnsureFirePoint()
+    {
+        if (_firePoint != null && _firePoint.IsChildOf(transform))
+        {
+            return;
+        }
+
+        Transform foundFp = transform.Find("FirePoint");
+        if (foundFp == null)
+        {
+            Transform[] children = GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < children.Length; i++)
+            {
+                if (children[i].name.Equals("FirePoint", System.StringComparison.OrdinalIgnoreCase) ||
+                    children[i].name.Equals("MuzzlePoint", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    foundFp = children[i];
+                    break;
+                }
+            }
+        }
+
+        if (foundFp != null)
+        {
+            _firePoint = foundFp;
+            return;
+        }
+
+        if (_playerController != null && _playerController.PlayerCamera != null)
+        {
+            _firePoint = _playerController.PlayerCamera.transform;
+        }
     }
 
     private void PreloadAddressableVfx()
@@ -459,6 +488,8 @@ public class WeaponBase : NetworkBehaviour
 
     protected virtual void CreateTracerVisual(Vector3 targetPoint)
     {
+        EnsureFirePoint();
+
         GameObject muzzleVfx = GetResolvedMuzzleFlashPrefab();
         if (muzzleVfx != null && _firePoint != null)
         {
@@ -512,46 +543,72 @@ public class WeaponBase : NetworkBehaviour
         return _loadedPlayerVfx;
     }
 
-    private static IEnumerator RenderTracerRoutine(Vector3 startPoint, Vector3 endPoint)
+    private IEnumerator RenderTracerRoutine(Vector3 start, Vector3 end)
     {
-        if (PoolManager.Instance == null) yield break;
-
-        LineRenderer tracer = PoolManager.Instance.GetTracer(null);
-        if (tracer == null) yield break;
-
-        tracer.enabled = true;
-        tracer.positionCount = 2;
-        tracer.SetPosition(0, startPoint);
-        tracer.SetPosition(1, startPoint);
-
-        float duration = TRACER_DURATION;
-        float elapsedTime = 0f;
-
-        while (elapsedTime < duration)
+        if (bulletTracerPrefab != null)
         {
-            elapsedTime += Time.deltaTime;
-            Vector3 currentPos = Vector3.Lerp(startPoint, endPoint, elapsedTime / duration);
+            Vector3 direction = (end - start).normalized;
+            Quaternion rotation = direction.sqrMagnitude > 0.001f ? Quaternion.LookRotation(direction) : Quaternion.identity;
+            GameObject tracerObj = Instantiate(bulletTracerPrefab, start, rotation);
 
-            if (tracer != null && tracer.positionCount >= 2)
+            Light tracerLight = tracerObj.GetComponentInChildren<Light>();
+            if (tracerLight != null)
             {
-                tracer.SetPosition(1, currentPos);
+                tracerLight.enabled = true;
             }
 
-            yield return null;
+            float duration = TRACER_DURATION;
+            float elapsedTime = 0f;
+
+            while (elapsedTime < duration)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsedTime / duration);
+
+                if (tracerObj != null)
+                {
+                    tracerObj.transform.position = Vector3.Lerp(start, end, t);
+                }
+
+                yield return null;
+            }
+
+            if (tracerObj != null)
+            {
+                tracerObj.transform.position = end;
+                Destroy(tracerObj, 0.04f);
+            }
         }
-
-        if (tracer != null)
+        else if (PoolManager.Instance != null)
         {
-            if (tracer.positionCount >= 2)
+            LineRenderer lineRenderer = PoolManager.Instance.GetTracer(null);
+            if (lineRenderer != null)
             {
-                tracer.SetPosition(1, endPoint);
+                lineRenderer.enabled = true;
+                lineRenderer.positionCount = 2;
+                lineRenderer.SetPosition(0, start);
+                lineRenderer.SetPosition(1, start);
+
+                float duration = TRACER_DURATION;
+                float elapsedTime = 0f;
+
+                while (elapsedTime < duration)
+                {
+                    elapsedTime += Time.deltaTime;
+                    Vector3 currentPos = Vector3.Lerp(start, end, elapsedTime / duration);
+                    if (lineRenderer != null) lineRenderer.SetPosition(1, currentPos);
+                    yield return null;
+                }
+
+                if (lineRenderer != null)
+                {
+                    lineRenderer.SetPosition(1, end);
+                    yield return new WaitForSeconds(0.02f);
+                    lineRenderer.positionCount = 0;
+                    lineRenderer.enabled = false;
+                    PoolManager.Instance.ReturnTracer(lineRenderer);
+                }
             }
-
-            yield return new WaitForSeconds(0.02f);
-
-            tracer.positionCount = 0;
-            tracer.enabled = false;
-            PoolManager.Instance.ReturnTracer(tracer);
         }
     }
 
