@@ -11927,6 +11927,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 71cb56016a0b044f2abc80fb8d9c12fe, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 71cb56016a0b044f2abc80fb8d9c12fe, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 635f43369a9cffe4cba7d5970b9cbedd, type: 2}
@@ -11935,9 +11939,25 @@ PrefabInstance:
       value: GM-Pyramid
       objectReference: {fileID: 0}
     - target: {fileID: 3451118302482216456, guid: 71cb56016a0b044f2abc80fb8d9c12fe, type: 3}
+      propertyPath: m_Convex
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3451118302482216456, guid: 71cb56016a0b044f2abc80fb8d9c12fe, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3451118302482216456, guid: 71cb56016a0b044f2abc80fb8d9c12fe, type: 3}
       propertyPath: m_Material
       value: 
       objectReference: {fileID: 13400000, guid: bafa85d0bd8396c408af510618e1bbde, type: 2}
+    - target: {fileID: 3451118302482216456, guid: 71cb56016a0b044f2abc80fb8d9c12fe, type: 3}
+      propertyPath: m_ExcludeLayers.m_Bits
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3451118302482216456, guid: 71cb56016a0b044f2abc80fb8d9c12fe, type: 3}
+      propertyPath: m_IncludeLayers.m_Bits
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
