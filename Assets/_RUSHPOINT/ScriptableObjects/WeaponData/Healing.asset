@@ -45,7 +45,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 8225cf62be123364a832f3e3e49feafb, type: 3}
   - {fileID: 8300000, guid: c54786afdfd077b43afaa4b5e0cbe1a3, type: 3}
   - {fileID: 8300000, guid: da27864c80a04d04d973a8b788819c26, type: 3}
-  playerImpactSounds: []
+  playerImpactSounds:
+  - {fileID: 8300000, guid: 97999aa81b2749f4f81992ed13a0ab6e, type: 3}
   impactPrefabs: []
   muzzleFlashVfxPrefab: {fileID: 3554205152219781041, guid: 1528b682d16df25418a61fb0294bdf33, type: 3}
   wallImpactVfxPrefab: {fileID: 5113593326121056917, guid: cfa97543cda1746489b3070b6a724fb4, type: 3}

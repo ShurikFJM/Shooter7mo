@@ -10,6 +10,8 @@ public class PlayerTeamVisualizer : NetworkBehaviour
     [SerializeField] private Material _terroristMaterial;
     [SerializeField] private Material _counterTerroristMaterial;
 
+    private Transform _headBone;
+
     private void Awake()
     {
         if (_playerTeam == null)
@@ -21,6 +23,27 @@ public class PlayerTeamVisualizer : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+
+        if (IsOwner)
+        {
+            Animator anim = GetComponentInChildren<Animator>(true);
+            if (anim != null && anim.isHuman)
+            {
+                _headBone = anim.GetBoneTransform(HumanBodyBones.Head);
+            }
+            else
+            {
+                Transform[] bones = GetComponentsInChildren<Transform>(true);
+                for (int i = 0; i < bones.Length; i++)
+                {
+                    if (bones[i].name.IndexOf("Head", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        _headBone = bones[i];
+                        break;
+                    }
+                }
+            }
+        }
 
         if (_playerTeam != null)
         {
@@ -37,6 +60,14 @@ public class PlayerTeamVisualizer : NetworkBehaviour
         }
 
         base.OnNetworkDespawn();
+    }
+
+    private void LateUpdate()
+    {
+        if (IsOwner && _headBone != null)
+        {
+            _headBone.localScale = Vector3.zero;
+        }
     }
 
     public void EnsureRenderers(bool force = false)
@@ -75,23 +106,12 @@ public class PlayerTeamVisualizer : NetworkBehaviour
 
     public void ApplyTeamVisuals(Team team)
     {
-        if (team == Team.Neutral)
-        {
-            if (_teamMeshRenderers != null)
-            {
-                for (int i = 0; i < _teamMeshRenderers.Length; i++)
-                {
-                    if (_teamMeshRenderers[i] != null) _teamMeshRenderers[i].enabled = false;
-                }
-            }
-            return;
-        }
-
-        Material targetMaterial = team == Team.Red ? _terroristMaterial : _counterTerroristMaterial;
-        if (targetMaterial == null) return;
+        Material targetMaterial = null;
+        if (team == Team.Red) targetMaterial = _terroristMaterial;
+        else if (team == Team.Blue) targetMaterial = _counterTerroristMaterial;
+        else targetMaterial = _counterTerroristMaterial; 
 
         EnsureRenderers();
-
         if (_teamMeshRenderers == null) return;
 
         for (int i = 0; i < _teamMeshRenderers.Length; i++)
@@ -108,18 +128,10 @@ public class PlayerTeamVisualizer : NetworkBehaviour
                 continue;
             }
 
-            rend.material = targetMaterial;
+            if (targetMaterial != null) rend.material = targetMaterial;
 
-            if (IsOwner)
-            {
-                rend.enabled = true;
-                rend.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
-            }
-            else
-            {
-                rend.enabled = true;
-                rend.shadowCastingMode = ShadowCastingMode.On;
-            }
+            rend.enabled = true;
+            rend.shadowCastingMode = ShadowCastingMode.On;
         }
     }
 }

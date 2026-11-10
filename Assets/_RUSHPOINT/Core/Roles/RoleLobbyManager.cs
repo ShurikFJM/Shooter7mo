@@ -14,7 +14,7 @@ public class RoleLobbyManager : NetworkBehaviour
     private readonly Dictionary<ulong, PlayerRoleType> _selectedRoles = new Dictionary<ulong, PlayerRoleType>();
     private readonly Dictionary<ulong, Team> _selectedTeams = new Dictionary<ulong, Team>();
     private readonly HashSet<ulong> _lockedInClients = new HashSet<ulong>();
-    private PlayerRoleType _localSelectedRole = PlayerRoleType.Assault;
+    private PlayerRoleType _localSelectedRole = PlayerRoleType.Tank;
 
     private void Awake()
     {
@@ -25,22 +25,11 @@ public class RoleLobbyManager : NetworkBehaviour
         }
 
         Instance = this;
-
-        if (_lockInButton != null)
-        {
-            _lockInButton.onClick.AddListener(OnLockInClicked);
-        }
     }
 
     public override void OnDestroy()
     {
-        if (_lockInButton != null)
-        {
-            _lockInButton.onClick.RemoveListener(OnLockInClicked);
-        }
-
         if (Instance == this) Instance = null;
-
         base.OnDestroy();
     }
 
@@ -75,25 +64,6 @@ public class RoleLobbyManager : NetworkBehaviour
         }
 
         LockInRoleAndTeamServerRpc(role, team);
-    }
-
-    private void OnLockInClicked()
-    {
-        if (NetworkManager.Singleton == null) return;
-
-        if (_lockInButton != null)
-        {
-            _lockInButton.interactable = false;
-        }
-
-        Team localTeam = Team.Red;
-        if (CustomLobbyManager.Instance != null)
-        {
-            localTeam = CustomLobbyManager.Instance.GetPlayerAssignedTeam(NetworkManager.Singleton.LocalClientId);
-            if (localTeam == Team.Neutral) localTeam = Team.Red;
-        }
-
-        ConfirmRoleSelection(_localSelectedRole, localTeam);
     }
 
     [Rpc(SendTo.Server)]

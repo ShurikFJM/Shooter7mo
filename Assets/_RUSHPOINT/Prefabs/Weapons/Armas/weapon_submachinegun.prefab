@@ -114,7 +114,7 @@ AudioSource:
   m_GameObject: {fileID: 1551484714283485593}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 149552297876152156, guid: 2157669b2e7d95f4ca5cbc4c019a0121, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
@@ -255,7 +255,7 @@ MonoBehaviour:
   _wallImpactParticlePrefab: {fileID: 0}
   _playerImpactParticlePrefab: {fileID: 0}
   _wallHitFallbackSound: {fileID: 0}
-  _playerHitFallbackSound: {fileID: 0}
+  _playerHitFallbackSound: {fileID: 8300000, guid: 97999aa81b2749f4f81992ed13a0ab6e, type: 3}
 --- !u!4 &1551484714283914681 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: a59670924a782844eba004b28831683c, type: 3}

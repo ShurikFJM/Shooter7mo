@@ -671,6 +671,11 @@ public class WeaponBase : NetworkBehaviour
     {
         if (_isReloading || weaponData == null || _currentAmmo == weaponData.maxAmmo || _reserveAmmo <= 0) return;
 
+        if (!gameObject.activeInHierarchy)
+        {
+            gameObject.SetActive(true);
+        }
+
         _isReloading = true;
 
         if (_weaponAnimator != null)
@@ -685,6 +690,7 @@ public class WeaponBase : NetworkBehaviour
 
         _reloadCoroutine = StartCoroutine(ReloadCoroutine());
     }
+
 
     private IEnumerator ReloadCoroutine()
     {
