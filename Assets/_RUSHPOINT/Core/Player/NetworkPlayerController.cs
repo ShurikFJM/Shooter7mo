@@ -372,7 +372,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private IEnumerator ReturnToMainMenuRoutine()
     {
-        Time.timeScale = 1f;
+        // Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
