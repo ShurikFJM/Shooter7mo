@@ -47,7 +47,7 @@ public class NetworkPlayerController : NetworkBehaviour
     [SerializeField] private Transform _hitboxesRoot;
     [SerializeField] private LayerMask _obstacleLayers;
 
-    [Header("Animación del Soldado")]
+    [Header("AnimaciÃ³n del Soldado")]
     private Animator _activeAnimator;
 
     public NetworkVariable<PlayerRoleType> selectedRole = new NetworkVariable<PlayerRoleType>(
@@ -493,7 +493,7 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (IsOwner)
         {
-            HandleDeathCheck();
+            HandleDeathCheck(); // move to event
             if (SpectatorManager.Instance != null && SpectatorManager.Instance.isSpectating) return;
 
             if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
@@ -879,7 +879,7 @@ public class NetworkPlayerController : NetworkBehaviour
             _cameraRoot.localPosition = targetCameraPosition;
         }
 
-        // Mantenemos la escala del modelo en 1 sin deformarlo: la animación se encarga de la postura
+        // Mantenemos la escala del modelo en 1 sin deformarlo: la animaciÃ³n se encarga de la postura
         if (_thirdPersonRoot != null && _thirdPersonRoot.transform.localScale != Vector3.one)
         {
             _thirdPersonRoot.transform.localScale = Vector3.one;
