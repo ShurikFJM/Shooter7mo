@@ -20,7 +20,7 @@ MonoBehaviour:
   maxAmmo: 6
   maxReserveMagazines: 3
   reloadTime: 3
-  ammoIcon: {fileID: 0}
+  ammoIcon: {fileID: 2800000, guid: 6892e423a831f6440b1448e528d9da45, type: 3}
   recoilResetTime: 0.3
   recoilPattern:
   - {x: 0, y: 0}

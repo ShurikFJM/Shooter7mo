@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -10,9 +11,9 @@ public class LoadingScreen : MonoBehaviour
     private const string DEFAULT_MAP_NAME = "HEAVEN";
     private const string DEFAULT_MODE_NAME = "SEARCH & DESTROY";
     private const string TARGET_SCENE_NAME = "RUSPOINT";
-    private const float MAX_DURATION_TIMEOUT = 4.0f;
+    private const float MAX_DURATION_TIMEOUT = 3.5f;
     private const float DISMISS_HOLD_DELAY = 0.15f;
-    private const float SAFETY_CLEANUP_DELAY = 1.5f;
+    private const float SAFETY_CLEANUP_DELAY = 0.8f;
 
     public static LoadingScreen Instance { get; private set; }
 
@@ -26,11 +27,16 @@ public class LoadingScreen : MonoBehaviour
 
     private Canvas _canvas;
     private bool _isLoading;
+    private bool _isDismissing;
+    private bool _isHidden = true;
+
+    public bool IsVisible => !_isHidden;
 
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
+            gameObject.SetActive(false);
             Destroy(gameObject);
             return;
         }
@@ -62,9 +68,16 @@ public class LoadingScreen : MonoBehaviour
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == TARGET_SCENE_NAME && gameObject.activeInHierarchy)
+        if (scene.name.Equals(TARGET_SCENE_NAME, StringComparison.OrdinalIgnoreCase))
         {
-            StartCoroutine(SafetyDismissRoutine());
+            if (gameObject.activeInHierarchy && !_isHidden)
+            {
+                StartCoroutine(SafetyDismissRoutine());
+            }
+            else
+            {
+                HideImmediate();
+            }
         }
     }
 
@@ -77,6 +90,9 @@ public class LoadingScreen : MonoBehaviour
     public void ShowLoadingScreen()
     {
         _isLoading = true;
+        _isDismissing = false;
+        _isHidden = false;
+
         gameObject.SetActive(true);
 
         if (_canvas != null)
@@ -122,7 +138,7 @@ public class LoadingScreen : MonoBehaviour
         float currentProgress = 0f;
         while (_isLoading && currentProgress < 0.95f)
         {
-            currentProgress += Time.unscaledDeltaTime * Random.Range(0.45f, 0.75f);
+            currentProgress += Time.unscaledDeltaTime * UnityEngine.Random.Range(0.45f, 0.75f);
             float clampedProgress = Mathf.Clamp01(currentProgress);
             if (_progressBar != null) _progressBar.value = clampedProgress;
             if (_progressText != null) _progressText.text = $"{Mathf.RoundToInt(clampedProgress * 100f)}%";
@@ -132,6 +148,8 @@ public class LoadingScreen : MonoBehaviour
 
     public void Dismiss()
     {
+        if (_isHidden || _isDismissing) return;
+
         if (!gameObject.activeInHierarchy)
         {
             HideImmediate();
@@ -139,6 +157,7 @@ public class LoadingScreen : MonoBehaviour
         }
 
         _isLoading = false;
+        _isDismissing = true;
         StopAllCoroutines();
         StartCoroutine(DismissLoadingScreenRoutine());
     }
@@ -166,9 +185,17 @@ public class LoadingScreen : MonoBehaviour
         HideImmediate();
     }
 
-    private void HideImmediate()
+    public void HideImmediate()
     {
         _isLoading = false;
+        _isDismissing = false;
+        _isHidden = true;
+
+        if (_canvasGroup != null)
+        {
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.blocksRaycasts = false;
+        }
 
         if (_loadingScreenRoot != null && _loadingScreenRoot != gameObject)
         {

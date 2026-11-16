@@ -25,9 +25,9 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Correct: 0
+    - _Correct: 1
     - _Mode: 0
-    - _Strength: 1
+    - _Strength: 0
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

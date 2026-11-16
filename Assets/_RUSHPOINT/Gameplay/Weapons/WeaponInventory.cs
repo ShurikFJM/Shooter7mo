@@ -5,12 +5,12 @@ using UnityEngine.InputSystem;
 
 public class WeaponInventory : NetworkBehaviour
 {
-    private const int _TOTAL_SLOTS = 3;
-    private const float _IMPACT_PARTICLE_LIFETIME = 0.6f;
-    private const float _TRACER_ANIMATION_DURATION = 0.04f;
-    private const float _TRACER_DISPLAY_HOLD_DURATION = 0.04f;
+    private const int TOTAL_SLOTS = 3;
+    private const float IMPACT_PARTICLE_LIFETIME = 0.6f;
+    private const float TRACER_ANIMATION_DURATION = 0.04f;
+    private const float TRACER_DISPLAY_HOLD_DURATION = 0.04f;
 
-    [Header("Holders")]
+    [SerializeField] private Transform _firstPersonWeaponHolder;
     [SerializeField] private Transform _tpPrimaryHolder;
     [SerializeField] private Transform _tpSecondaryHolder;
     [SerializeField] private GameObject _defaultMeleePrefab;
@@ -21,10 +21,8 @@ public class WeaponInventory : NetworkBehaviour
         NetworkVariableWritePermission.Owner
     );
 
-    private readonly GameObject[] _weaponInstances = new GameObject[_TOTAL_SLOTS];
-    private readonly WeaponBase[] _equippedWeapons = new WeaponBase[_TOTAL_SLOTS];
-    private GameObject _currentTpPrimary;
-    private GameObject _currentTpSecondary;
+    private readonly GameObject[] _weaponInstances = new GameObject[TOTAL_SLOTS];
+    private readonly WeaponBase[] _equippedWeapons = new WeaponBase[TOTAL_SLOTS];
     private int _currentSlotIndex = 1;
     private bool _hasEquippedLoadout;
 
@@ -53,31 +51,21 @@ public class WeaponInventory : NetworkBehaviour
 
     public int ActiveSlotIndex => _currentSlotIndex;
 
+    private void Awake()
+    {
+        DisableFloatingCameraHolder();
+    }
+
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
 
         _activeSlotNetworked.OnValueChanged += HandleActiveSlotChanged;
+        DisableFloatingCameraHolder();
 
-        if (IsOwner)
+        if (!IsOwner)
         {
-            if (_equippedWeapons[0] != null)
-            {
-                _hasEquippedLoadout = true;
-                _currentSlotIndex = 1;
-
-                for (int i = 0; i < _weaponInstances.Length; i++)
-                {
-                    if (_weaponInstances[i] != null)
-                    {
-                        _weaponInstances[i].SetActive(i == 0);
-                    }
-                }
-            }
-        }
-        else
-        {
-            UpdateThirdPersonWeaponVisibility(_activeSlotNetworked.Value);
+            UpdateEquippedSlotVisibility(_activeSlotNetworked.Value);
         }
     }
 
@@ -89,44 +77,67 @@ public class WeaponInventory : NetworkBehaviour
     private void Update()
     {
         if (!IsOwner) return;
+        if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused) return;
+        if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen) return;
+        if (Cursor.lockState != CursorLockMode.Locked) return;
+
         HandleSlotInput();
+    }
+
+    private void DisableFloatingCameraHolder()
+    {
+        if (_firstPersonWeaponHolder == null)
+        {
+            Camera playerCamera = GetComponentInChildren<Camera>(true);
+            if (playerCamera != null)
+            {
+                Transform foundHolder = playerCamera.transform.Find("WeaponHolder");
+                if (foundHolder != null) _firstPersonWeaponHolder = foundHolder;
+            }
+        }
+
+        if (_firstPersonWeaponHolder != null)
+        {
+            for (int i = _firstPersonWeaponHolder.childCount - 1; i >= 0; i--)
+            {
+                Destroy(_firstPersonWeaponHolder.GetChild(i).gameObject);
+            }
+            _firstPersonWeaponHolder.gameObject.SetActive(false);
+        }
     }
 
     private Transform GetActiveHandSocket()
     {
-        Animator animator = GetComponentInChildren<Animator>(true);
-        if (animator != null && animator.isHuman)
+        Animator[] animators = GetComponentsInChildren<Animator>(false);
+        for (int i = 0; i < animators.Length; i++)
         {
-            Transform handBone = animator.GetBoneTransform(HumanBodyBones.RightHand);
-            if (handBone != null) return handBone;
+            if (animators[i] != null && animators[i].gameObject.activeInHierarchy && animators[i].isHuman)
+            {
+                Transform handBone = animators[i].GetBoneTransform(HumanBodyBones.RightHand);
+                if (handBone != null) return handBone;
+            }
         }
 
-        // 2. Búsqueda por nombres estándar de jerarquía
         string[] socketNames = new string[] {
             "WeaponContainer", "WeaponContainer_R", "mixamorig:RightHand",
             "RightHand", "Bip001 R Hand", "Bip01 R Hand", "hand_r", "hand.r"
         };
-        Transform[] allTransforms = GetComponentsInChildren<Transform>(true);
+        Transform[] allActiveTransforms = GetComponentsInChildren<Transform>(false);
 
         for (int s = 0; s < socketNames.Length; s++)
         {
-            for (int i = 0; i < allTransforms.Length; i++)
+            for (int i = 0; i < allActiveTransforms.Length; i++)
             {
-                if (allTransforms[i].name.Equals(socketNames[s], System.StringComparison.OrdinalIgnoreCase))
+                if (allActiveTransforms[i].name.Equals(socketNames[s], System.StringComparison.OrdinalIgnoreCase))
                 {
-                    return allTransforms[i];
+                    return allActiveTransforms[i];
                 }
             }
         }
 
-        for (int i = 0; i < allTransforms.Length; i++)
+        if (_tpPrimaryHolder != null && _tpPrimaryHolder.gameObject.activeInHierarchy)
         {
-            string tName = allTransforms[i].name;
-            if (tName.IndexOf("RightHand", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                tName.IndexOf("WeaponContainer", System.StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return allTransforms[i];
-            }
+            return _tpPrimaryHolder;
         }
 
         return transform;
@@ -134,122 +145,99 @@ public class WeaponInventory : NetworkBehaviour
 
     public void SetupLoadoutForRole(GameObject primaryPrefab, GameObject secondaryPrefab, GameObject tpPrimaryPrefab, GameObject tpSecondaryPrefab)
     {
+        DisableFloatingCameraHolder();
         ClearAllWeapons();
 
         Transform handSocket = GetActiveHandSocket();
-        Transform primarySocket = _tpPrimaryHolder != null ? _tpPrimaryHolder : handSocket;
-        Transform secondarySocket = _tpSecondaryHolder != null ? _tpSecondaryHolder : handSocket;
 
         NetworkPlayerController pc = GetComponent<NetworkPlayerController>();
         if (pc == null) pc = GetComponentInParent<NetworkPlayerController>();
 
-        Vector3 primOffsetPos = Vector3.zero;
-        Quaternion primOffsetRot = Quaternion.identity;
-        Vector3 secOffsetPos = Vector3.zero;
-        Quaternion secOffsetRot = Quaternion.identity;
+        GameObject resolvedPrimary = ResolveHandWeaponPrefab(tpPrimaryPrefab, primaryPrefab);
+        GameObject resolvedSecondary = ResolveHandWeaponPrefab(tpSecondaryPrefab, secondaryPrefab);
 
-        if (pc != null && pc.ActiveRole != null)
+        if (resolvedPrimary != null)
         {
-            if (pc.ActiveRole.primaryPositionOffset != Vector3.zero || pc.ActiveRole.primaryRotationOffset != Vector3.zero)
+            Vector3 pos = resolvedPrimary.transform.localPosition;
+            Quaternion rot = resolvedPrimary.transform.localRotation;
+            if (pc != null && pc.ActiveRole != null && (pc.ActiveRole.primaryPositionOffset != Vector3.zero || pc.ActiveRole.primaryRotationOffset != Vector3.zero))
             {
-                primOffsetPos = pc.ActiveRole.primaryPositionOffset;
-                primOffsetRot = Quaternion.Euler(pc.ActiveRole.primaryRotationOffset);
+                pos = pc.ActiveRole.primaryPositionOffset;
+                rot = Quaternion.Euler(pc.ActiveRole.primaryRotationOffset);
             }
-            if (pc.ActiveRole.secondaryPositionOffset != Vector3.zero || pc.ActiveRole.secondaryRotationOffset != Vector3.zero)
-            {
-                secOffsetPos = pc.ActiveRole.secondaryPositionOffset;
-                secOffsetRot = Quaternion.Euler(pc.ActiveRole.secondaryRotationOffset);
-            }
+            InstantiateWeaponInHand(0, resolvedPrimary, handSocket, pos, rot);
         }
 
-        if (IsOwner)
+        if (resolvedSecondary != null)
         {
-            // Para el jugador local: instanciamos las armas funcionales directamente en la mano
-            if (primaryPrefab != null)
+            Vector3 pos = resolvedSecondary.transform.localPosition;
+            Quaternion rot = resolvedSecondary.transform.localRotation;
+            if (pc != null && pc.ActiveRole != null && (pc.ActiveRole.secondaryPositionOffset != Vector3.zero || pc.ActiveRole.secondaryRotationOffset != Vector3.zero))
             {
-                InstantiateFunctionalWeapon(0, primaryPrefab, primarySocket, primOffsetPos, primOffsetRot);
+                pos = pc.ActiveRole.secondaryPositionOffset;
+                rot = Quaternion.Euler(pc.ActiveRole.secondaryRotationOffset);
             }
-            if (secondaryPrefab != null)
-            {
-                InstantiateFunctionalWeapon(1, secondaryPrefab, secondarySocket, secOffsetPos, secOffsetRot);
-            }
-            if (_defaultMeleePrefab != null)
-            {
-                InstantiateFunctionalWeapon(2, _defaultMeleePrefab, primarySocket, Vector3.zero, Quaternion.identity);
-            }
-
-            _hasEquippedLoadout = true;
-            _currentSlotIndex = 1;
-
-            for (int i = 0; i < _weaponInstances.Length; i++)
-            {
-                if (_weaponInstances[i] != null) _weaponInstances[i].SetActive(i == 0);
-            }
-
-            if (IsSpawned) _activeSlotNetworked.Value = 1;
+            InstantiateWeaponInHand(1, resolvedSecondary, handSocket, pos, rot);
         }
-        else
+
+        if (_defaultMeleePrefab != null)
         {
-            // Para jugadores remotos: instanciamos los modelos visuales en su mano
-            if (tpPrimaryPrefab != null && primarySocket != null)
-            {
-                _currentTpPrimary = Instantiate(tpPrimaryPrefab, primarySocket, false);
-                _currentTpPrimary.transform.localPosition = primOffsetPos;
-                _currentTpPrimary.transform.localRotation = primOffsetRot;
-                _currentTpPrimary.transform.localScale = tpPrimaryPrefab.transform.localScale;
+            InstantiateWeaponInHand(2, _defaultMeleePrefab, handSocket, _defaultMeleePrefab.transform.localPosition, _defaultMeleePrefab.transform.localRotation);
+        }
 
-                Collider[] cols = _currentTpPrimary.GetComponentsInChildren<Collider>(true);
-                for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
+        _hasEquippedLoadout = true;
+        _currentSlotIndex = 1;
 
-                WeaponBase wb = _currentTpPrimary.GetComponentInChildren<WeaponBase>(true);
-                if (wb != null) wb.enabled = false;
-            }
+        int slotToShow = IsOwner ? 1 : _activeSlotNetworked.Value;
+        UpdateEquippedSlotVisibility(slotToShow);
 
-            if (tpSecondaryPrefab != null && secondarySocket != null)
-            {
-                _currentTpSecondary = Instantiate(tpSecondaryPrefab, secondarySocket, false);
-                _currentTpSecondary.transform.localPosition = secOffsetPos;
-                _currentTpSecondary.transform.localRotation = secOffsetRot;
-                _currentTpSecondary.transform.localScale = tpSecondaryPrefab.transform.localScale;
-
-                Collider[] cols = _currentTpSecondary.GetComponentsInChildren<Collider>(true);
-                for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
-
-                WeaponBase wb = _currentTpSecondary.GetComponentInChildren<WeaponBase>(true);
-                if (wb != null) wb.enabled = false;
-            }
-
-            UpdateThirdPersonWeaponVisibility(_activeSlotNetworked.Value);
+        if (IsOwner && IsSpawned)
+        {
+            _activeSlotNetworked.Value = 1;
         }
     }
 
-    private void InstantiateFunctionalWeapon(int slotIndex, GameObject prefab, Transform socket, Vector3 localPos, Quaternion localRot)
+    private GameObject ResolveHandWeaponPrefab(GameObject tpPrefab, GameObject fpPrefab)
     {
-        if (prefab == null || socket == null) return;
+        if (tpPrefab != null)
+        {
+            WeaponBase wb = tpPrefab.GetComponent<WeaponBase>();
+            if (wb == null) wb = tpPrefab.GetComponentInChildren<WeaponBase>(true);
+            if (wb != null) return tpPrefab;
+        }
 
-        GameObject instance = Instantiate(prefab, socket, false);
-        instance.transform.localPosition = localPos;
-        instance.transform.localRotation = localRot;
-        instance.transform.localScale = prefab.transform.localScale;
+        return fpPrefab != null ? fpPrefab : tpPrefab;
+    }
 
-        WeaponBase weaponBase = instance.GetComponent<WeaponBase>();
-        if (weaponBase == null) weaponBase = instance.GetComponentInChildren<WeaponBase>(true);
+    private void InstantiateWeaponInHand(int slotArrayIndex, GameObject weaponPrefab, Transform handSocket, Vector3 localPos, Quaternion localRot)
+    {
+        if (handSocket == null || weaponPrefab == null) return;
+
+        GameObject weaponInstance = Instantiate(weaponPrefab, handSocket, false);
+
+        weaponInstance.transform.localPosition = localPos;
+        weaponInstance.transform.localRotation = localRot;
+        weaponInstance.transform.localScale = weaponPrefab.transform.localScale;
+
+        WeaponBase weaponBase = weaponInstance.GetComponent<WeaponBase>();
+        if (weaponBase == null) weaponBase = weaponInstance.GetComponentInChildren<WeaponBase>(true);
 
         if (weaponBase != null)
         {
+            weaponBase.enabled = true;
             weaponBase.UpdateDefaultTransform(localPos, localRot);
             weaponBase.ResetAmmo();
             weaponBase.EnsureFirePoint();
         }
 
-        _weaponInstances[slotIndex] = instance;
-        _equippedWeapons[slotIndex] = weaponBase;
-        instance.SetActive(false);
+        _weaponInstances[slotArrayIndex] = weaponInstance;
+        _equippedWeapons[slotArrayIndex] = weaponBase;
+        weaponInstance.SetActive(false);
     }
 
     private void ClearAllWeapons()
     {
-        for (int i = 0; i < _TOTAL_SLOTS; i++)
+        for (int i = 0; i < TOTAL_SLOTS; i++)
         {
             if (_weaponInstances[i] != null)
             {
@@ -259,16 +247,20 @@ public class WeaponInventory : NetworkBehaviour
             _equippedWeapons[i] = null;
         }
 
-        if (_currentTpPrimary != null)
+        if (_tpPrimaryHolder != null)
         {
-            Destroy(_currentTpPrimary);
-            _currentTpPrimary = null;
+            for (int i = _tpPrimaryHolder.childCount - 1; i >= 0; i--)
+            {
+                Destroy(_tpPrimaryHolder.GetChild(i).gameObject);
+            }
         }
 
-        if (_currentTpSecondary != null)
+        if (_tpSecondaryHolder != null)
         {
-            Destroy(_currentTpSecondary);
-            _currentTpSecondary = null;
+            for (int i = _tpSecondaryHolder.childCount - 1; i >= 0; i--)
+            {
+                Destroy(_tpSecondaryHolder.GetChild(i).gameObject);
+            }
         }
     }
 
@@ -300,50 +292,39 @@ public class WeaponInventory : NetworkBehaviour
     private void CycleSlot(int direction)
     {
         int newSlot = _currentSlotIndex + direction;
-        if (newSlot > _TOTAL_SLOTS) newSlot = 1;
-        if (newSlot < 1) newSlot = _TOTAL_SLOTS;
+        if (newSlot > TOTAL_SLOTS) newSlot = 1;
+        if (newSlot < 1) newSlot = TOTAL_SLOTS;
         SwitchSlot(newSlot);
     }
 
     public void SwitchSlot(int slotIndex)
     {
-        if (slotIndex < 1 || slotIndex > _TOTAL_SLOTS) return;
+        if (slotIndex < 1 || slotIndex > TOTAL_SLOTS) return;
 
         _currentSlotIndex = slotIndex;
+        UpdateEquippedSlotVisibility(_currentSlotIndex);
 
-        if (IsOwner)
+        if (IsSpawned && IsOwner)
         {
-            for (int i = 0; i < _weaponInstances.Length; i++)
-            {
-                if (_weaponInstances[i] != null)
-                {
-                    _weaponInstances[i].SetActive(i == (_currentSlotIndex - 1));
-                }
-            }
-
-            if (IsSpawned) _activeSlotNetworked.Value = _currentSlotIndex;
-        }
-        else
-        {
-            UpdateThirdPersonWeaponVisibility(_currentSlotIndex);
+            _activeSlotNetworked.Value = _currentSlotIndex;
         }
     }
 
     private void HandleActiveSlotChanged(int previousSlot, int currentSlot)
     {
-        if (!IsOwner)
-        {
-            UpdateThirdPersonWeaponVisibility(currentSlot);
-        }
+        _currentSlotIndex = currentSlot;
+        UpdateEquippedSlotVisibility(currentSlot);
     }
 
-    private void UpdateThirdPersonWeaponVisibility(int activeSlot)
+    private void UpdateEquippedSlotVisibility(int activeSlot)
     {
-        if (_currentTpPrimary != null)
-            _currentTpPrimary.SetActive(activeSlot == 1);
-
-        if (_currentTpSecondary != null)
-            _currentTpSecondary.SetActive(activeSlot == 2);
+        for (int i = 0; i < _weaponInstances.Length; i++)
+        {
+            if (_weaponInstances[i] != null)
+            {
+                _weaponInstances[i].SetActive(i == (activeSlot - 1));
+            }
+        }
     }
 
     public void ResetAllWeaponsAmmo()
@@ -352,10 +333,21 @@ public class WeaponInventory : NetworkBehaviour
         {
             if (_equippedWeapons[i] != null) _equippedWeapons[i].ResetAmmo();
         }
+
+        WeaponBase[] childWeapons = GetComponentsInChildren<WeaponBase>(true);
+        for (int i = 0; i < childWeapons.Length; i++)
+        {
+            if (childWeapons[i] != null) childWeapons[i].ResetAmmo();
+        }
     }
 
     private WeaponData GetActiveWeaponDataSynced()
     {
+        if (ActiveWeapon != null && ActiveWeapon.WeaponData != null)
+        {
+            return ActiveWeapon.WeaponData;
+        }
+
         NetworkPlayerController playerController = GetComponent<NetworkPlayerController>();
         if (playerController == null) playerController = GetComponentInParent<NetworkPlayerController>();
         if (playerController == null || playerController.ActiveRole == null) return null;
@@ -388,16 +380,7 @@ public class WeaponInventory : NetworkBehaviour
         if (victimHealth == null) return;
 
         WeaponData activeWeaponData = GetActiveWeaponDataSynced();
-        float baseDamage = 25f;
-
-        if (activeWeaponData != null)
-        {
-            baseDamage = activeWeaponData.damage;
-        }
-        else if (ActiveWeapon != null && ActiveWeapon.WeaponData != null)
-        {
-            baseDamage = ActiveWeapon.WeaponData.damage;
-        }
+        float baseDamage = activeWeaponData != null ? activeWeaponData.damage : 25f;
 
         victimHealth.ApplyDamageServer(baseDamage, hitboxType, OwnerClientId);
     }
@@ -420,52 +403,45 @@ public class WeaponInventory : NetworkBehaviour
         if (IsOwner) return;
 
         WeaponData activeWeaponData = GetActiveWeaponDataSynced();
-        if (activeWeaponData == null && ActiveWeapon != null) activeWeaponData = ActiveWeapon.WeaponData;
-        if (activeWeaponData == null) return;
 
-        AudioClip[] audioClips = activeWeaponData.shootSounds;
-        if (audioClips != null && audioClips.Length > 0)
+        if (activeWeaponData != null)
         {
-            AudioClip selectedClip = audioClips[Random.Range(0, audioClips.Length)];
-            GameObject soundObject = new GameObject("NetworkShotAudio");
-            soundObject.transform.position = transform.position + (Vector3.up * 1.5f);
-            AudioSource audioSource = soundObject.AddComponent<AudioSource>();
-            audioSource.spatialBlend = 1f;
-            audioSource.minDistance = 3f;
-            audioSource.maxDistance = 50f;
-            audioSource.clip = selectedClip;
-            audioSource.Play();
-            Destroy(soundObject, selectedClip.length + 0.1f);
+            AudioClip[] audioClips = activeWeaponData.shootSounds;
+            if (audioClips != null && audioClips.Length > 0)
+            {
+                AudioClip selectedClip = audioClips[Random.Range(0, audioClips.Length)];
+                GameObject soundObject = new GameObject("NetworkShotAudio");
+                soundObject.transform.position = transform.position + (Vector3.up * 1.5f);
+                AudioSource audioSource = soundObject.AddComponent<AudioSource>();
+                audioSource.spatialBlend = 1f;
+                audioSource.minDistance = 3f;
+                audioSource.maxDistance = 50f;
+                audioSource.clip = selectedClip;
+                audioSource.Play();
+                Destroy(soundObject, selectedClip.length + 0.1f);
+            }
         }
 
-        if (PoolManager.Instance != null)
+        if (activeWeaponData != null && PoolManager.Instance != null)
         {
             SurfaceImpactType surface = (SurfaceImpactType)impactType;
             if (surface == SurfaceImpactType.Wall && activeWeaponData.wallImpactVfxPrefab != null)
             {
                 Quaternion impactRotation = hitNormal.sqrMagnitude > 0.001f ? Quaternion.LookRotation(hitNormal) : Quaternion.identity;
-                PoolManager.Instance.SpawnImpact(activeWeaponData.wallImpactVfxPrefab, hitPoint + (hitNormal * 0.02f), impactRotation, _IMPACT_PARTICLE_LIFETIME);
+                PoolManager.Instance.SpawnImpact(activeWeaponData.wallImpactVfxPrefab, hitPoint + (hitNormal * 0.02f), impactRotation, IMPACT_PARTICLE_LIFETIME);
             }
             else if (surface == SurfaceImpactType.Player && activeWeaponData.playerImpactVfxPrefab != null)
             {
                 Quaternion impactRotation = hitNormal.sqrMagnitude > 0.001f ? Quaternion.LookRotation(hitNormal) : Quaternion.identity;
-                PoolManager.Instance.SpawnImpact(activeWeaponData.playerImpactVfxPrefab, hitPoint, impactRotation, _IMPACT_PARTICLE_LIFETIME);
+                PoolManager.Instance.SpawnImpact(activeWeaponData.playerImpactVfxPrefab, hitPoint, impactRotation, IMPACT_PARTICLE_LIFETIME);
             }
         }
 
-        int slot = _activeSlotNetworked.Value;
-        Transform thirdPersonWeapon = slot == 1 ? (_currentTpPrimary != null ? _currentTpPrimary.transform : null) :
-                                      slot == 2 ? (_currentTpSecondary != null ? _currentTpSecondary.transform : null) : null;
-
-        Vector3 tracerStart;
-        if (thirdPersonWeapon != null)
+        Vector3 tracerStart = transform.position + (Vector3.up * 1.4f);
+        WeaponBase remoteWeapon = ActiveWeapon;
+        if (remoteWeapon != null)
         {
-            Transform tpFp = thirdPersonWeapon.Find("FirePoint");
-            tracerStart = tpFp != null ? tpFp.position : thirdPersonWeapon.position;
-        }
-        else
-        {
-            tracerStart = transform.position + (Vector3.up * 1.5f);
+            tracerStart = remoteWeapon.GetMuzzleWorldPosition();
         }
 
         if (PoolManager.Instance != null)
@@ -487,10 +463,10 @@ public class WeaponInventory : NetworkBehaviour
         lineRenderer.SetPosition(1, startPoint);
 
         float elapsedTime = 0f;
-        while (elapsedTime < _TRACER_ANIMATION_DURATION)
+        while (elapsedTime < TRACER_ANIMATION_DURATION)
         {
             elapsedTime += Time.deltaTime;
-            Vector3 currentPos = Vector3.Lerp(startPoint, endPoint, elapsedTime / _TRACER_ANIMATION_DURATION);
+            Vector3 currentPos = Vector3.Lerp(startPoint, endPoint, elapsedTime / TRACER_ANIMATION_DURATION);
             if (lineRenderer != null) lineRenderer.SetPosition(1, currentPos);
             yield return null;
         }
@@ -498,7 +474,7 @@ public class WeaponInventory : NetworkBehaviour
         if (lineRenderer != null)
         {
             lineRenderer.SetPosition(1, endPoint);
-            yield return new WaitForSeconds(_TRACER_DISPLAY_HOLD_DURATION);
+            yield return new WaitForSeconds(TRACER_DISPLAY_HOLD_DURATION);
             lineRenderer.positionCount = 0;
             lineRenderer.enabled = false;
             PoolManager.Instance.ReturnTracer(lineRenderer);

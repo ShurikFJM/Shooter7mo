@@ -613,12 +613,15 @@ public class RoundManager : NetworkBehaviour
 
     private void CheckEliminationsBeforePlant()
     {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+        if (NetworkManager.Singleton.ConnectedClients == null) return;
+
         int totalRed = 0, totalBlue = 0, aliveRed = 0, aliveBlue = 0;
 
         foreach (KeyValuePair<ulong, NetworkClient> clientPair in NetworkManager.Singleton.ConnectedClients)
         {
             NetworkClient client = clientPair.Value;
-            if (client.PlayerObject == null) continue;
+            if (client == null || client.PlayerObject == null || !client.PlayerObject.IsSpawned) continue;
 
             PlayerTeam playerTeamComponent = client.PlayerObject.GetComponent<PlayerTeam>();
             if (playerTeamComponent == null) playerTeamComponent = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
@@ -627,6 +630,7 @@ public class RoundManager : NetworkBehaviour
             if (healthComponent == null) healthComponent = client.PlayerObject.GetComponentInChildren<NetworkHealth>();
 
             if (playerTeamComponent == null || healthComponent == null) continue;
+            if (playerTeamComponent.CurrentTeam == null || healthComponent.IsAlive == null || healthComponent.CurrentHealth == null) continue;
 
             if (playerTeamComponent.CurrentTeam.Value == Team.Red)
             {
@@ -649,12 +653,15 @@ public class RoundManager : NetworkBehaviour
 
     private void CheckEliminationsAfterPlant()
     {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+        if (NetworkManager.Singleton.ConnectedClients == null) return;
+
         int totalBlue = 0, aliveBlue = 0;
 
         foreach (KeyValuePair<ulong, NetworkClient> clientPair in NetworkManager.Singleton.ConnectedClients)
         {
             NetworkClient client = clientPair.Value;
-            if (client.PlayerObject == null) continue;
+            if (client == null || client.PlayerObject == null || !client.PlayerObject.IsSpawned) continue;
 
             PlayerTeam playerTeamComponent = client.PlayerObject.GetComponent<PlayerTeam>();
             if (playerTeamComponent == null) playerTeamComponent = client.PlayerObject.GetComponentInChildren<PlayerTeam>();
@@ -663,6 +670,7 @@ public class RoundManager : NetworkBehaviour
             if (healthComponent == null) healthComponent = client.PlayerObject.GetComponentInChildren<NetworkHealth>();
 
             if (playerTeamComponent == null || healthComponent == null) continue;
+            if (playerTeamComponent.CurrentTeam == null || healthComponent.IsAlive == null || healthComponent.CurrentHealth == null) continue;
 
             if (playerTeamComponent.CurrentTeam.Value == Team.Blue)
             {
