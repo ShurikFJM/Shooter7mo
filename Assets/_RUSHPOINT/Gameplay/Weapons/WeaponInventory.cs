@@ -186,14 +186,14 @@ public class WeaponInventory : NetworkBehaviour
         }
 
         _hasEquippedLoadout = true;
-        _currentSlotIndex = 1;
+        _currentSlotIndex = -1;
 
         int slotToShow = IsOwner ? 1 : _activeSlotNetworked.Value;
         UpdateEquippedSlotVisibility(slotToShow);
 
-        if (IsOwner && IsSpawned)
+        if (IsOwner)
         {
-            _activeSlotNetworked.Value = 1;
+            SwitchSlot(1);
         }
     }
 
@@ -300,6 +300,13 @@ public class WeaponInventory : NetworkBehaviour
     public void SwitchSlot(int slotIndex)
     {
         if (slotIndex < 1 || slotIndex > TOTAL_SLOTS) return;
+        if (slotIndex == _currentSlotIndex && _hasEquippedLoadout) return;
+
+        WeaponBase previousWeapon = ActiveWeapon;
+        if (previousWeapon != null)
+        {
+            previousWeapon.CancelReload();
+        }
 
         _currentSlotIndex = slotIndex;
         UpdateEquippedSlotVisibility(_currentSlotIndex);
@@ -307,6 +314,21 @@ public class WeaponInventory : NetworkBehaviour
         if (IsSpawned && IsOwner)
         {
             _activeSlotNetworked.Value = _currentSlotIndex;
+        }
+
+        if (IsOwner)
+        {
+            WeaponBase newWeapon = ActiveWeapon;
+            if (newWeapon != null)
+            {
+                newWeapon.OnWeaponEquipped();
+            }
+            else
+            {
+                NetworkPlayerController pc = GetComponent<NetworkPlayerController>();
+                if (pc == null) pc = GetComponentInParent<NetworkPlayerController>();
+                if (pc != null) pc.TriggerEquipWeaponTPS();
+            }
         }
     }
 

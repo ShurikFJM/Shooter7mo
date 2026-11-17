@@ -27757,7 +27757,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InputManager
   _inputActions: {fileID: 0}
-  _mouseSensitivity: 1
+  _mouseSensitivity: 0.5
   _gamepadSensitivity: 75
 --- !u!1 &961742040
 GameObject:

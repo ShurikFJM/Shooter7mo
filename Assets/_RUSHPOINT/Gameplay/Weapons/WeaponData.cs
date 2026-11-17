@@ -8,6 +8,7 @@ public class WeaponData : ScriptableObject
     public float damage = 25f;
     public float range = 100f;
     public float fireRate = 0.15f;
+    public float equipTime = 0.65f;
     public int maxAmmo = 12;
     public int maxReserveMagazines = 3;
     public float reloadTime = 1.5f;
