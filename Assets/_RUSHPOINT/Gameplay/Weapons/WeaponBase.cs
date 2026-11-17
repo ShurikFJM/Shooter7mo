@@ -56,6 +56,8 @@ public class WeaponBase : NetworkBehaviour
     protected float _reloadRemainingTime;
     protected Coroutine _reloadCoroutine;
     protected float _nextTimeToFire;
+    protected float _equipReadyTime;
+    public bool IsEquipping => Time.time < _equipReadyTime;
     protected float _firingSpreadPenalty;
     protected float _lastShotTime;
     protected int _continuousShots;
@@ -157,7 +159,6 @@ public class WeaponBase : NetworkBehaviour
             _playerController = GetComponentInParent<NetworkPlayerController>();
         }
 
-        // Prioridad 1: si creaste manualmente un objeto hijo llamado "CustomMuzzle", se usa tal cual
         Transform customMuzzle = transform.Find("CustomMuzzle");
         if (customMuzzle != null)
         {
@@ -232,7 +233,6 @@ public class WeaponBase : NetworkBehaviour
 
             Vector3 size = max - min;
 
-            // El cañón del arma siempre corresponde al eje local de mayor longitud (X, Y o Z)
             int barrelAxis = 2;
             if (size.x >= size.y && size.x >= size.z) barrelAxis = 0;
             else if (size.y >= size.x && size.y >= size.z) barrelAxis = 1;
@@ -252,7 +252,6 @@ public class WeaponBase : NetworkBehaviour
             );
             localMuzzlePos[barrelAxis] = tipCoord;
 
-            // Si la malla permite leer vértices, promediamos la punta exacta del cañón
             if (readableLocalVerts.Count > 0)
             {
                 float cutoff = axisLength * 0.06f;
@@ -371,6 +370,21 @@ public class WeaponBase : NetworkBehaviour
         }
     }
 
+    public void OnWeaponEquipped()
+    {
+        CancelReload();
+
+        float duration = (weaponData != null && weaponData.equipTime > 0f) ? weaponData.equipTime : 0.5f;
+        _equipReadyTime = Time.time + duration;
+        _nextTimeToFire = Mathf.Max(_nextTimeToFire, _equipReadyTime);
+
+        if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
+        if (_playerController != null)
+        {
+            _playerController.TriggerEquipWeaponTPS();
+        }
+    }
+
     private void Update()
     {
         if (_firingSpreadPenalty > 0f || _continuousShots > 0)
@@ -429,7 +443,7 @@ public class WeaponBase : NetworkBehaviour
 
     public bool CanFire()
     {
-        if (_isReloading || weaponData == null) return false;
+        if (_isReloading || IsEquipping || weaponData == null) return false;
         if (Time.time < _nextTimeToFire) return false;
         if (_currentAmmo <= 0) return false;
         return true;
@@ -858,7 +872,7 @@ public class WeaponBase : NetworkBehaviour
 
     public void Reload()
     {
-        if (_isReloading || weaponData == null || _currentAmmo == weaponData.maxAmmo || _reserveAmmo <= 0) return;
+        if (_isReloading || IsEquipping || weaponData == null || _currentAmmo == weaponData.maxAmmo || _reserveAmmo <= 0) return;
 
         if (!gameObject.activeInHierarchy) return;
 
@@ -867,6 +881,12 @@ public class WeaponBase : NetworkBehaviour
         if (_weaponAnimator != null)
         {
             _weaponAnimator.SetTrigger(_reloadTriggerHash);
+        }
+
+        if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
+        if (_playerController != null)
+        {
+            _playerController.TriggerReloadTPS();
         }
 
         if (weaponData.reloadSound != null && _audioSource != null)

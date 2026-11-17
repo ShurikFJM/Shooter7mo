@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
@@ -21,6 +22,15 @@ public class NetworkPlayerController : NetworkBehaviour
     private const string LOBBY_CAMERA_TAG = "LobbyCamera";
     private const string MAIN_MENU_SCENE_NAME = "MainMenu";
 
+    private static readonly int ANIM_SPEED_HASH = Animator.StringToHash("Speed");
+    private static readonly int ANIM_IS_CROUCHED_HASH = Animator.StringToHash("IsCrouched");
+    private static readonly int ANIM_IS_GROUNDED_HASH = Animator.StringToHash("IsGrounded");
+    private static readonly int ANIM_WEAPON_SLOT_HASH = Animator.StringToHash("WeaponSlot");
+    private static readonly int ANIM_SHOOT_HASH = Animator.StringToHash("Shoot");
+    private static readonly int ANIM_RELOAD_HASH = Animator.StringToHash("Reload");
+    private static readonly int ANIM_THROW_GRENADE_HASH = Animator.StringToHash("ThrowGrenade");
+    private static readonly int ANIM_EQUIP_WEAPON_HASH = Animator.StringToHash("EquipWeapon");
+
     private bool _isStunned;
     private float _stunSlowRatio = 1.0f;
     private float _stunSensRatio = 1.0f;
@@ -36,19 +46,17 @@ public class NetworkPlayerController : NetworkBehaviour
     [SerializeField] private GameObject _firstPersonRoot;
     [SerializeField] private GameObject _thirdPersonRoot;
 
-    [Header("Modelos de Soldados (Auto-detectables incluso con _Variant)")]
     [SerializeField] private GameObject _infantryModel;
     [SerializeField] private GameObject _gunnerModel;
     [SerializeField] private GameObject _medicModel;
 
-    [Header("Rol por defecto para Pruebas directas")]
     [SerializeField] private PlayerRoleType _defaultTestingRole = PlayerRoleType.Tank;
 
     [SerializeField] private Transform _hitboxesRoot;
     [SerializeField] private LayerMask _obstacleLayers;
 
-    [Header("Animación del Soldado")]
     private Animator _activeAnimator;
+    private readonly HashSet<int> _cachedAnimatorParams = new HashSet<int>();
 
     public NetworkVariable<PlayerRoleType> selectedRole = new NetworkVariable<PlayerRoleType>(
         PlayerRoleType.Tank,
@@ -60,6 +68,18 @@ public class NetworkPlayerController : NetworkBehaviour
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
+    );
+
+    public NetworkVariable<float> netMoveSpeed = new NetworkVariable<float>(
+        0f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
+
+    public NetworkVariable<bool> netIsGrounded = new NetworkVariable<bool>(
+        true,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
     );
 
     public Camera PlayerCamera => _playerCamera;
@@ -162,9 +182,32 @@ public class NetworkPlayerController : NetworkBehaviour
         }
     }
 
+    private Animator ResolveActiveAnimator()
+    {
+        if (_activeAnimator == null || !_activeAnimator.gameObject.activeInHierarchy)
+        {
+            _activeAnimator = GetComponentInChildren<Animator>(false);
+            _cachedAnimatorParams.Clear();
+
+            if (_activeAnimator != null)
+            {
+                _activeAnimator.applyRootMotion = false;
+                AnimatorControllerParameter[] parameters = _activeAnimator.parameters;
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    _cachedAnimatorParams.Add(parameters[i].nameHash);
+                }
+            }
+        }
+
+        return _activeAnimator;
+    }
+
     private void LocateSpineBone()
     {
-        Animator anim = GetComponentInChildren<Animator>(true);
+        Animator anim = ResolveActiveAnimator();
+        if (anim == null) anim = GetComponentInChildren<Animator>(true);
+
         if (anim != null && anim.isHuman)
         {
             _spineBone = anim.GetBoneTransform(HumanBodyBones.Spine);
@@ -372,7 +415,6 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private IEnumerator ReturnToMainMenuRoutine()
     {
-        // Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
@@ -459,6 +501,7 @@ public class NetworkPlayerController : NetworkBehaviour
         }
 
         _activeAnimator = null;
+        _cachedAnimatorParams.Clear();
         LocateSpineBone();
 
         PlayerTeamVisualizer visualizer = GetComponent<PlayerTeamVisualizer>();
@@ -493,7 +536,7 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (IsOwner)
         {
-            HandleDeathCheck(); // move to event
+            HandleDeathCheck();
             if (SpectatorManager.Instance != null && SpectatorManager.Instance.isSpectating) return;
 
             if (PauseMenuManager.Instance != null && PauseMenuManager.Instance.IsPaused)
@@ -502,6 +545,8 @@ public class NetworkPlayerController : NetworkBehaviour
                 _currentLookRotation = Vector2.zero;
                 _isFirePressed = false;
                 _isWalkingSlow = false;
+                UpdateSoldierAnimator();
+                HandleCrouchHeightTransition();
                 return;
             }
 
@@ -520,9 +565,9 @@ public class NetworkPlayerController : NetworkBehaviour
             HandleCameraRotation();
             HandleMovementExecution();
             HandleWeaponCombatInput();
-            UpdateSoldierAnimator();
         }
 
+        UpdateSoldierAnimator();
         HandleCrouchHeightTransition();
     }
 
@@ -536,46 +581,125 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void UpdateSoldierAnimator()
     {
-        if (_activeAnimator == null || !_activeAnimator.gameObject.activeInHierarchy)
+        Animator anim = ResolveActiveAnimator();
+        if (anim == null || anim.runtimeAnimatorController == null) return;
+
+        float currentSpeed = 0f;
+        bool isGrounded = true;
+
+        if (IsOwner)
         {
-            _activeAnimator = GetComponentInChildren<Animator>(false);
+            if (_characterController != null && _characterController.enabled)
+            {
+                Vector3 horizontalVelocity = new Vector3(_characterController.velocity.x, 0f, _characterController.velocity.z);
+                currentSpeed = horizontalVelocity.magnitude;
+                isGrounded = _characterController.isGrounded;
+            }
+
+            if (IsSpawned)
+            {
+                if (Mathf.Abs(netMoveSpeed.Value - currentSpeed) > 0.05f)
+                {
+                    netMoveSpeed.Value = currentSpeed;
+                }
+                if (netIsGrounded.Value != isGrounded)
+                {
+                    netIsGrounded.Value = isGrounded;
+                }
+            }
+        }
+        else
+        {
+            currentSpeed = netMoveSpeed.Value;
+            isGrounded = netIsGrounded.Value;
         }
 
-        if (_activeAnimator == null) return;
+        bool crouchedState = IsOwner ? _isCrouching : isCrouchedNet.Value;
+        int activeSlot = _weaponInventory != null ? _weaponInventory.ActiveSlotIndex : 1;
 
-        Vector3 horizontalVelocity = new Vector3(_characterController.velocity.x, 0f, _characterController.velocity.z);
-        float currentSpeed = horizontalVelocity.magnitude;
+        if (_cachedAnimatorParams.Contains(ANIM_SPEED_HASH))
+            anim.SetFloat(ANIM_SPEED_HASH, currentSpeed);
 
-        _activeAnimator.SetFloat("Speed", currentSpeed);
-        _activeAnimator.SetBool("IsCrouched", isCrouchedNet.Value);
-        _activeAnimator.SetBool("IsGrounded", _characterController.isGrounded);
+        if (_cachedAnimatorParams.Contains(ANIM_IS_CROUCHED_HASH))
+            anim.SetBool(ANIM_IS_CROUCHED_HASH, crouchedState);
+
+        if (_cachedAnimatorParams.Contains(ANIM_IS_GROUNDED_HASH))
+            anim.SetBool(ANIM_IS_GROUNDED_HASH, isGrounded);
+
+        if (_cachedAnimatorParams.Contains(ANIM_WEAPON_SLOT_HASH))
+            anim.SetInteger(ANIM_WEAPON_SLOT_HASH, activeSlot);
     }
 
     public void TriggerShootTPS()
     {
-        if (_activeAnimator == null || !_activeAnimator.gameObject.activeInHierarchy)
+        PlaySoldierActionLocal(ANIM_SHOOT_HASH);
+        if (IsOwner && IsSpawned)
         {
-            _activeAnimator = GetComponentInChildren<Animator>(false);
-        }
-
-        if (_activeAnimator != null)
-        {
-            _activeAnimator.SetTrigger("Shoot");
+            PlaySoldierActionServerRpc(0);
         }
     }
 
     public void TriggerReloadTPS()
     {
-        if (_activeAnimator == null || !_activeAnimator.gameObject.activeInHierarchy)
+        PlaySoldierActionLocal(ANIM_RELOAD_HASH);
+        if (IsOwner && IsSpawned)
         {
-            _activeAnimator = GetComponentInChildren<Animator>(false);
+            PlaySoldierActionServerRpc(1);
+        }
+    }
+
+    public void TriggerGrenadeTPS()
+    {
+        PlaySoldierActionLocal(ANIM_THROW_GRENADE_HASH);
+        if (IsOwner && IsSpawned)
+        {
+            PlaySoldierActionServerRpc(2);
+        }
+    }
+
+    public void TriggerEquipWeaponTPS()
+    {
+        PlaySoldierActionLocal(ANIM_EQUIP_WEAPON_HASH);
+        if (IsOwner && IsSpawned)
+        {
+            PlaySoldierActionServerRpc(3);
+        }
+    }
+
+    private void PlaySoldierActionLocal(int triggerHash)
+    {
+        Animator anim = ResolveActiveAnimator();
+        if (anim == null || anim.runtimeAnimatorController == null) return;
+
+        if (triggerHash != ANIM_SHOOT_HASH && _cachedAnimatorParams.Contains(ANIM_SHOOT_HASH))
+        {
+            anim.ResetTrigger(ANIM_SHOOT_HASH);
         }
 
-        if (_activeAnimator != null)
+        if (triggerHash == ANIM_EQUIP_WEAPON_HASH && _cachedAnimatorParams.Contains(ANIM_RELOAD_HASH))
         {
-            _activeAnimator.ResetTrigger("Shoot");
-            _activeAnimator.SetTrigger("Reload");
+            anim.ResetTrigger(ANIM_RELOAD_HASH);
         }
+
+        if (_cachedAnimatorParams.Contains(triggerHash))
+        {
+            anim.SetTrigger(triggerHash);
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    private void PlaySoldierActionServerRpc(byte actionType)
+    {
+        PlaySoldierActionClientRpc(actionType);
+    }
+
+    [Rpc(SendTo.NotOwner)]
+    private void PlaySoldierActionClientRpc(byte actionType)
+    {
+        if (actionType == 0) PlaySoldierActionLocal(ANIM_SHOOT_HASH);
+        else if (actionType == 1) PlaySoldierActionLocal(ANIM_RELOAD_HASH);
+        else if (actionType == 2) PlaySoldierActionLocal(ANIM_THROW_GRENADE_HASH);
+        else if (actionType == 3) PlaySoldierActionLocal(ANIM_EQUIP_WEAPON_HASH);
     }
 
     private void HandleWeaponCombatInput()
@@ -879,7 +1003,6 @@ public class NetworkPlayerController : NetworkBehaviour
             _cameraRoot.localPosition = targetCameraPosition;
         }
 
-        // Mantenemos la escala del modelo en 1 sin deformarlo: la animación se encarga de la postura
         if (_thirdPersonRoot != null && _thirdPersonRoot.transform.localScale != Vector3.one)
         {
             _thirdPersonRoot.transform.localScale = Vector3.one;
