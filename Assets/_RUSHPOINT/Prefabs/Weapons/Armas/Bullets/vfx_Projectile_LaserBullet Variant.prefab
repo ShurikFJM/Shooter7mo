@@ -13,6 +13,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1594239829313766, guid: cf67fa4ba9d070b4b807409ff16fc2ba, type: 3}
     - target: {fileID: -6141676532924219007, guid: 080168af0fb1a0f48bd653b0def3737e, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -6141676532924219007, guid: 080168af0fb1a0f48bd653b0def3737e, type: 3}
       propertyPath: muzzlePrefab
       value: 
       objectReference: {fileID: 0}

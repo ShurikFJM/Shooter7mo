@@ -11,32 +11,43 @@ public class PoolManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this) Destroy(gameObject);
-        else Instance = this;
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
     }
 
     public void SpawnImpact(GameObject prefab, Vector3 position, Quaternion rotation, float lifetime)
     {
         if (prefab == null) return;
 
-        if (!_impactPools.ContainsKey(prefab))
+        if (!_impactPools.TryGetValue(prefab, out Queue<GameObject> pool))
         {
-            _impactPools[prefab] = new Queue<GameObject>();
+            pool = new Queue<GameObject>();
+            _impactPools[prefab] = pool;
         }
 
-        GameObject impact;
-        if (_impactPools[prefab].Count > 0)
+        GameObject impact = null;
+        while (pool.Count > 0 && impact == null)
         {
-            impact = _impactPools[prefab].Dequeue();
+            impact = pool.Dequeue();
         }
-        else
+
+        if (impact == null)
         {
             impact = Instantiate(prefab);
-            impact.transform.SetParent(transform);
+            impact.transform.SetParent(transform, false);
         }
+
+        ResetVisualComponents(impact);
 
         impact.transform.SetPositionAndRotation(position, rotation);
         impact.SetActive(true);
+
+        PlayVisualComponents(impact);
 
         StartCoroutine(ReturnImpactRoutine(impact, prefab, lifetime));
     }
@@ -44,21 +55,30 @@ public class PoolManager : MonoBehaviour
     private IEnumerator ReturnImpactRoutine(GameObject impact, GameObject prefab, float delay)
     {
         yield return new WaitForSeconds(delay);
+
+        if (impact == null) yield break;
+
+        ResetVisualComponents(impact);
         impact.SetActive(false);
-        _impactPools[prefab].Enqueue(impact);
+
+        if (prefab != null && _impactPools.TryGetValue(prefab, out Queue<GameObject> pool))
+        {
+            pool.Enqueue(impact);
+        }
     }
 
     public LineRenderer GetTracer(Material defaultMaterial)
     {
-        LineRenderer tracer;
-        if (_tracerPool.Count > 0)
+        LineRenderer tracer = null;
+        while (_tracerPool.Count > 0 && tracer == null)
         {
             tracer = _tracerPool.Dequeue();
         }
-        else
+
+        if (tracer == null)
         {
             GameObject tracerObj = new GameObject("PooledTracer");
-            tracerObj.transform.SetParent(transform);
+            tracerObj.transform.SetParent(transform, false);
             tracer = tracerObj.AddComponent<LineRenderer>();
             tracer.startWidth = 0.02f;
             tracer.endWidth = 0.005f;
@@ -71,13 +91,54 @@ public class PoolManager : MonoBehaviour
             tracer.material = defaultMaterial != null ? defaultMaterial : new Material(Shader.Find("Sprites/Default"));
         }
 
+        tracer.positionCount = 0;
+        tracer.enabled = true;
         tracer.gameObject.SetActive(true);
         return tracer;
     }
 
     public void ReturnTracer(LineRenderer tracer)
     {
+        if (tracer == null) return;
+
+        tracer.positionCount = 0;
+        tracer.enabled = false;
         tracer.gameObject.SetActive(false);
         _tracerPool.Enqueue(tracer);
+    }
+
+    private static void ResetVisualComponents(GameObject target)
+    {
+        ParticleSystem[] particleSystems = target.GetComponentsInChildren<ParticleSystem>(true);
+        for (int i = 0; i < particleSystems.Length; i++)
+        {
+            ParticleSystem ps = particleSystems[i];
+            if (ps == null) continue;
+
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            ps.Clear(true);
+        }
+
+        TrailRenderer[] trails = target.GetComponentsInChildren<TrailRenderer>(true);
+        for (int i = 0; i < trails.Length; i++)
+        {
+            if (trails[i] != null)
+            {
+                trails[i].Clear();
+            }
+        }
+    }
+
+    private static void PlayVisualComponents(GameObject target)
+    {
+        ParticleSystem[] particleSystems = target.GetComponentsInChildren<ParticleSystem>(true);
+        for (int i = 0; i < particleSystems.Length; i++)
+        {
+            ParticleSystem ps = particleSystems[i];
+            if (ps == null) continue;
+
+            ps.Clear(true);
+            ps.Play(true);
+        }
     }
 }

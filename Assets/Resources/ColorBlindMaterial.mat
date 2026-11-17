@@ -27,7 +27,7 @@ Material:
     m_Floats:
     - _Correct: 1
     - _Mode: 0
-    - _Strength: 1
+    - _Strength: 0
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

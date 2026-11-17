@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -23,7 +24,7 @@ public class WeaponBase : NetworkBehaviour
     private const float MOVEMENT_BASE_SPREAD_OFFSET = 0.004f;
     private const float AIR_BASE_SPREAD_OFFSET = 0.012f;
     private const float RESET_COOLDOWN_PADDING = 0.1f;
-    private const float MUZZLE_FLASH_DURATION = 0.035f;
+    private const float MUZZLE_FLASH_DURATION = 0.045f;
     private const float IMPACT_LIFETIME = 8f;
     private const float PARTICLE_IMPACT_LIFETIME = 0.6f;
     private const float TRACER_DURATION = 0.04f;
@@ -69,6 +70,8 @@ public class WeaponBase : NetworkBehaviour
     private AsyncOperationHandle<GameObject> _muzzleHandle;
     private AsyncOperationHandle<GameObject> _wallHandle;
     private AsyncOperationHandle<GameObject> _playerHandle;
+    private Transform _calculatedMuzzleTransform;
+    private bool _hasCalculatedMuzzle;
 
     public int CurrentAmmo => _currentAmmo;
     public int ReserveAmmo => _reserveAmmo;
@@ -84,8 +87,22 @@ public class WeaponBase : NetworkBehaviour
             _defaultLocalRotation = _weaponModelTransform.localRotation;
         }
 
+        if (IsMuzzleVfxPrefab(bulletTracerPrefab))
+        {
+            if (muzzleFlashPrefab == null)
+            {
+                muzzleFlashPrefab = bulletTracerPrefab;
+            }
+            bulletTracerPrefab = null;
+        }
+
         EnsureFirePoint();
         PreloadAddressableVfx();
+    }
+
+    private static bool IsMuzzleVfxPrefab(GameObject prefab)
+    {
+        return prefab != null && prefab.name.IndexOf("muzzle", System.StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     private void OnEnable()
@@ -107,11 +124,6 @@ public class WeaponBase : NetworkBehaviour
         {
             _weaponModelTransform.localPosition = _defaultLocalPosition;
             _weaponModelTransform.localRotation = _defaultLocalRotation;
-        }
-
-        if (_firePoint == null)
-        {
-            _firePoint = transform;
         }
     }
 
@@ -140,34 +152,175 @@ public class WeaponBase : NetworkBehaviour
 
     public void EnsureFirePoint()
     {
-        if (_firePoint != null && _firePoint.IsChildOf(transform))
+        if (_playerController == null)
         {
+            _playerController = GetComponentInParent<NetworkPlayerController>();
+        }
+
+        // Prioridad 1: si creaste manualmente un objeto hijo llamado "CustomMuzzle", se usa tal cual
+        Transform customMuzzle = transform.Find("CustomMuzzle");
+        if (customMuzzle != null)
+        {
+            _firePoint = customMuzzle;
+            _calculatedMuzzleTransform = customMuzzle;
+            _hasCalculatedMuzzle = true;
             return;
         }
 
-        Transform foundFp = null;
-        Transform[] children = GetComponentsInChildren<Transform>(true);
-        for (int i = 0; i < children.Length; i++)
+        if (_hasCalculatedMuzzle && _calculatedMuzzleTransform != null)
         {
-            string childName = children[i].name;
+            _firePoint = _calculatedMuzzleTransform;
+            return;
+        }
 
-            if (childName.IndexOf("Firepoint", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                childName.IndexOf("Fire_Point", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                childName.IndexOf("Muzzle", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
-                childName.IndexOf("Barrel", System.StringComparison.OrdinalIgnoreCase) >= 0)
+        Transform existingAuto = transform.Find("AutoMuzzlePoint");
+        if (existingAuto != null)
+        {
+            _calculatedMuzzleTransform = existingAuto;
+        }
+        else
+        {
+            GameObject autoMuzzle = new GameObject("AutoMuzzlePoint");
+            autoMuzzle.transform.SetParent(transform, false);
+            _calculatedMuzzleTransform = autoMuzzle.transform;
+        }
+
+        Vector3 aimForward = (_playerController != null && _playerController.PlayerCamera != null)
+            ? _playerController.PlayerCamera.transform.forward
+            : (_playerController != null ? _playerController.transform.forward : transform.forward);
+
+        List<Vector3> localPoints = new List<Vector3>(64);
+        List<Vector3> readableLocalVerts = new List<Vector3>(256);
+
+        MeshFilter[] meshFilters = GetComponentsInChildren<MeshFilter>(true);
+        for (int i = 0; i < meshFilters.Length; i++)
+        {
+            MeshFilter mf = meshFilters[i];
+            if (mf == null || mf.sharedMesh == null) continue;
+
+            AddMeshBoundsCornersLocal(mf.transform, mf.sharedMesh.bounds, localPoints);
+
+            if (mf.sharedMesh.isReadable)
             {
-                foundFp = children[i];
-                break;
+                Vector3[] verts = mf.sharedMesh.vertices;
+                int step = Mathf.Max(1, verts.Length / 150);
+                for (int v = 0; v < verts.Length; v += step)
+                {
+                    Vector3 worldV = mf.transform.TransformPoint(verts[v]);
+                    readableLocalVerts.Add(transform.InverseTransformPoint(worldV));
+                }
             }
         }
 
-        if (foundFp != null)
+        SkinnedMeshRenderer[] skinnedRenderers = GetComponentsInChildren<SkinnedMeshRenderer>(true);
+        for (int i = 0; i < skinnedRenderers.Length; i++)
         {
-            _firePoint = foundFp;
-            return;
+            SkinnedMeshRenderer smr = skinnedRenderers[i];
+            if (smr == null || smr.sharedMesh == null) continue;
+            AddMeshBoundsCornersLocal(smr.transform, smr.localBounds, localPoints);
         }
 
-        _firePoint = transform;
+        if (localPoints.Count > 0)
+        {
+            Vector3 min = localPoints[0];
+            Vector3 max = localPoints[0];
+            for (int i = 1; i < localPoints.Count; i++)
+            {
+                min = Vector3.Min(min, localPoints[i]);
+                max = Vector3.Max(max, localPoints[i]);
+            }
+
+            Vector3 size = max - min;
+
+            // El cañón del arma siempre corresponde al eje local de mayor longitud (X, Y o Z)
+            int barrelAxis = 2;
+            if (size.x >= size.y && size.x >= size.z) barrelAxis = 0;
+            else if (size.y >= size.x && size.y >= size.z) barrelAxis = 1;
+
+            Vector3 localAxisDir = Vector3.zero;
+            localAxisDir[barrelAxis] = 1f;
+            Vector3 worldAxisDir = transform.TransformDirection(localAxisDir);
+            bool positiveTip = Vector3.Dot(worldAxisDir, aimForward) >= 0f;
+
+            float tipCoord = positiveTip ? max[barrelAxis] : min[barrelAxis];
+            float axisLength = Mathf.Max(0.01f, size[barrelAxis]);
+
+            Vector3 localMuzzlePos = new Vector3(
+                (min.x + max.x) * 0.5f,
+                Mathf.Lerp(min.y, max.y, 0.62f),
+                (min.z + max.z) * 0.5f
+            );
+            localMuzzlePos[barrelAxis] = tipCoord;
+
+            // Si la malla permite leer vértices, promediamos la punta exacta del cañón
+            if (readableLocalVerts.Count > 0)
+            {
+                float cutoff = axisLength * 0.06f;
+                Vector3 tipSum = Vector3.zero;
+                int tipCount = 0;
+
+                for (int i = 0; i < readableLocalVerts.Count; i++)
+                {
+                    float distFromTip = positiveTip
+                        ? (tipCoord - readableLocalVerts[i][barrelAxis])
+                        : (readableLocalVerts[i][barrelAxis] - tipCoord);
+
+                    if (distFromTip <= cutoff)
+                    {
+                        tipSum += readableLocalVerts[i];
+                        tipCount++;
+                    }
+                }
+
+                if (tipCount > 0)
+                {
+                    localMuzzlePos = tipSum / tipCount;
+                    localMuzzlePos[barrelAxis] = tipCoord;
+                }
+            }
+
+            Vector3 barrelForwardLocal = positiveTip ? localAxisDir : -localAxisDir;
+            _calculatedMuzzleTransform.localPosition = localMuzzlePos;
+            _calculatedMuzzleTransform.localRotation = Quaternion.LookRotation(barrelForwardLocal, Vector3.up);
+        }
+        else
+        {
+            _calculatedMuzzleTransform.localPosition = new Vector3(0f, 0.04f, 0.45f);
+            _calculatedMuzzleTransform.localRotation = Quaternion.identity;
+        }
+
+        _firePoint = _calculatedMuzzleTransform;
+        _hasCalculatedMuzzle = true;
+    }
+
+    private void AddMeshBoundsCornersLocal(Transform meshTransform, Bounds localBounds, List<Vector3> results)
+    {
+        Vector3 min = localBounds.min;
+        Vector3 max = localBounds.max;
+
+        Vector3[] corners = new Vector3[8]
+        {
+            new Vector3(min.x, min.y, min.z),
+            new Vector3(max.x, min.y, min.z),
+            new Vector3(min.x, max.y, min.z),
+            new Vector3(max.x, max.y, min.z),
+            new Vector3(min.x, min.y, max.z),
+            new Vector3(max.x, min.y, max.z),
+            new Vector3(min.x, max.y, max.z),
+            new Vector3(max.x, max.y, max.z)
+        };
+
+        for (int i = 0; i < 8; i++)
+        {
+            Vector3 worldCorner = meshTransform.TransformPoint(corners[i]);
+            results.Add(transform.InverseTransformPoint(worldCorner));
+        }
+    }
+
+    public Vector3 GetMuzzleWorldPosition()
+    {
+        EnsureFirePoint();
+        return _firePoint != null ? _firePoint.position : transform.position;
     }
 
     private void PreloadAddressableVfx()
@@ -552,25 +705,42 @@ public class WeaponBase : NetworkBehaviour
 
     protected virtual void CreateTracerVisual(Vector3 targetPoint)
     {
-        EnsureFirePoint();
+        Vector3 muzzlePos = GetMuzzleWorldPosition();
+        Vector3 shotDir = (targetPoint - muzzlePos).normalized;
+        Quaternion shotRot = shotDir.sqrMagnitude > 0.001f ? Quaternion.LookRotation(shotDir) : transform.rotation;
 
         GameObject muzzleVfx = GetResolvedMuzzleFlashPrefab();
         if (muzzleVfx != null && _firePoint != null)
         {
-            SpawnVfxInstance(muzzleVfx, _firePoint.position, _firePoint.rotation, MUZZLE_FLASH_DURATION);
+            SpawnAttachedMuzzleFlash(muzzleVfx, _firePoint, shotRot, MUZZLE_FLASH_DURATION);
         }
 
-        if (_firePoint != null)
+        if (PoolManager.Instance != null)
         {
-            if (PoolManager.Instance != null)
-            {
-                PoolManager.Instance.StartCoroutine(RenderTracerRoutine(_firePoint.position, targetPoint));
-            }
-            else
-            {
-                StartCoroutine(RenderTracerRoutine(_firePoint.position, targetPoint));
-            }
+            PoolManager.Instance.StartCoroutine(RenderTracerRoutine(muzzlePos, targetPoint));
         }
+        else
+        {
+            StartCoroutine(RenderTracerRoutine(muzzlePos, targetPoint));
+        }
+    }
+
+    private static void SpawnAttachedMuzzleFlash(GameObject prefab, Transform muzzleParent, Quaternion worldRotation, float duration)
+    {
+        GameObject flash = Instantiate(prefab, muzzleParent.position, worldRotation, muzzleParent);
+        flash.transform.localPosition = Vector3.zero;
+
+        ParticleSystem[] particles = flash.GetComponentsInChildren<ParticleSystem>(true);
+        for (int i = 0; i < particles.Length; i++)
+        {
+            if (particles[i] == null) continue;
+            var main = particles[i].main;
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            particles[i].Clear(true);
+            particles[i].Play(true);
+        }
+
+        Destroy(flash, duration);
     }
 
     private void SpawnVfxInstance(GameObject prefab, Vector3 position, Quaternion rotation, float duration)
@@ -609,11 +779,21 @@ public class WeaponBase : NetworkBehaviour
 
     private IEnumerator RenderTracerRoutine(Vector3 start, Vector3 end)
     {
-        if (bulletTracerPrefab != null)
+        if (bulletTracerPrefab != null && !IsMuzzleVfxPrefab(bulletTracerPrefab))
         {
             Vector3 direction = (end - start).normalized;
             Quaternion rotation = direction.sqrMagnitude > 0.001f ? Quaternion.LookRotation(direction) : Quaternion.identity;
             GameObject tracerObj = Instantiate(bulletTracerPrefab, start, rotation);
+
+            Collider[] cols = tracerObj.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
+
+            Rigidbody[] rbs = tracerObj.GetComponentsInChildren<Rigidbody>(true);
+            for (int i = 0; i < rbs.Length; i++)
+            {
+                rbs[i].isKinematic = true;
+                rbs[i].linearVelocity = Vector3.zero;
+            }
 
             Light tracerLight = tracerObj.GetComponentInChildren<Light>();
             if (tracerLight != null)
@@ -680,22 +860,13 @@ public class WeaponBase : NetworkBehaviour
     {
         if (_isReloading || weaponData == null || _currentAmmo == weaponData.maxAmmo || _reserveAmmo <= 0) return;
 
-        if (!gameObject.activeInHierarchy)
-        {
-            gameObject.SetActive(true);
-        }
+        if (!gameObject.activeInHierarchy) return;
 
         _isReloading = true;
 
         if (_weaponAnimator != null)
         {
             _weaponAnimator.SetTrigger(_reloadTriggerHash);
-        }
-
-        if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
-        if (_playerController != null)
-        {
-            _playerController.TriggerReloadTPS();
         }
 
         if (weaponData.reloadSound != null && _audioSource != null)

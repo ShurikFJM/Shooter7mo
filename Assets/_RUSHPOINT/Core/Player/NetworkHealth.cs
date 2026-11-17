@@ -106,23 +106,17 @@ public class NetworkHealth : NetworkBehaviour
 
         if (IsOwner)
         {
-            PlayerInput playerInput = GetComponent<PlayerInput>();
             Camera playerCamera = GetComponentInChildren<Camera>(true);
 
             if (!isAlive)
             {
-                if (playerInput != null)
-                {
-                    playerInput.DeactivateInput();
-                }
-
                 PlayerTeam playerTeamComponent = GetComponent<PlayerTeam>();
                 if (playerTeamComponent == null)
                 {
                     playerTeamComponent = GetComponentInChildren<PlayerTeam>();
                 }
 
-                Team assignedTeam = playerTeamComponent != null ? playerTeamComponent.CurrentTeam.Value : Team.Red;
+                Team assignedTeam = playerTeamComponent != null ? playerTeamComponent.CurrentTeam.Value : Team.Neutral;
 
                 if (assignedTeam == Team.Neutral && CustomLobbyManager.SavedTeams != null)
                 {
@@ -142,11 +136,6 @@ public class NetworkHealth : NetworkBehaviour
                 if (SpectatorManager.Instance != null && SpectatorManager.Instance.IsSpectating)
                 {
                     SpectatorManager.Instance.StopSpectating();
-                }
-
-                if (playerInput != null)
-                {
-                    playerInput.ActivateInput();
                 }
             }
         }
