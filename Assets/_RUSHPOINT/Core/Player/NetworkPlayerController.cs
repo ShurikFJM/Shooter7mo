@@ -458,8 +458,21 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void HandleHealthChanged(float previousHealth, float currentHealth)
     {
-        if (!IsOwner) return;
-        if (currentHealth > 0f && _hasInitiatedSpectate) ResetToAliveState();
+        if (previousHealth <= 0f && currentHealth > 0f)
+        {
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
+
+            RagdollController ragdoll = GetComponentInChildren<RagdollController>(true);
+            if (ragdoll != null) ragdoll.ResetRagdoll();
+
+            PlayerTeamVisualizer visualizer = GetComponent<PlayerTeamVisualizer>();
+            if (visualizer != null) visualizer.RefreshRenderers();
+
+            if (IsOwner && _hasInitiatedSpectate)
+            {
+                ResetToAliveState();
+            }
+        }
     }
 
     private void HandleRoleChanged(PlayerRoleType previousRole, PlayerRoleType currentRole)
@@ -1069,7 +1082,27 @@ public class NetworkPlayerController : NetworkBehaviour
         _hasInitiatedSpectate = false;
         _isWalkingSlow = false;
 
-        if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
+        if (_thirdPersonRoot != null)
+        {
+            _thirdPersonRoot.SetActive(true);
+            _thirdPersonRoot.transform.localPosition = Vector3.zero;
+            _thirdPersonRoot.transform.localRotation = Quaternion.identity;
+            _thirdPersonRoot.transform.localScale = Vector3.one;
+        }
+
+        RagdollController ragdoll = GetComponentInChildren<RagdollController>(true);
+        if (ragdoll != null)
+        {
+            ragdoll.ResetRagdoll();
+        }
+
+        ApplyRoleData(selectedRole.Value);
+
+        PlayerTeamVisualizer visualizer = GetComponent<PlayerTeamVisualizer>();
+        if (visualizer != null)
+        {
+            visualizer.RefreshRenderers();
+        }
 
         if (IsOwner)
         {
