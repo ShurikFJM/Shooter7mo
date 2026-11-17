@@ -77,10 +77,10 @@ Material:
     - _RandRotation: 1
     - _RandScale: 0.5
     - _Rotation: 0
-    - _RoughConst: 0.6
+    - _RoughConst: 0
     - _RoughInvert: 0
-    - _RoughMax: 0
-    - _RoughMin: 0.69
+    - _RoughMax: 1
+    - _RoughMin: 0.904
     - _TilingX: 0.1
     - _TilingY: 0.1
     - _TriAxisOffset: 1
@@ -102,7 +102,7 @@ Material:
     - _VoronoiJitter: 1
     - _VoronoiScale: 4
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 0.6830188, g: 0.6830188, b: 0.6830188, a: 1}
     - _EmissionColor: {r: 1.0740651, g: 5.992156, b: 5.6142325, a: 1}
     - _TriAxisWeights: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []

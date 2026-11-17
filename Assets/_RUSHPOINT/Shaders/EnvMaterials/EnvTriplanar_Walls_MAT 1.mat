@@ -1,0 +1,107 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: EnvTriplanar_Walls_MAT 1
+  m_Shader: {fileID: 4800000, guid: 5a9618293630f21418188214f53515ab, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _ARMMAP
+  - _DISP_OFFSET
+  - _EMISSIONSRC_TEXTURE
+  - _NORMALMAP
+  - _PROJ_TRIPLANAR
+  - _TRINORMALBLEND_WHITEOUT
+  - _TRISPACE_WORLD
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _ARMTex:
+        m_Texture: {fileID: 2800000, guid: 3d78171639870ec40bf9e431c5dd80ac, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _AlbedoTex:
+        m_Texture: {fileID: 2800000, guid: 8394e93cc9ae83f4db78c7e8ce10521d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HeightTex:
+        m_Texture: {fileID: 2800000, guid: 7cd340ceca543984190c0a52035aa213, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTex:
+        m_Texture: {fileID: 2800000, guid: 541b3b67cb540f345b74037aae3198f5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AOStrength: 0.483
+    - _Disp: 1
+    - _EmissionSrc: 0
+    - _FadeRange: 10
+    - _FadeStart: 100
+    - _HeightInARM: 0
+    - _HeightInvert: 0
+    - _HeightRef: 0.742
+    - _HeightScale: 0.069
+    - _MetalConst: 0
+    - _MetalMax: 1
+    - _MetalMin: 0
+    - _NormalFlipY: 0
+    - _NormalStrength: 2
+    - _OffsetX: 0.44
+    - _OffsetY: -1.2
+    - _POMMaxSteps: 64
+    - _POMMinSteps: 32
+    - _Proj: 4
+    - _RandOffset: 0.3
+    - _RandRotation: 1
+    - _RandScale: 0.5
+    - _Rotation: 0
+    - _RoughConst: 0
+    - _RoughInvert: 0
+    - _RoughMax: 1
+    - _RoughMin: 0.752
+    - _TilingX: 0.02
+    - _TilingY: 0.02
+    - _TriAxisOffset: 0.222
+    - _TriBlendOffset: 0.9
+    - _TriCull: 0
+    - _TriHeightBlend: 0
+    - _TriHeightDepth: 0.01
+    - _TriHeightStrength: 0
+    - _TriNormalBlend: 0
+    - _TriSharpness: 32
+    - _TriSpace: 0
+    - _TriTwoAxes: 0
+    - _UseARM: 1
+    - _UseEmission: 0
+    - _UseNormal: 1
+    - _UseVoronoi: 0
+    - _VertexDispScale: 0.1
+    - _VoronoiBlend: 0.12
+    - _VoronoiJitter: 1
+    - _VoronoiScale: 5
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TriAxisWeights: {r: 1, g: 1, b: 1, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

@@ -134,7 +134,7 @@ public class PlayerGrenadeThrower : NetworkBehaviour
 
         if (_playerController != null)
         {
-            _playerController.TriggerGrenadeTPS();
+            //_playerController.TriggerGrenadeTPS();
         }
 
         Transform camTransform = _playerController.PlayerCamera != null ? _playerController.PlayerCamera.transform : transform;
