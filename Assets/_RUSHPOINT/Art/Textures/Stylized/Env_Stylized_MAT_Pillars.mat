@@ -84,13 +84,13 @@ Material:
     - _TilingX: 0.06
     - _TilingY: 0.04
     - _TriAxisOffset: 0
-    - _TriBlendOffset: 0
-    - _TriCull: 0
+    - _TriBlendOffset: 0.9
+    - _TriCull: 0.5
     - _TriHeightBlend: 1
     - _TriHeightDepth: 1
-    - _TriHeightStrength: 0
+    - _TriHeightStrength: 4
     - _TriNormalBlend: 0
-    - _TriSharpness: 1
+    - _TriSharpness: 32
     - _TriSpace: 0
     - _TriTwoAxes: 1
     - _UseARM: 1
@@ -104,6 +104,6 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _TriAxisWeights: {r: 1, g: 0.1, b: 1, a: 0}
+    - _TriAxisWeights: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

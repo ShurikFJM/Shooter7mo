@@ -82,13 +82,13 @@ Material:
     - _TilingX: 0.1
     - _TilingY: 0.1
     - _TriAxisOffset: 0.653
-    - _TriBlendOffset: 0
-    - _TriCull: 0.015
+    - _TriBlendOffset: 0.9
+    - _TriCull: 0
     - _TriHeightBlend: 0
     - _TriHeightDepth: 0.239
     - _TriHeightStrength: 1.08
     - _TriNormalBlend: 0
-    - _TriSharpness: 4
+    - _TriSharpness: 32
     - _TriSpace: 0
     - _TriTwoAxes: 0
     - _UseARM: 1
