@@ -32,11 +32,15 @@ public class RoundManager : NetworkBehaviour
     private const float BOOTSTRAP_TIMEOUT_SECONDS = 3f;
     private const float SERVER_INIT_WAIT_SECONDS = 0.5f;
     private const float WATCHDOG_THRESHOLD_SECONDS = 1.5f;
+    private const float ELIMINATION_CHECK_INTERVAL = 0.2f;
     private const string LOBBY_UI_NAME = "Ui_Lobby";
     private const string ROLE_CANVAS_NAME = "RoleSelectCanvas";
     private const string SPECTATOR_WAIT_CANVAS_NAME = "SpectatorWaitCanvas";
     private const string MAP_SCENE_NAME = "RUSPOINT";
     private const string MAIN_MENU_SCENE_NAME = "MainMenu";
+
+    private static readonly WaitForSeconds MATCH_END_WAIT = new WaitForSeconds(MATCH_END_STAND_DELAY_SECONDS);
+    private static readonly WaitForSecondsRealtime SERVER_INIT_WAIT = new WaitForSecondsRealtime(SERVER_INIT_WAIT_SECONDS);
 
     private static RoundManager _instance;
     public static RoundManager Instance => _instance;
@@ -133,8 +137,10 @@ public class RoundManager : NetworkBehaviour
     public int HalftimeRound => Mathf.Max(2, _roundsToWinMatch);
 
     private Coroutine _roundLoopCoroutine;
+    private NetworkPlayerController _cachedBroadcastController;
     private bool _hasStartedMatch;
     private bool _hasSwitchedSides;
+    private bool _hasCleanedSceneArtifacts;
     private float _serverWatchdogTimer;
 
     private void Awake()
@@ -146,6 +152,7 @@ public class RoundManager : NetworkBehaviour
         }
 
         _instance = this;
+        _hasCleanedSceneArtifacts = false;
         CleanSceneArtifacts();
     }
 
@@ -172,6 +179,24 @@ public class RoundManager : NetworkBehaviour
         }
     }
 
+    private bool TryGetSavedTeam(ulong clientId, out Team savedTeam)
+    {
+        if (MatchDataBridge.PlayersCache != null && MatchDataBridge.PlayersCache.TryGetValue(clientId, out var cachedData))
+        {
+            savedTeam = cachedData.SelectedTeam;
+            return true;
+        }
+
+        if (CustomLobbyManager.SavedTeams != null && CustomLobbyManager.SavedTeams.TryGetValue(clientId, out Team lobbyTeam))
+        {
+            savedTeam = lobbyTeam;
+            return true;
+        }
+
+        savedTeam = Team.Neutral;
+        return false;
+    }
+
     public void ApplyClientSyncedState(int roundTime, int redScore, int blueScore, int roundNumber, RoundPhase phase, Team lastWinner)
     {
         _hasClientSyncedState = true;
@@ -182,8 +207,12 @@ public class RoundManager : NetworkBehaviour
         _clientSyncedPhase = phase;
         _clientSyncedWinner = lastWinner;
 
-        CleanSceneArtifacts();
-        if (LoadingScreen.Instance != null)
+        if (!_hasCleanedSceneArtifacts)
+        {
+            CleanSceneArtifacts();
+        }
+
+        if (LoadingScreen.Instance != null && LoadingScreen.Instance.IsVisible)
         {
             LoadingScreen.Instance.Dismiss();
         }
@@ -207,24 +236,33 @@ public class RoundManager : NetworkBehaviour
     {
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
 
-        foreach (KeyValuePair<ulong, NetworkClient> clientPair in NetworkManager.Singleton.ConnectedClients)
+        if (_cachedBroadcastController == null || !_cachedBroadcastController.IsSpawned)
         {
-            if (clientPair.Value.PlayerObject != null)
+            _cachedBroadcastController = null;
+            foreach (KeyValuePair<ulong, NetworkClient> clientPair in NetworkManager.Singleton.ConnectedClients)
             {
-                NetworkPlayerController controller = clientPair.Value.PlayerObject.GetComponent<NetworkPlayerController>();
-                if (controller != null && controller.IsSpawned)
+                if (clientPair.Value.PlayerObject != null)
                 {
-                    controller.SyncRoundStateClientRpc(
-                        _currentRoundTime.Value,
-                        _redScore.Value,
-                        _blueScore.Value,
-                        _roundNumber.Value,
-                        (byte)_currentPhase.Value,
-                        (byte)_lastRoundWinner.Value
-                    );
-                    break;
+                    NetworkPlayerController controller = clientPair.Value.PlayerObject.GetComponent<NetworkPlayerController>();
+                    if (controller != null && controller.IsSpawned)
+                    {
+                        _cachedBroadcastController = controller;
+                        break;
+                    }
                 }
             }
+        }
+
+        if (_cachedBroadcastController != null)
+        {
+            _cachedBroadcastController.SyncRoundStateClientRpc(
+                _currentRoundTime.Value,
+                _redScore.Value,
+                _blueScore.Value,
+                _roundNumber.Value,
+                (byte)_currentPhase.Value,
+                (byte)_lastRoundWinner.Value
+            );
         }
     }
 
@@ -240,11 +278,13 @@ public class RoundManager : NetworkBehaviour
 
         GameObject spectatorWaitCanvas = GameObject.Find(SPECTATOR_WAIT_CANVAS_NAME);
         if (spectatorWaitCanvas != null) spectatorWaitCanvas.SetActive(false);
+
+        _hasCleanedSceneArtifacts = true;
     }
 
     private IEnumerator LocalEnsureScreenClearRoutine()
     {
-        yield return new WaitForSecondsRealtime(SERVER_INIT_WAIT_SECONDS);
+        yield return SERVER_INIT_WAIT;
         CleanSceneArtifacts();
 
         if (LoadingScreen.Instance != null)
@@ -267,7 +307,7 @@ public class RoundManager : NetworkBehaviour
             yield break;
         }
 
-        yield return new WaitForSecondsRealtime(SERVER_INIT_WAIT_SECONDS);
+        yield return SERVER_INIT_WAIT;
         PullLobbySettingsServer();
         StartMatchServer();
     }
@@ -322,6 +362,14 @@ public class RoundManager : NetworkBehaviour
         }
         else
         {
+            if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient lateClient))
+            {
+                if (TryGetSavedTeam(clientId, out Team savedTeam) && savedTeam == Team.Neutral)
+                {
+                    HandleSpectatorClientServer(clientId, lateClient);
+                }
+            }
+
             BroadcastStateToClients();
         }
     }
@@ -402,7 +450,7 @@ public class RoundManager : NetworkBehaviour
         _phaseStartServerTime.Value = NetworkManager.Singleton.ServerTime.Time;
         BroadcastStateToClients();
 
-        yield return new WaitForSeconds(MATCH_END_STAND_DELAY_SECONDS);
+        yield return MATCH_END_WAIT;
 
         ReturnToMainMenuFromServer();
     }
@@ -447,6 +495,13 @@ public class RoundManager : NetworkBehaviour
             {
                 if (currentSavedTeam == Team.Red) CustomLobbyManager.SavedTeams[clientId] = Team.Blue;
                 else if (currentSavedTeam == Team.Blue) CustomLobbyManager.SavedTeams[clientId] = Team.Red;
+            }
+
+            if (MatchDataBridge.PlayersCache != null && MatchDataBridge.PlayersCache.TryGetValue(clientId, out var cachedPlayer))
+            {
+                if (cachedPlayer.SelectedTeam == Team.Red) cachedPlayer.SelectedTeam = Team.Blue;
+                else if (cachedPlayer.SelectedTeam == Team.Blue) cachedPlayer.SelectedTeam = Team.Red;
+                MatchDataBridge.PlayersCache[clientId] = cachedPlayer;
             }
 
             if (client.PlayerObject == null) continue;
@@ -530,12 +585,18 @@ public class RoundManager : NetworkBehaviour
         BroadcastStateToClients();
 
         int lastSecondReported = -1;
+        float nextEliminationCheckTime = 0f;
 
         while (_currentPhase.Value == RoundPhase.InProgress)
         {
             if (_bomb == null) _bomb = FindAnyObjectByType<Bomb>();
 
             bool isBombActive = _bomb != null && (_bomb.CurrentState == BombState.Planted || _bomb.CurrentState == BombState.Defusing);
+            bool shouldCheckEliminations = Time.time >= nextEliminationCheckTime;
+            if (shouldCheckEliminations)
+            {
+                nextEliminationCheckTime = Time.time + ELIMINATION_CHECK_INTERVAL;
+            }
 
             if (isBombActive)
             {
@@ -559,7 +620,7 @@ public class RoundManager : NetworkBehaviour
                     }
                 }
 
-                CheckEliminationsAfterPlant();
+                if (shouldCheckEliminations) CheckEliminationsAfterPlant();
             }
             else
             {
@@ -579,7 +640,7 @@ public class RoundManager : NetworkBehaviour
                     break;
                 }
 
-                CheckEliminationsBeforePlant();
+                if (shouldCheckEliminations) CheckEliminationsBeforePlant();
             }
 
             yield return null;
@@ -703,9 +764,7 @@ public class RoundManager : NetworkBehaviour
         bool anyCombatantExists = false;
         foreach (KeyValuePair<ulong, NetworkClient> kvp in NetworkManager.Singleton.ConnectedClients)
         {
-            if (CustomLobbyManager.SavedTeams != null &&
-                CustomLobbyManager.SavedTeams.TryGetValue(kvp.Key, out Team saved) &&
-                (saved == Team.Red || saved == Team.Blue))
+            if (TryGetSavedTeam(kvp.Key, out Team saved) && (saved == Team.Red || saved == Team.Blue))
             {
                 anyCombatantExists = true;
                 break;
@@ -722,7 +781,7 @@ public class RoundManager : NetworkBehaviour
             NetworkClient client = clientPair.Value;
 
             Team assignedTeam = Team.Neutral;
-            if (CustomLobbyManager.SavedTeams != null && CustomLobbyManager.SavedTeams.TryGetValue(clientId, out Team savedTeam))
+            if (TryGetSavedTeam(clientId, out Team savedTeam))
             {
                 assignedTeam = savedTeam;
             }
@@ -879,6 +938,12 @@ public class RoundManager : NetworkBehaviour
                 if (healthComponent != null)
                 {
                     healthComponent.SetSpectatorStateServer();
+                }
+
+                NetworkPlayerController controller = spectatorObject.GetComponent<NetworkPlayerController>();
+                if (controller != null)
+                {
+                    controller.EnterSpectatorModeClientRpc();
                 }
             }
         }

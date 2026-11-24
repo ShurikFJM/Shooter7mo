@@ -250,7 +250,7 @@ MonoBehaviour:
   _weaponAnimator: {fileID: 0}
   _hitLayers:
     serializedVersion: 2
-    m_Bits: 2057
+    m_Bits: 9
   _returnSpeed: 10
   _wallImpactParticlePrefab: {fileID: 0}
   _playerImpactParticlePrefab: {fileID: 0}

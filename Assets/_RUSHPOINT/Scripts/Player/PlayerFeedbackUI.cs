@@ -4,7 +4,7 @@ using Unity.Netcode;
 using Unity.Collections;
 using System.Collections;
 
-[RequireComponent(typeof(AudioSource))] 
+[RequireComponent(typeof(AudioSource))]
 public class PlayerFeedbackUI : NetworkBehaviour
 {
     [SerializeField] private float _delayBeforeFade = 2f;
@@ -15,12 +15,14 @@ public class PlayerFeedbackUI : NetworkBehaviour
 
     private NetworkHealth _health;
     private float _fadeTimer = 0f;
-    private AudioSource _audioSource; 
+    private AudioSource _audioSource;
+    private float _spawnTimestamp;
 
     public override void OnNetworkSpawn()
     {
         if (!IsOwner) return;
 
+        _spawnTimestamp = Time.time;
         _health = GetComponent<NetworkHealth>();
         _audioSource = GetComponent<AudioSource>();
 
@@ -54,7 +56,13 @@ public class PlayerFeedbackUI : NetworkBehaviour
 
     private void HandleHealthChanged(float previousValue, float currentValue)
     {
-        if (currentValue < previousValue && currentValue > 0)
+        if (!IsOwner) return;
+
+        // Ignorar ajustes iniciales de vida al conectar o elegir rol durante los primeros 1.5s / Warmup
+        if (Time.time - _spawnTimestamp < 1.5f) return;
+        if (RoundManager.Instance != null && RoundManager.Instance.CurrentPhase.Value == RoundPhase.Warmup) return;
+
+        if (currentValue < previousValue && currentValue > 0f)
         {
             ShowDamageEffect();
         }
@@ -78,15 +86,15 @@ public class PlayerFeedbackUI : NetworkBehaviour
     {
         if (!IsOwner || LocalFeedbackHUD.Instance == null || LocalFeedbackHUD.Instance.DamageCanvasGroup == null) return;
 
-        if (LocalFeedbackHUD.Instance.DamageCanvasGroup.alpha > 0)
+        if (LocalFeedbackHUD.Instance.DamageCanvasGroup.alpha > 0f)
         {
-            if (_fadeTimer > 0)
+            if (_fadeTimer > 0f)
             {
                 _fadeTimer -= Time.deltaTime;
             }
             else
             {
-                LocalFeedbackHUD.Instance.DamageCanvasGroup.alpha -= _fadeSpeed * Time.deltaTime;
+                LocalFeedbackHUD.Instance.DamageCanvasGroup.alpha = Mathf.Max(0f, LocalFeedbackHUD.Instance.DamageCanvasGroup.alpha - (_fadeSpeed * Time.deltaTime));
             }
         }
     }

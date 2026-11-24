@@ -21,6 +21,7 @@ public class InputManager : MonoBehaviour
     private const string ACTION_CROUCH = "Crouch";
     private const string ACTION_WALK = "Walk";
     private const string ACTION_DROP = "Drop";
+    private const string ACTION_GRENADE = "Grenade";
     private const string ACTION_SLOT_1 = "Slot1";
     private const string ACTION_SLOT_2 = "Slot2";
     private const string ACTION_SLOT_3 = "Slot3";
@@ -45,6 +46,7 @@ public class InputManager : MonoBehaviour
     private InputAction _crouchAction;
     private InputAction _walkAction;
     private InputAction _dropAction;
+    private InputAction _grenadeAction;
     private InputAction _slot1Action;
     private InputAction _slot2Action;
     private InputAction _slot3Action;
@@ -99,74 +101,24 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    public bool IsFirePressed
-    {
-        get
-        {
-            if (_fireAction != null && _fireAction.IsPressed()) return true;
-            if (Mouse.current != null && Mouse.current.leftButton.isPressed) return true;
-            if (Gamepad.current != null && Gamepad.current.rightTrigger.isPressed) return true;
-            return false;
-        }
-    }
-
-    public bool WasFireTriggered
-    {
-        get
-        {
-            if (_fireAction != null && _fireAction.WasPressedThisFrame()) return true;
-            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) return true;
-            if (Gamepad.current != null && Gamepad.current.rightTrigger.wasPressedThisFrame) return true;
-            return false;
-        }
-    }
-
-    public bool IsAimPressed
-    {
-        get
-        {
-            if (_aimAction != null && _aimAction.IsPressed()) return true;
-            if (Mouse.current != null && Mouse.current.rightButton.isPressed) return true;
-            if (Gamepad.current != null && Gamepad.current.leftTrigger.isPressed) return true;
-            return false;
-        }
-    }
-
+    public bool IsFirePressed => _fireAction != null && _fireAction.IsPressed();
+    public bool WasFireTriggered => _fireAction != null && _fireAction.WasPressedThisFrame();
+    public bool IsAimPressed => _aimAction != null && _aimAction.IsPressed();
     public bool WasReloadTriggered => _reloadAction != null && _reloadAction.WasPressedThisFrame();
     public bool IsInteractPressed => _interactAction != null && _interactAction.IsPressed();
     public bool WasInteractTriggered => _interactAction != null && _interactAction.WasPressedThisFrame();
     public bool WasInteractReleased => _interactAction != null && _interactAction.WasReleasedThisFrame();
     public bool WasJumpTriggered => _jumpAction != null && _jumpAction.WasPressedThisFrame();
     public bool IsCrouchPressed => _crouchAction != null && _crouchAction.IsPressed();
-
-    public bool IsWalkPressed
-    {
-        get
-        {
-            if (_walkAction != null && _walkAction.IsPressed()) return true;
-            if (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed) return true;
-            if (Gamepad.current != null && Gamepad.current.leftStickButton.isPressed) return true;
-            return false;
-        }
-    }
-
+    public bool IsWalkPressed => _walkAction != null && _walkAction.IsPressed();
     public bool WasDropTriggered => _dropAction != null && _dropAction.WasPressedThisFrame();
+    public bool WasGrenadeTriggered => (_grenadeAction != null && _grenadeAction.WasPressedThisFrame()) || (_dropAction != null && _dropAction.WasPressedThisFrame());
     public bool WasSlot1Triggered => _slot1Action != null && _slot1Action.WasPressedThisFrame();
     public bool WasSlot2Triggered => _slot2Action != null && _slot2Action.WasPressedThisFrame();
     public bool WasSlot3Triggered => _slot3Action != null && _slot3Action.WasPressedThisFrame();
     public bool WasPauseTriggered => _pauseAction != null && _pauseAction.WasPressedThisFrame();
     public bool WasChatTriggered => _chatAction != null && _chatAction.WasPressedThisFrame();
-
-    public bool IsScoreboardPressed
-    {
-        get
-        {
-            if (_scoreboardAction != null && _scoreboardAction.IsPressed()) return true;
-            if (Keyboard.current != null && Keyboard.current.tabKey.isPressed) return true;
-            if (Gamepad.current != null && Gamepad.current.selectButton.isPressed) return true;
-            return false;
-        }
-    }
+    public bool IsScoreboardPressed => _scoreboardAction != null && _scoreboardAction.IsPressed();
 
     private void Awake()
     {
@@ -270,8 +222,12 @@ public class InputManager : MonoBehaviour
         walk.AddBinding("<Gamepad>/leftStickPress");
 
         InputAction drop = playerMap.AddAction(ACTION_DROP, InputActionType.Button);
-        drop.AddBinding("<Keyboard>/g");
+        drop.AddBinding("<Keyboard>/q");
         drop.AddBinding("<Gamepad>/dpad/down");
+
+        InputAction grenade = playerMap.AddAction(ACTION_GRENADE, InputActionType.Button);
+        grenade.AddBinding("<Keyboard>/g");
+        grenade.AddBinding("<Gamepad>/rightShoulder");
 
         InputAction slot1 = playerMap.AddAction(ACTION_SLOT_1, InputActionType.Button);
         slot1.AddBinding("<Keyboard>/1");
@@ -317,6 +273,7 @@ public class InputManager : MonoBehaviour
         _crouchAction = SafeGetAction(map, ACTION_CROUCH);
         _walkAction = SafeGetAction(map, ACTION_WALK);
         _dropAction = SafeGetAction(map, ACTION_DROP);
+        _grenadeAction = SafeGetAction(map, ACTION_GRENADE);
         _slot1Action = SafeGetAction(map, ACTION_SLOT_1);
         _slot2Action = SafeGetAction(map, ACTION_SLOT_2);
         _slot3Action = SafeGetAction(map, ACTION_SLOT_3);
@@ -390,8 +347,13 @@ public class InputManager : MonoBehaviour
         }
         else if (primaryName == ACTION_DROP)
         {
-            action.AddBinding("<Keyboard>/g");
+            action.AddBinding("<Keyboard>/q");
             action.AddBinding("<Gamepad>/dpad/down");
+        }
+        else if (primaryName == ACTION_GRENADE)
+        {
+            action.AddBinding("<Keyboard>/g");
+            action.AddBinding("<Gamepad>/rightShoulder");
         }
         else if (primaryName == ACTION_RELOAD)
         {
@@ -428,6 +390,7 @@ public class InputManager : MonoBehaviour
         _crouchAction?.Enable();
         _walkAction?.Enable();
         _dropAction?.Enable();
+        _grenadeAction?.Enable();
         _slot1Action?.Enable();
         _slot2Action?.Enable();
         _slot3Action?.Enable();

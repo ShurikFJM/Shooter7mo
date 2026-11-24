@@ -98,7 +98,7 @@ PrefabInstance:
       addedObject: {fileID: 7302510505325251344}
     - targetCorrespondingSourceObject: {fileID: 100000, guid: 4cd7a1388b6a2084eae8df6ba881b33d, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5216777533150083147}
+      addedObject: {fileID: 1179310887637709152}
   m_SourcePrefab: {fileID: 100100000, guid: 4cd7a1388b6a2084eae8df6ba881b33d, type: 3}
 --- !u!1 &2375206337446572558 stripped
 GameObject:
@@ -229,7 +229,7 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &5216777533150083147
+--- !u!114 &1179310887637709152
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -238,24 +238,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 2375206337446572558}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb845fd9d23ef64293789ad23fdacbc, type: 3}
+  m_Script: {fileID: 11500000, guid: 50cc8b087eee6754e8f55c23d698d416, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WeaponBase
+  m_EditorClassIdentifier: Assembly-CSharp::HealingPistol
   ShowTopMostFoldoutHeaderGroup: 1
   weaponData: {fileID: 11400000, guid: 8909aac897f922e478ed93bb704d144c, type: 2}
   muzzleFlashPrefab: {fileID: 1291653246976116, guid: 8a59b00a5849b5c429774bed6cc7a086, type: 3}
   bulletTracerPrefab: {fileID: 6775555633505714487, guid: beeeff3cf7fbf2044af81125d54eb20c, type: 3}
   _firePoint: {fileID: 1431341711575483085}
-  _weaponModelTransform: {fileID: 400000, guid: 4cd7a1388b6a2084eae8df6ba881b33d, type: 3}
+  _weaponModelTransform: {fileID: 2375206337446800942}
   _weaponAnimator: {fileID: 0}
   _hitLayers:
     serializedVersion: 2
-    m_Bits: 2057
+    m_Bits: 9
   _returnSpeed: 10
   _wallImpactParticlePrefab: {fileID: 0}
   _playerImpactParticlePrefab: {fileID: 0}
   _wallHitFallbackSound: {fileID: 0}
-  _playerHitFallbackSound: {fileID: 8300000, guid: 97999aa81b2749f4f81992ed13a0ab6e, type: 3}
+  _playerHitFallbackSound: {fileID: 0}
+  _healAmountAlly: 50
+  _healAmountSelf: 30
+  _selfHealCooldown: 1
+  _selfHealSound: {fileID: 0}
+  _selfHealVfxPrefab: {fileID: 0}
 --- !u!4 &2375206337446800942 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 4cd7a1388b6a2084eae8df6ba881b33d, type: 3}

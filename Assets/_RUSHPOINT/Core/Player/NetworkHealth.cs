@@ -52,13 +52,38 @@ public class NetworkHealth : NetworkBehaviour
     public NetworkVariable<float> MaxArmor => _maxArmor;
     public NetworkVariable<bool> IsAlive => _isAlive;
 
+    public bool EnableFriendlyFire
+    {
+        get => CustomLobbyManager.SavedFriendlyFire;
+        set
+        {
+            _enableFriendlyFire = value;
+            CustomLobbyManager.SavedFriendlyFire = value;
+        }
+    }
+
     public override void OnNetworkSpawn()
     {
         _isAlive.OnValueChanged += HandleLivingStateChanged;
 
         if (IsServer)
         {
-            ResetHealthServer();
+            PlayerTeam playerTeam = GetComponent<PlayerTeam>();
+            if (playerTeam == null) playerTeam = GetComponentInChildren<PlayerTeam>();
+
+            bool isNeutralSpectator = (playerTeam != null && playerTeam.CurrentTeam.Value == Team.Neutral) ||
+                                      (CustomLobbyManager.SavedTeams != null &&
+                                       CustomLobbyManager.SavedTeams.TryGetValue(OwnerClientId, out Team savedTeam) &&
+                                       savedTeam == Team.Neutral);
+
+            if (isNeutralSpectator)
+            {
+                SetSpectatorStateServer();
+            }
+            else
+            {
+                ResetHealthServer();
+            }
         }
 
         ApplyLivingState(_isAlive.Value);
@@ -76,58 +101,80 @@ public class NetworkHealth : NetworkBehaviour
 
     private void ApplyLivingState(bool isAlive)
     {
+        PlayerTeam playerTeamComponent = GetComponent<PlayerTeam>();
+        if (playerTeamComponent == null)
+        {
+            playerTeamComponent = GetComponentInChildren<PlayerTeam>();
+        }
+
+        Team assignedTeam = playerTeamComponent != null ? playerTeamComponent.CurrentTeam.Value : Team.Neutral;
+        if (assignedTeam == Team.Neutral && CustomLobbyManager.SavedTeams != null)
+        {
+            if (CustomLobbyManager.SavedTeams.TryGetValue(OwnerClientId, out Team savedLobbyTeam))
+            {
+                assignedTeam = savedLobbyTeam;
+            }
+        }
+
+        bool isSpectator = assignedTeam == Team.Neutral;
+
         CharacterController characterController = GetComponent<CharacterController>();
         if (characterController != null)
         {
-            characterController.enabled = isAlive;
+            characterController.enabled = isAlive && !isSpectator;
         }
 
-        RagdollController ragdoll = GetComponentInChildren<RagdollController>();
+        RagdollController[] ragdolls = GetComponentsInChildren<RagdollController>(true);
 
-        if (isAlive)
+        if (isSpectator)
         {
-            if (ragdoll != null)
+            if (_characterModelRoot != null)
             {
-                ragdoll.ResetRagdoll();
+                _characterModelRoot.SetActive(false);
             }
-
+        }
+        else if (isAlive)
+        {
             if (_characterModelRoot != null)
             {
                 _characterModelRoot.SetActive(true);
             }
+
+            for (int i = 0; i < ragdolls.Length; i++)
+            {
+                if (ragdolls[i] != null)
+                {
+                    ragdolls[i].ResetRagdoll();
+                }
+            }
         }
         else
         {
-            if (ragdoll != null)
+            for (int i = 0; i < ragdolls.Length; i++)
             {
-                ragdoll.SetRagdollActive(true);
+                if (ragdolls[i] != null && ragdolls[i].gameObject.activeInHierarchy)
+                {
+                    ragdolls[i].SetRagdollActive(true);
+                }
             }
         }
 
         if (IsOwner)
         {
+            PlayerInput playerInput = GetComponent<PlayerInput>();
             Camera playerCamera = GetComponentInChildren<Camera>(true);
 
-            if (!isAlive)
+            if (!isAlive || isSpectator)
             {
-                PlayerTeam playerTeamComponent = GetComponent<PlayerTeam>();
-                if (playerTeamComponent == null)
+                if (playerInput != null)
                 {
-                    playerTeamComponent = GetComponentInChildren<PlayerTeam>();
-                }
-
-                Team assignedTeam = playerTeamComponent != null ? playerTeamComponent.CurrentTeam.Value : Team.Neutral;
-
-                if (assignedTeam == Team.Neutral && CustomLobbyManager.SavedTeams != null)
-                {
-                    if (CustomLobbyManager.SavedTeams.TryGetValue(OwnerClientId, out Team savedLobbyTeam))
-                    {
-                        assignedTeam = savedLobbyTeam;
-                    }
+                    playerInput.DeactivateInput();
                 }
 
                 if (SpectatorManager.Instance != null && playerCamera != null)
                 {
+                    playerCamera.gameObject.SetActive(true);
+                    playerCamera.enabled = true;
                     SpectatorManager.Instance.StartSpectating(assignedTeam, playerCamera, transform, SPECTATOR_CAMERA_VERTICAL_OFFSET);
                 }
             }
@@ -137,6 +184,11 @@ public class NetworkHealth : NetworkBehaviour
                 {
                     SpectatorManager.Instance.StopSpectating();
                 }
+
+                if (playerInput != null)
+                {
+                    playerInput.ActivateInput();
+                }
             }
         }
     }
@@ -144,6 +196,14 @@ public class NetworkHealth : NetworkBehaviour
     public void ResetHealthServer()
     {
         if (!IsServer) return;
+
+        PlayerTeam playerTeam = GetComponent<PlayerTeam>();
+        if (playerTeam == null) playerTeam = GetComponentInChildren<PlayerTeam>();
+        if (playerTeam != null && playerTeam.CurrentTeam.Value == Team.Neutral)
+        {
+            SetSpectatorStateServer();
+            return;
+        }
 
         _maxHealth.Value = _defaultMaxHealth;
         _currentHealth.Value = _defaultMaxHealth;
@@ -155,6 +215,14 @@ public class NetworkHealth : NetworkBehaviour
     public void SetMaxStatsServer(float maxHealth, float maxArmor)
     {
         if (!IsServer) return;
+
+        PlayerTeam playerTeam = GetComponent<PlayerTeam>();
+        if (playerTeam == null) playerTeam = GetComponentInChildren<PlayerTeam>();
+        if (playerTeam != null && playerTeam.CurrentTeam.Value == Team.Neutral)
+        {
+            SetSpectatorStateServer();
+            return;
+        }
 
         _defaultMaxHealth = maxHealth;
         _defaultMaxArmor = maxArmor;
@@ -170,8 +238,11 @@ public class NetworkHealth : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        _isAlive.Value = false;
+        _maxHealth.Value = 0f;
         _currentHealth.Value = 0f;
+        _maxArmor.Value = 0f;
+        _currentArmor.Value = 0f;
+        _isAlive.Value = false;
     }
 
     [Rpc(SendTo.Server)]
@@ -189,36 +260,57 @@ public class NetworkHealth : NetworkBehaviour
         _currentHealth.Value = Mathf.Min(_currentHealth.Value + amount, _maxHealth.Value);
     }
 
+    private Team ResolvePlayerTeam(ulong clientId, GameObject knownObject)
+    {
+        GameObject targetObj = knownObject;
+
+        if (targetObj == null &&
+            NetworkManager.Singleton != null &&
+            NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client) &&
+            client.PlayerObject != null)
+        {
+            targetObj = client.PlayerObject.gameObject;
+        }
+
+        if (targetObj != null)
+        {
+            PlayerTeam teamComp = targetObj.GetComponent<PlayerTeam>();
+            if (teamComp == null) teamComp = targetObj.GetComponentInChildren<PlayerTeam>(true);
+            if (teamComp != null && teamComp.CurrentTeam.Value != Team.Neutral)
+            {
+                return teamComp.CurrentTeam.Value;
+            }
+        }
+
+        if (CustomLobbyManager.SavedTeams != null &&
+            CustomLobbyManager.SavedTeams.TryGetValue(clientId, out Team savedTeam) &&
+            savedTeam != Team.Neutral)
+        {
+            return savedTeam;
+        }
+
+        if (MatchDataBridge.PlayersCache != null &&
+            MatchDataBridge.PlayersCache.TryGetValue(clientId, out var cachedPlayer) &&
+            cachedPlayer.SelectedTeam != Team.Neutral)
+        {
+            return cachedPlayer.SelectedTeam;
+        }
+
+        return Team.Neutral;
+    }
+
     public void ApplyDamageServer(float baseDamage, HitboxType hitboxType, ulong attackerClientId)
     {
         if (!IsServer || !_isAlive.Value) return;
 
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.ConnectedClients.TryGetValue(attackerClientId, out NetworkClient attackerClient))
+        if (!CustomLobbyManager.SavedFriendlyFire && attackerClientId != OwnerClientId)
         {
-            if (attackerClient.PlayerObject != null)
+            Team attackerTeam = ResolvePlayerTeam(attackerClientId, null);
+            Team victimTeam = ResolvePlayerTeam(OwnerClientId, gameObject);
+
+            if (attackerTeam != Team.Neutral && attackerTeam == victimTeam)
             {
-                PlayerTeam attackerTeamComponent = attackerClient.PlayerObject.GetComponent<PlayerTeam>();
-                if (attackerTeamComponent == null)
-                {
-                    attackerTeamComponent = attackerClient.PlayerObject.GetComponentInChildren<PlayerTeam>();
-                }
-
-                PlayerTeam victimTeamComponent = GetComponent<PlayerTeam>();
-                if (victimTeamComponent == null)
-                {
-                    victimTeamComponent = GetComponentInChildren<PlayerTeam>();
-                }
-
-                if (attackerTeamComponent != null && victimTeamComponent != null)
-                {
-                    Team attackerTeam = attackerTeamComponent.CurrentTeam.Value;
-                    Team victimTeam = victimTeamComponent.CurrentTeam.Value;
-
-                    if (attackerTeam == victimTeam && attackerTeam != Team.Neutral && !_enableFriendlyFire)
-                    {
-                        return;
-                    }
-                }
+                return;
             }
         }
 
@@ -289,10 +381,13 @@ public class NetworkHealth : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void TriggerRagdollDeathClientRpc(Vector3 impactDirection)
     {
-        RagdollController ragdoll = GetComponentInChildren<RagdollController>();
-        if (ragdoll != null)
+        RagdollController[] ragdolls = GetComponentsInChildren<RagdollController>(true);
+        for (int i = 0; i < ragdolls.Length; i++)
         {
-            ragdoll.TriggerRagdoll(impactDirection + Vector3.up * 0.25f, 220f);
+            if (ragdolls[i] != null && ragdolls[i].gameObject.activeInHierarchy)
+            {
+                ragdolls[i].TriggerRagdoll(impactDirection + Vector3.up * 0.25f, 220f);
+            }
         }
     }
 }
