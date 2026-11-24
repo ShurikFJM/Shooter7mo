@@ -2,6 +2,7 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 public class WeaponInventory : NetworkBehaviour
 {
@@ -15,6 +16,9 @@ public class WeaponInventory : NetworkBehaviour
     [SerializeField] private Transform _tpSecondaryHolder;
     [SerializeField] private GameObject _defaultMeleePrefab;
 
+    private static Material _fallbackTracerMaterial;
+    private static readonly WaitForSeconds TRACER_HOLD_WAIT = new WaitForSeconds(TRACER_DISPLAY_HOLD_DURATION);
+
     private readonly NetworkVariable<int> _activeSlotNetworked = new NetworkVariable<int>(
         1,
         NetworkVariableReadPermission.Everyone,
@@ -23,6 +27,8 @@ public class WeaponInventory : NetworkBehaviour
 
     private readonly GameObject[] _weaponInstances = new GameObject[TOTAL_SLOTS];
     private readonly WeaponBase[] _equippedWeapons = new WeaponBase[TOTAL_SLOTS];
+    private NetworkPlayerController _playerController;
+    private AudioSource _networkShotAudioSource;
     private int _currentSlotIndex = 1;
     private bool _hasEquippedLoadout;
 
@@ -53,6 +59,8 @@ public class WeaponInventory : NetworkBehaviour
 
     private void Awake()
     {
+        _playerController = GetComponent<NetworkPlayerController>();
+        if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
         DisableFloatingCameraHolder();
     }
 
@@ -106,8 +114,50 @@ public class WeaponInventory : NetworkBehaviour
         }
     }
 
+    private AudioSource GetOrCreateNetworkAudioSource()
+    {
+        if (_networkShotAudioSource != null) return _networkShotAudioSource;
+
+        GameObject audioObj = new GameObject("NetworkShotAudioEmitter");
+        audioObj.transform.SetParent(transform, false);
+        audioObj.transform.localPosition = new Vector3(0f, 1.5f, 0f);
+
+        _networkShotAudioSource = audioObj.AddComponent<AudioSource>();
+        _networkShotAudioSource.spatialBlend = 1f;
+        _networkShotAudioSource.minDistance = 3f;
+        _networkShotAudioSource.maxDistance = 50f;
+        _networkShotAudioSource.playOnAwake = false;
+
+        return _networkShotAudioSource;
+    }
+
     private Transform GetActiveHandSocket()
     {
+        Transform[] allActiveTransforms = GetComponentsInChildren<Transform>(false);
+
+        string[] containerNames = new string[] { "WeaponContainer", "WeaponContainer_R" };
+        for (int s = 0; s < containerNames.Length; s++)
+        {
+            for (int i = 0; i < allActiveTransforms.Length; i++)
+            {
+                if (allActiveTransforms[i].name.Equals(containerNames[s], System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return allActiveTransforms[i];
+                }
+            }
+        }
+
+        for (int s = 0; s < containerNames.Length; s++)
+        {
+            for (int i = 0; i < allActiveTransforms.Length; i++)
+            {
+                if (allActiveTransforms[i].name.IndexOf(containerNames[s], System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return allActiveTransforms[i];
+                }
+            }
+        }
+
         Animator[] animators = GetComponentsInChildren<Animator>(false);
         for (int i = 0; i < animators.Length; i++)
         {
@@ -118,17 +168,15 @@ public class WeaponInventory : NetworkBehaviour
             }
         }
 
-        string[] socketNames = new string[] {
-            "WeaponContainer", "WeaponContainer_R", "mixamorig:RightHand",
-            "RightHand", "Bip001 R Hand", "Bip01 R Hand", "hand_r", "hand.r"
+        string[] boneNames = new string[] {
+            "mixamorig:RightHand", "RightHand", "Bip001 R Hand", "Bip01 R Hand", "hand_r", "hand.r"
         };
-        Transform[] allActiveTransforms = GetComponentsInChildren<Transform>(false);
 
-        for (int s = 0; s < socketNames.Length; s++)
+        for (int s = 0; s < boneNames.Length; s++)
         {
             for (int i = 0; i < allActiveTransforms.Length; i++)
             {
-                if (allActiveTransforms[i].name.Equals(socketNames[s], System.StringComparison.OrdinalIgnoreCase))
+                if (allActiveTransforms[i].name.Equals(boneNames[s], System.StringComparison.OrdinalIgnoreCase))
                 {
                     return allActiveTransforms[i];
                 }
@@ -150,8 +198,11 @@ public class WeaponInventory : NetworkBehaviour
 
         Transform handSocket = GetActiveHandSocket();
 
-        NetworkPlayerController pc = GetComponent<NetworkPlayerController>();
-        if (pc == null) pc = GetComponentInParent<NetworkPlayerController>();
+        if (_playerController == null)
+        {
+            _playerController = GetComponent<NetworkPlayerController>();
+            if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
+        }
 
         GameObject resolvedPrimary = ResolveHandWeaponPrefab(tpPrimaryPrefab, primaryPrefab);
         GameObject resolvedSecondary = ResolveHandWeaponPrefab(tpSecondaryPrefab, secondaryPrefab);
@@ -160,10 +211,11 @@ public class WeaponInventory : NetworkBehaviour
         {
             Vector3 pos = resolvedPrimary.transform.localPosition;
             Quaternion rot = resolvedPrimary.transform.localRotation;
-            if (pc != null && pc.ActiveRole != null && (pc.ActiveRole.primaryPositionOffset != Vector3.zero || pc.ActiveRole.primaryRotationOffset != Vector3.zero))
+            if (_playerController != null && _playerController.ActiveRole != null &&
+                (_playerController.ActiveRole.primaryPositionOffset != Vector3.zero || _playerController.ActiveRole.primaryRotationOffset != Vector3.zero))
             {
-                pos = pc.ActiveRole.primaryPositionOffset;
-                rot = Quaternion.Euler(pc.ActiveRole.primaryRotationOffset);
+                pos = _playerController.ActiveRole.primaryPositionOffset;
+                rot = Quaternion.Euler(_playerController.ActiveRole.primaryRotationOffset);
             }
             InstantiateWeaponInHand(0, resolvedPrimary, handSocket, pos, rot);
         }
@@ -172,10 +224,11 @@ public class WeaponInventory : NetworkBehaviour
         {
             Vector3 pos = resolvedSecondary.transform.localPosition;
             Quaternion rot = resolvedSecondary.transform.localRotation;
-            if (pc != null && pc.ActiveRole != null && (pc.ActiveRole.secondaryPositionOffset != Vector3.zero || pc.ActiveRole.secondaryRotationOffset != Vector3.zero))
+            if (_playerController != null && _playerController.ActiveRole != null &&
+                (_playerController.ActiveRole.secondaryPositionOffset != Vector3.zero || _playerController.ActiveRole.secondaryRotationOffset != Vector3.zero))
             {
-                pos = pc.ActiveRole.secondaryPositionOffset;
-                rot = Quaternion.Euler(pc.ActiveRole.secondaryRotationOffset);
+                pos = _playerController.ActiveRole.secondaryPositionOffset;
+                rot = Quaternion.Euler(_playerController.ActiveRole.secondaryRotationOffset);
             }
             InstantiateWeaponInHand(1, resolvedSecondary, handSocket, pos, rot);
         }
@@ -323,11 +376,9 @@ public class WeaponInventory : NetworkBehaviour
             {
                 newWeapon.OnWeaponEquipped();
             }
-            else
+            else if (_playerController != null)
             {
-                NetworkPlayerController pc = GetComponent<NetworkPlayerController>();
-                if (pc == null) pc = GetComponentInParent<NetworkPlayerController>();
-                if (pc != null) pc.TriggerEquipWeaponTPS();
+                _playerController.TriggerEquipWeaponTPS();
             }
         }
     }
@@ -370,15 +421,13 @@ public class WeaponInventory : NetworkBehaviour
             return ActiveWeapon.WeaponData;
         }
 
-        NetworkPlayerController playerController = GetComponent<NetworkPlayerController>();
-        if (playerController == null) playerController = GetComponentInParent<NetworkPlayerController>();
-        if (playerController == null || playerController.ActiveRole == null) return null;
+        if (_playerController == null || _playerController.ActiveRole == null) return null;
 
         int activeSlot = _activeSlotNetworked.Value;
         GameObject weaponPrefab = null;
 
-        if (activeSlot == 1) weaponPrefab = playerController.ActiveRole.primaryWeaponPrefab;
-        else if (activeSlot == 2) weaponPrefab = playerController.ActiveRole.secondaryWeaponPrefab;
+        if (activeSlot == 1) weaponPrefab = _playerController.ActiveRole.primaryWeaponPrefab;
+        else if (activeSlot == 2) weaponPrefab = _playerController.ActiveRole.secondaryWeaponPrefab;
         else if (activeSlot == 3) weaponPrefab = _defaultMeleePrefab;
 
         if (weaponPrefab != null)
@@ -432,15 +481,10 @@ public class WeaponInventory : NetworkBehaviour
             if (audioClips != null && audioClips.Length > 0)
             {
                 AudioClip selectedClip = audioClips[Random.Range(0, audioClips.Length)];
-                GameObject soundObject = new GameObject("NetworkShotAudio");
-                soundObject.transform.position = transform.position + (Vector3.up * 1.5f);
-                AudioSource audioSource = soundObject.AddComponent<AudioSource>();
-                audioSource.spatialBlend = 1f;
-                audioSource.minDistance = 3f;
-                audioSource.maxDistance = 50f;
-                audioSource.clip = selectedClip;
-                audioSource.Play();
-                Destroy(soundObject, selectedClip.length + 0.1f);
+                if (selectedClip != null)
+                {
+                    GetOrCreateNetworkAudioSource().PlayOneShot(selectedClip);
+                }
             }
         }
 
@@ -460,24 +504,89 @@ public class WeaponInventory : NetworkBehaviour
         }
 
         Vector3 tracerStart = transform.position + (Vector3.up * 1.4f);
+        Material tracerMaterial = null;
         WeaponBase remoteWeapon = ActiveWeapon;
         if (remoteWeapon != null)
         {
             tracerStart = remoteWeapon.GetMuzzleWorldPosition();
+            if (remoteWeapon.bulletTracerPrefab != null)
+            {
+                LineRenderer prefabLr = remoteWeapon.bulletTracerPrefab.GetComponentInChildren<LineRenderer>(true);
+                if (prefabLr != null) tracerMaterial = prefabLr.sharedMaterial;
+            }
+        }
+
+        if (IsBrokenMaterial(tracerMaterial))
+        {
+            tracerMaterial = GetSafeTracerMaterial();
         }
 
         if (PoolManager.Instance != null)
         {
-            PoolManager.Instance.StartCoroutine(RenderNetworkTracerRoutine(tracerStart, hitPoint));
+            PoolManager.Instance.StartCoroutine(RenderNetworkTracerRoutine(tracerStart, hitPoint, tracerMaterial));
         }
     }
 
-    private static IEnumerator RenderNetworkTracerRoutine(Vector3 startPoint, Vector3 endPoint)
+    private static bool IsBrokenMaterial(Material mat)
+    {
+        bool isSrp = GraphicsSettings.currentRenderPipeline != null;
+        return mat == null ||
+               mat.shader == null ||
+               mat.shader.name.Contains("Error") ||
+               (isSrp && mat.shader.name == "Standard");
+    }
+
+    private static Material GetSafeTracerMaterial()
+    {
+        if (_fallbackTracerMaterial != null) return _fallbackTracerMaterial;
+
+        Shader shader = null;
+        if (GraphicsSettings.currentRenderPipeline != null)
+        {
+            shader = Shader.Find("Universal Render Pipeline/Unlit");
+        }
+
+        if (shader == null) shader = Shader.Find("Sprites/Default");
+        if (shader == null) shader = Shader.Find("Unlit/Color");
+
+        if (shader != null)
+        {
+            _fallbackTracerMaterial = new Material(shader);
+            Color tracerColor = new Color(1f, 0.85f, 0.35f, 0.95f);
+            if (_fallbackTracerMaterial.HasProperty("_BaseColor")) _fallbackTracerMaterial.SetColor("_BaseColor", tracerColor);
+            if (_fallbackTracerMaterial.HasProperty("_Color")) _fallbackTracerMaterial.SetColor("_Color", tracerColor);
+        }
+
+        return _fallbackTracerMaterial;
+    }
+
+    private static void EnsureValidTracerMaterial(LineRenderer lineRenderer)
+    {
+        if (lineRenderer == null) return;
+
+        if (IsBrokenMaterial(lineRenderer.sharedMaterial))
+        {
+            Material safeMat = GetSafeTracerMaterial();
+            if (safeMat != null)
+            {
+                lineRenderer.sharedMaterial = safeMat;
+            }
+        }
+
+        lineRenderer.startColor = new Color(1f, 0.92f, 0.55f, 0.95f);
+        lineRenderer.endColor = new Color(1f, 0.55f, 0.1f, 0.25f);
+        if (lineRenderer.startWidth <= 0f) lineRenderer.startWidth = 0.025f;
+        if (lineRenderer.endWidth <= 0f) lineRenderer.endWidth = 0.01f;
+    }
+
+    private static IEnumerator RenderNetworkTracerRoutine(Vector3 startPoint, Vector3 endPoint, Material tracerMaterial)
     {
         if (PoolManager.Instance == null) yield break;
 
-        LineRenderer lineRenderer = PoolManager.Instance.GetTracer(null);
+        LineRenderer lineRenderer = PoolManager.Instance.GetTracer(tracerMaterial);
         if (lineRenderer == null) yield break;
+
+        EnsureValidTracerMaterial(lineRenderer);
 
         lineRenderer.enabled = true;
         lineRenderer.positionCount = 2;
@@ -496,7 +605,7 @@ public class WeaponInventory : NetworkBehaviour
         if (lineRenderer != null)
         {
             lineRenderer.SetPosition(1, endPoint);
-            yield return new WaitForSeconds(TRACER_DISPLAY_HOLD_DURATION);
+            yield return TRACER_HOLD_WAIT;
             lineRenderer.positionCount = 0;
             lineRenderer.enabled = false;
             PoolManager.Instance.ReturnTracer(lineRenderer);

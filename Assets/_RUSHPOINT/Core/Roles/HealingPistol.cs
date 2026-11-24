@@ -1,7 +1,5 @@
-using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class HealingPistol : WeaponBase
 {
@@ -15,6 +13,11 @@ public class HealingPistol : WeaponBase
 
     private void Update()
     {
+        if (_playerController == null)
+        {
+            _playerController = GetComponentInParent<NetworkPlayerController>();
+        }
+
         if (_playerController == null || !_playerController.IsOwner) return;
 
         HandleSelfHealInput();
@@ -26,21 +29,7 @@ public class HealingPistol : WeaponBase
         if (RoundManager.Instance != null && RoundManager.Instance.SyncedPhase != RoundPhase.InProgress) return;
         if (_isReloading || _currentAmmo <= 0 || Time.time < _nextTimeToSelfHeal) return;
 
-        bool isAimTriggered = false;
-
-        if (InputManager.Instance != null)
-        {
-            isAimTriggered = InputManager.Instance.IsAimPressed;
-        }
-        else if (Mouse.current != null)
-        {
-            isAimTriggered = Mouse.current.rightButton.isPressed;
-        }
-
-        if (Gamepad.current != null)
-        {
-            isAimTriggered = isAimTriggered || Gamepad.current.leftTrigger.isPressed;
-        }
+        bool isAimTriggered = InputManager.Instance != null && InputManager.Instance.IsAimPressed;
 
         if (isAimTriggered)
         {
@@ -48,8 +37,14 @@ public class HealingPistol : WeaponBase
         }
     }
 
+    public override void Fire()
+    {
+        PerformHealShot();
+    }
+
     public void PerformSelfHeal()
     {
+        if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
         NetworkHealth localHealth = _playerController != null ? _playerController.GetComponent<NetworkHealth>() : null;
         if (localHealth == null || !localHealth.IsAlive.Value) return;
 
@@ -76,11 +71,18 @@ public class HealingPistol : WeaponBase
         {
             _weaponAnimator.SetTrigger(_shootTriggerHash);
         }
+
+        if (_playerController != null)
+        {
+            _playerController.TriggerShootTPS();
+        }
     }
 
     public void PerformHealShot()
     {
         if (!CanFire()) return;
+
+        if (_playerController == null) _playerController = GetComponentInParent<NetworkPlayerController>();
 
         _currentAmmo--;
         float fireRate = weaponData != null && weaponData.fireRate > 0f ? weaponData.fireRate : 0.2f;
@@ -91,6 +93,11 @@ public class HealingPistol : WeaponBase
         if (_weaponAnimator != null)
         {
             _weaponAnimator.SetTrigger(_shootTriggerHash);
+        }
+
+        if (_playerController != null)
+        {
+            _playerController.TriggerShootTPS();
         }
 
         Vector3 rayOrigin = _firePoint != null ? _firePoint.position : transform.position;
@@ -105,7 +112,7 @@ public class HealingPistol : WeaponBase
         float maxRange = weaponData != null ? weaponData.range : 50f;
         Vector3 targetPoint = rayOrigin + (rayDirection * maxRange);
 
-        RaycastHit[] hits = Physics.RaycastAll(rayOrigin, rayDirection, maxRange, _hitLayers != 0 ? _hitLayers : (LayerMask)~0, QueryTriggerInteraction.Collide);
+        RaycastHit[] hits = Physics.RaycastAll(rayOrigin, rayDirection, maxRange, ~0, QueryTriggerInteraction.Collide);
         System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
         Transform myRoot = _playerController != null ? _playerController.transform : transform.root;
@@ -114,13 +121,14 @@ public class HealingPistol : WeaponBase
         {
             RaycastHit hit = hits[i];
             if (hit.transform.IsChildOf(myRoot) || hit.transform == myRoot) continue;
-            if (hit.collider.isTrigger && hit.collider.GetComponent<Hitbox>() == null) continue;
+            if (hit.collider.isTrigger && hit.collider.GetComponent<Hitbox>() == null && hit.collider.GetComponentInParent<NetworkHealth>() == null) continue;
 
             targetPoint = hit.point;
 
             NetworkHealth victimHealth = hit.collider.GetComponentInParent<NetworkHealth>();
             PlayerTeam victimTeam = hit.collider.GetComponentInParent<PlayerTeam>();
-            PlayerTeam myTeam = _playerController != null ? _playerController.GetComponent<PlayerTeam>() : null;
+            PlayerTeam myTeam = myRoot.GetComponent<PlayerTeam>();
+            if (myTeam == null) myTeam = myRoot.GetComponentInChildren<PlayerTeam>(true);
 
             if (victimHealth != null && victimHealth.IsAlive.Value)
             {

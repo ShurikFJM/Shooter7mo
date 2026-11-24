@@ -1345,7 +1345,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 0}
   m_FillRect: {fileID: 1601026771}
   m_HandleRect: {fileID: 0}
@@ -8648,6 +8648,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7876bdceabb1b543bfb6d1c8492ba63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GlobalUIFocusManager
+  _menuBackEntries: []
 --- !u!1 &301844516
 GameObject:
   m_ObjectHideFlags: 0
@@ -27581,6 +27582,7 @@ GameObject:
   - component: {fileID: 941497270}
   - component: {fileID: 941497269}
   - component: {fileID: 941497268}
+  - component: {fileID: 941497271}
   m_Layer: 5
   m_Name: Dropdown_Resolution
   m_TagString: Untagged
@@ -27712,6 +27714,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 941497266}
   m_CullTransparentMesh: 1
+--- !u!114 &941497271
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 941497266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60bf83ee91c5de146b21e5c959132d19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResolutionSettingsUI
+  _resolutionDropdown: {fileID: 0}
 --- !u!1 &946558623
 GameObject:
   m_ObjectHideFlags: 0
@@ -32549,7 +32564,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 0}
   m_FillRect: {fileID: 1253998863}
   m_HandleRect: {fileID: 0}
@@ -36491,7 +36506,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Drop Bomb
+  m_text: Bomb
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -36826,7 +36841,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 0}
   m_FillRect: {fileID: 1305974434}
   m_HandleRect: {fileID: 0}
@@ -42954,7 +42969,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1411921484
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43057,7 +43072,8 @@ MonoBehaviour:
   _mapNameText: {fileID: 1296287960}
   _modeNameText: {fileID: 1329217095}
   _canvasGroup: {fileID: 1111580900}
-  _fadeDuration: 0.8
+  _exitAnimation: 3
+  _exitAnimationDuration: 0.45
 --- !u!1 &1414057166
 GameObject:
   m_ObjectHideFlags: 0
@@ -55233,7 +55249,7 @@ RectTransform:
   m_Father: {fileID: 1197158789}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -59253,7 +59269,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Drop Bomb
+  m_text: Bomb
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

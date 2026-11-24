@@ -25,6 +25,7 @@ public class PauseMenuManager : MonoBehaviour
     [SerializeField] private Button _closeSettingsButton;
 
     private InputAction _pauseAction;
+    private InputAction _cancelAction;
     private bool _isPaused;
 
     public bool IsPaused => _isPaused;
@@ -56,13 +57,16 @@ public class PauseMenuManager : MonoBehaviour
 
     private void OnEnable()
     {
-        if (_pauseAction == null)
+        if (_pauseAction == null || _cancelAction == null)
         {
             ConfigureInputActions();
         }
 
         _pauseAction.performed += HandlePausePerformed;
         _pauseAction.Enable();
+
+        _cancelAction.performed += HandleCancelPerformed;
+        _cancelAction.Enable();
     }
 
     private void OnDisable()
@@ -72,19 +76,37 @@ public class PauseMenuManager : MonoBehaviour
             _pauseAction.performed -= HandlePausePerformed;
             _pauseAction.Disable();
         }
+
+        if (_cancelAction != null)
+        {
+            _cancelAction.performed -= HandleCancelPerformed;
+            _cancelAction.Disable();
+        }
     }
 
     private void OnDestroy()
     {
         _pauseAction?.Dispose();
+        _cancelAction?.Dispose();
+
+        if (Instance == this) Instance = null;
     }
 
     private void ConfigureInputActions()
     {
-        _pauseAction = new InputAction(name: "TogglePause", type: InputActionType.Button);
-        _pauseAction.AddBinding("<Keyboard>/escape");
-        _pauseAction.AddBinding("<Keyboard>/p");
-        _pauseAction.AddBinding("<Gamepad>/start");
+        if (_pauseAction == null)
+        {
+            _pauseAction = new InputAction(name: "TogglePause", type: InputActionType.Button);
+            _pauseAction.AddBinding("<Keyboard>/escape");
+            _pauseAction.AddBinding("<Keyboard>/p");
+            _pauseAction.AddBinding("<Gamepad>/start");
+        }
+
+        if (_cancelAction == null)
+        {
+            _cancelAction = new InputAction(name: "CancelPause", type: InputActionType.Button);
+            _cancelAction.AddBinding("<Gamepad>/buttonEast");
+        }
     }
 
     private void HandlePausePerformed(InputAction.CallbackContext context)
@@ -94,7 +116,40 @@ public class PauseMenuManager : MonoBehaviour
             return;
         }
 
-        TogglePause();
+        if (_isPaused)
+        {
+            HandlePauseBackAction();
+        }
+        else
+        {
+            PauseGame();
+        }
+    }
+
+    private void HandleCancelPerformed(InputAction.CallbackContext context)
+    {
+        if (!_isPaused) return;
+
+        if (TacticalChatManager.Instance != null && TacticalChatManager.Instance.IsChatOpen)
+        {
+            return;
+        }
+
+        HandlePauseBackAction();
+    }
+
+    private void HandlePauseBackAction()
+    {
+        bool isSubPanelOpen = (_settingsPanel != null && _settingsPanel.activeSelf) ||
+                              (_controlsPanel != null && _controlsPanel.activeSelf);
+
+        if (isSubPanelOpen)
+        {
+            ShowMainPausePanel();
+            return;
+        }
+
+        ResumeGame();
     }
 
     public void TogglePause()
@@ -222,12 +277,15 @@ public class PauseMenuManager : MonoBehaviour
                 NetworkManager.Singleton.Shutdown();
             }
 
-            while (NetworkManager.Singleton.ShutdownInProgress)
+            while (NetworkManager.Singleton != null && NetworkManager.Singleton.ShutdownInProgress)
             {
                 yield return null;
             }
 
-            Destroy(NetworkManager.Singleton.gameObject);
+            if (NetworkManager.Singleton != null)
+            {
+                Destroy(NetworkManager.Singleton.gameObject);
+            }
         }
 
         SceneManager.LoadScene(MAIN_MENU_SCENE_NAME);

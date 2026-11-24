@@ -21,7 +21,7 @@ public class BombInteractor : NetworkBehaviour
     private bool _isPlanting;
     private bool _isDefusing;
     private float _currentInteractionTimer;
-    private float _pickupCooldownTime;
+    private float _interactCooldownTime;
 
     public bool HasBomb => _activeBomb != null && _activeBomb.CurrentState == BombState.Carried && _activeBomb.CurrentCarrierId == OwnerClientId;
     public bool IsCarryingBomb => HasBomb;
@@ -144,22 +144,23 @@ public class BombInteractor : NetworkBehaviour
     private void HandleManualPickup()
     {
         if (HasBomb || !HasNearbyBomb || InputManager.Instance == null) return;
-        if (Time.time < _pickupCooldownTime) return;
+        if (Time.time < _interactCooldownTime) return;
 
         if (InputManager.Instance.WasInteractTriggered)
         {
-            _pickupCooldownTime = Time.time + 0.4f;
+            _interactCooldownTime = Time.time + 0.5f;
             RequestPickupBombServerRpc();
         }
     }
 
     private void HandleDropInput()
     {
-        if (!HasBomb) return;
+        if (!HasBomb || IsInSite || _isPlanting) return;
+        if (Time.time < _interactCooldownTime) return;
 
-        if (InputManager.Instance != null && InputManager.Instance.WasDropTriggered)
+        if (InputManager.Instance != null && InputManager.Instance.WasInteractTriggered)
         {
-            _pickupCooldownTime = Time.time + 0.8f;
+            _interactCooldownTime = Time.time + 0.6f;
             Vector3 dropPos = transform.position + (transform.forward * 1.2f) + (Vector3.up * 0.1f);
             RequestDropBombServerRpc(dropPos, transform.rotation);
         }

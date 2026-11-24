@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class RagdollController : MonoBehaviour
@@ -6,49 +7,105 @@ public class RagdollController : MonoBehaviour
     [SerializeField] private Rigidbody _mainHipsRigidbody;
 
     private Rigidbody[] _rigidbodies;
-    private Collider[] _colliders;
+    private readonly List<Transform> _boneTransforms = new List<Transform>();
+    private readonly List<Vector3> _defaultLocalPositions = new List<Vector3>();
+    private readonly List<Quaternion> _defaultLocalRotations = new List<Quaternion>();
+    private bool _hasCachedInitialPose;
 
     private void Awake()
     {
-        if (_animator == null)
-        {
-            _animator = GetComponent<Animator>();
-        }
+        CacheBonesIfNeeded();
+        SetRagdollActive(false);
+    }
 
-        _rigidbodies = GetComponentsInChildren<Rigidbody>();
-        _colliders = GetComponentsInChildren<Collider>();
+    private void OnEnable()
+    {
+        CacheBonesIfNeeded();
+    }
+
+    private void CacheBonesIfNeeded()
+    {
+        if (_hasCachedInitialPose) return;
+
+        if (_animator == null) _animator = GetComponent<Animator>();
+        _rigidbodies = GetComponentsInChildren<Rigidbody>(true);
 
         if (_mainHipsRigidbody == null && _rigidbodies.Length > 0)
         {
             _mainHipsRigidbody = _rigidbodies[0];
         }
 
-        SetRagdollActive(false);
-    }
-
-    public void SetRagdollActive(bool active)
-    {
-        if (_animator != null)
-        {
-            _animator.enabled = !active;
-        }
+        _boneTransforms.Clear();
+        _defaultLocalPositions.Clear();
+        _defaultLocalRotations.Clear();
 
         for (int i = 0; i < _rigidbodies.Length; i++)
         {
             if (_rigidbodies[i] == null) continue;
 
-            _rigidbodies[i].isKinematic = !active;
-            _rigidbodies[i].detectCollisions = true;
+            Transform bone = _rigidbodies[i].transform;
+            _boneTransforms.Add(bone);
+            _defaultLocalPositions.Add(bone.localPosition);
+            _defaultLocalRotations.Add(bone.localRotation);
+        }
 
-            if (active)
+        _hasCachedInitialPose = _boneTransforms.Count > 0;
+    }
+
+    public void SetRagdollActive(bool active)
+    {
+        CacheBonesIfNeeded();
+
+        if (active)
+        {
+            if (_animator != null)
             {
-#if UNITY_6000_0_OR_NEWER
+                _animator.enabled = false;
+            }
+
+            for (int i = 0; i < _rigidbodies.Length; i++)
+            {
+                if (_rigidbodies[i] == null) continue;
+
+                _rigidbodies[i].isKinematic = false;
+                _rigidbodies[i].detectCollisions = true;
                 _rigidbodies[i].linearVelocity = Vector3.zero;
                 _rigidbodies[i].angularVelocity = Vector3.zero;
-#else
-                _rigidbodies[i].velocity = Vector3.zero;
-                _rigidbodies[i].angularVelocity = Vector3.zero;
-#endif
+                _rigidbodies[i].WakeUp();
+            }
+        }
+        else
+        {
+            for (int i = 0; i < _rigidbodies.Length; i++)
+            {
+                if (_rigidbodies[i] == null) continue;
+
+                if (!_rigidbodies[i].isKinematic)
+                {
+                    _rigidbodies[i].linearVelocity = Vector3.zero;
+                    _rigidbodies[i].angularVelocity = Vector3.zero;
+                }
+
+                _rigidbodies[i].isKinematic = true;
+                _rigidbodies[i].detectCollisions = true;
+            }
+
+            for (int i = 0; i < _boneTransforms.Count; i++)
+            {
+                if (_boneTransforms[i] == null) continue;
+
+                _boneTransforms[i].localPosition = _defaultLocalPositions[i];
+                _boneTransforms[i].localRotation = _defaultLocalRotations[i];
+            }
+
+            if (_animator != null)
+            {
+                _animator.enabled = true;
+                if (gameObject.activeInHierarchy)
+                {
+                    _animator.Rebind();
+                    _animator.Update(0f);
+                }
             }
         }
     }

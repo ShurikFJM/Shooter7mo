@@ -99,8 +99,19 @@ public class PlayerTeamVisualizer : NetworkBehaviour
 
             if (targetMaterial != null) rend.material = targetMaterial;
 
-            rend.enabled = true;
-            rend.shadowCastingMode = ShadowCastingMode.On;
+            bool isHeadMesh = rend.name.IndexOf("TS_Head", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                              rend.name.IndexOf("Head", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+            if (IsOwner && isHeadMesh)
+            {
+                rend.enabled = true;
+                rend.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+            }
+            else
+            {
+                rend.enabled = true;
+                rend.shadowCastingMode = ShadowCastingMode.On;
+            }
         }
     }
 }

@@ -37,14 +37,21 @@ public class SoundManager : MonoBehaviour
         }
 
         Instance = this;
+        if (transform.parent != null) transform.SetParent(null);
         DontDestroyOnLoad(gameObject);
 
         LoadSavedVolumePreferences();
+        AudioListener.volume = _masterVolume;
     }
 
     private void Start()
     {
-        ApplyAllVolumes();
+        ApplyAllVolumesToAudio();
+    }
+
+    private void OnApplicationQuit()
+    {
+        PlayerPrefs.Save();
     }
 
     private void LoadSavedVolumePreferences()
@@ -54,37 +61,38 @@ public class SoundManager : MonoBehaviour
         _musicVolume = PlayerPrefs.GetFloat(_MUSIC_VOLUME_KEY, _DEFAULT_VOLUME);
     }
 
-    private void ApplyAllVolumes()
+    private void ApplyAllVolumesToAudio()
     {
-        SetMasterVolume(_masterVolume);
-        SetSfxVolume(_sfxVolume);
-        SetMusicVolume(_musicVolume);
+        AudioListener.volume = _masterVolume;
+        ApplyMixerVolume(_MASTER_PARAM, _masterVolume);
+        ApplyMixerVolume(_SFX_PARAM, _sfxVolume);
+        ApplyMixerVolume(_MUSIC_PARAM, _musicVolume);
     }
 
     public void SetMasterVolume(float targetVolume)
     {
         _masterVolume = Mathf.Clamp01(targetVolume);
+        AudioListener.volume = _masterVolume;
         ApplyMixerVolume(_MASTER_PARAM, _masterVolume);
-
         PlayerPrefs.SetFloat(_MASTER_VOLUME_KEY, _masterVolume);
-        PlayerPrefs.Save();
     }
 
     public void SetSfxVolume(float targetVolume)
     {
         _sfxVolume = Mathf.Clamp01(targetVolume);
         ApplyMixerVolume(_SFX_PARAM, _sfxVolume);
-
         PlayerPrefs.SetFloat(_SFX_VOLUME_KEY, _sfxVolume);
-        PlayerPrefs.Save();
     }
 
     public void SetMusicVolume(float targetVolume)
     {
         _musicVolume = Mathf.Clamp01(targetVolume);
         ApplyMixerVolume(_MUSIC_PARAM, _musicVolume);
-
         PlayerPrefs.SetFloat(_MUSIC_VOLUME_KEY, _musicVolume);
+    }
+
+    public void SavePreferences()
+    {
         PlayerPrefs.Save();
     }
 

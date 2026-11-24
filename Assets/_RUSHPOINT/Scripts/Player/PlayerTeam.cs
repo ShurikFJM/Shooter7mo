@@ -17,10 +17,15 @@ public class PlayerTeam : NetworkBehaviour
         {
             string playerName;
 
-            if (MatchDataBridge.PlayersCache.TryGetValue(OwnerClientId, out var playerData))
+            if (MatchDataBridge.PlayersCache != null && MatchDataBridge.PlayersCache.TryGetValue(OwnerClientId, out var playerData))
             {
                 CurrentTeam.Value = playerData.SelectedTeam;
                 playerName = playerData.Name;
+            }
+            else if (CustomLobbyManager.SavedTeams != null && CustomLobbyManager.SavedTeams.TryGetValue(OwnerClientId, out Team savedTeam))
+            {
+                CurrentTeam.Value = savedTeam;
+                playerName = $"Player_{OwnerClientId}";
             }
             else
             {
@@ -30,6 +35,7 @@ public class PlayerTeam : NetworkBehaviour
                 }
                 playerName = $"Player_{OwnerClientId}";
             }
+
             if (ScoreboardManager.Instance != null)
             {
                 ScoreboardManager.Instance.RegisterPlayerServer(OwnerClientId, playerName, CurrentTeam.Value);
@@ -65,10 +71,10 @@ public class PlayerTeam : NetworkBehaviour
 
             if (cc != null) cc.enabled = false;
 
-            if (controller != null && controller.PlayerCamera != null && SpectatorManager.Instance != null)
+            if (controller != null && SpectatorManager.Instance != null)
             {
                 SpectatorManager.Instance.StartSpectating(
-                    Team.Red,
+                    Team.Neutral,
                     controller.PlayerCamera,
                     transform,
                     1.6f

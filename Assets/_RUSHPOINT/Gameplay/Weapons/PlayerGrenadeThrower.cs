@@ -1,6 +1,5 @@
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(NetworkPlayerController))]
 public class PlayerGrenadeThrower : NetworkBehaviour
@@ -68,6 +67,7 @@ public class PlayerGrenadeThrower : NetworkBehaviour
     private void Update()
     {
         if (!IsOwner) return;
+        if (InputManager.Instance == null) return;
 
         if (SpectatorManager.Instance != null && SpectatorManager.Instance.isSpectating) return;
 
@@ -80,43 +80,7 @@ public class PlayerGrenadeThrower : NetworkBehaviour
 
         if (_bombInteractor != null && (_bombInteractor.IsPlanting || _bombInteractor.IsDefusing)) return;
 
-        bool throwTriggered = false;
-
-        bool dedicatedGrenadePressed = false;
-        if (Keyboard.current != null)
-        {
-            if (Keyboard.current.digit4Key.wasPressedThisFrame || Keyboard.current.fKey.wasPressedThisFrame)
-            {
-                dedicatedGrenadePressed = true;
-            }
-        }
-
-        bool dropKeyTriggered = false;
-        if (InputManager.Instance != null)
-        {
-            dropKeyTriggered = InputManager.Instance.WasDropTriggered;
-        }
-        else
-        {
-            if (Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame) dropKeyTriggered = true;
-            if (Gamepad.current != null && Gamepad.current.dpad.down.wasPressedThisFrame) dropKeyTriggered = true;
-        }
-
-        if (dropKeyTriggered)
-        {
-            bool carriesBomb = _bombInteractor != null && _bombInteractor.HasBomb;
-            if (!carriesBomb)
-            {
-                throwTriggered = true;
-            }
-        }
-
-        if (dedicatedGrenadePressed)
-        {
-            throwTriggered = true;
-        }
-
-        if (throwTriggered && CanThrow())
+        if (InputManager.Instance.WasGrenadeTriggered && CanThrow())
         {
             ExecuteThrow();
         }
@@ -134,7 +98,7 @@ public class PlayerGrenadeThrower : NetworkBehaviour
 
         if (_playerController != null)
         {
-            //_playerController.TriggerGrenadeTPS();
+            _playerController.TriggerGrenadeTPS();
         }
 
         Transform camTransform = _playerController.PlayerCamera != null ? _playerController.PlayerCamera.transform : transform;
@@ -170,8 +134,29 @@ public class PlayerGrenadeThrower : NetworkBehaviour
         if (prefabToSpawn == null) return;
 
         GameObject grenadeInstance = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
-        NetworkObject netObj = grenadeInstance.GetComponent<NetworkObject>();
 
+        Collider[] grenadeCols = grenadeInstance.GetComponentsInChildren<Collider>(true);
+        Collider[] playerCols = GetComponentsInChildren<Collider>(true);
+        for (int g = 0; g < grenadeCols.Length; g++)
+        {
+            for (int p = 0; p < playerCols.Length; p++)
+            {
+                if (grenadeCols[g] != null && playerCols[p] != null)
+                {
+                    Physics.IgnoreCollision(grenadeCols[g], playerCols[p], true);
+                }
+            }
+        }
+
+        Rigidbody rb = grenadeInstance.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.linearVelocity = throwVelocity;
+            rb.angularVelocity = Random.insideUnitSphere * 10f;
+        }
+
+        NetworkObject netObj = grenadeInstance.GetComponent<NetworkObject>();
         if (netObj != null)
         {
             netObj.Spawn(true);

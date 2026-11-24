@@ -27,6 +27,7 @@ public class RoleSelectScreenUI : MonoBehaviour
     private const string HEALTH_PREFIX = "Vida: ";
     private const string ARMOR_PREFIX = "Armadura: ";
     private const string SPEED_PREFIX = "Velocidad: ";
+    private const string WAITING_PLAYERS_LABEL = "ESPERANDO JUGADORES...";
 
     public static RoleSelectScreenUI instance { get; private set; }
 
@@ -331,7 +332,6 @@ public class RoleSelectScreenUI : MonoBehaviour
         if (_hasLockedIn) return;
         _selectedRole = role;
 
-        // Mantenemos sincronizado el RoleLobbyManager en tiempo real
         if (RoleLobbyManager.Instance != null)
         {
             RoleLobbyManager.Instance.SelectRole(role);
@@ -406,7 +406,6 @@ public class RoleSelectScreenUI : MonoBehaviour
 
         if (handSocket == null) handSocket = currentRoleModel.ModelRoot.transform;
 
-        // Limpiar únicamente la instancia previa del arma para no desactivar huesos del soldado
         if (_currentEquippedWeaponInstance != null)
         {
             Destroy(_currentEquippedWeaponInstance);
@@ -481,6 +480,17 @@ public class RoleSelectScreenUI : MonoBehaviour
         SetLockInText(_confirmButton);
         SetLockInText(_lockInButton);
 
+        if (_roleButtons != null)
+        {
+            for (int i = 0; i < _roleButtons.Length; i++)
+            {
+                if (_roleButtons[i] != null && _roleButtons[i].RoleButton != null)
+                {
+                    _roleButtons[i].RoleButton.interactable = false;
+                }
+            }
+        }
+
         if (NetworkManager.Singleton != null)
         {
             ulong localClientId = NetworkManager.Singleton.LocalClientId;
@@ -500,7 +510,10 @@ public class RoleSelectScreenUI : MonoBehaviour
 
             if (RoleLobbyManager.Instance != null && RoleLobbyManager.Instance.IsSpawned)
             {
+                // No cerramos la pantalla ni abrimos LoadingScreen todavía;
+                // RoleLobbyManager lo hará para todos al mismo tiempo cuando el último jugador confirme.
                 RoleLobbyManager.Instance.ConfirmRoleSelection(_selectedRole, _assignedTeam);
+                return;
             }
         }
 
@@ -512,7 +525,7 @@ public class RoleSelectScreenUI : MonoBehaviour
         if (btn == null) return;
         btn.interactable = false;
         TMP_Text text = btn.GetComponentInChildren<TMP_Text>();
-        if (text != null) text.text = "LOCKED IN...";
+        if (text != null) text.text = WAITING_PLAYERS_LABEL;
     }
 
     public void OpenRoleScreen()

@@ -94,13 +94,12 @@ public class BombPromptUI : MonoBehaviour
         HideProgressDisplay();
 
         string interactKey = GetActionKeyName("Interact", "E");
-        string dropKey = GetActionKeyName("Drop", "G");
 
         if (_localInteractor.IsCarryingBomb)
         {
             string prompt = _localInteractor.IsInSite
                 ? FormatPrompt(_plantPrompt, interactKey)
-                : FormatPrompt(_dropPrompt, dropKey);
+                : FormatPrompt(_dropPrompt, interactKey);
             ShowActionPrompt(prompt);
         }
         else if (_localInteractor.HasNearbyPlantedBomb)

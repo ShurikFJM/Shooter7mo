@@ -9,9 +9,12 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(CharacterController))]
 public class NetworkPlayerController : NetworkBehaviour
 {
+    public static readonly List<NetworkPlayerController> ActiveControllers = new List<NetworkPlayerController>(12);
+
     private const float GRAVITY = -19.62f;
     private const float DEFAULT_WALK_SPEED = 5.5f;
     private const float DEFAULT_JUMP_FORCE = 1.6f;
+    private const float DEFAULT_EYE_HEIGHT = 1.6f;
     private const float CROUCH_HEIGHT = 1f;
     private const float STANDING_HEIGHT = 2f;
     private const float CROUCH_SPEED_RATIO = 0.5f;
@@ -45,10 +48,17 @@ public class NetworkPlayerController : NetworkBehaviour
     [SerializeField] private RoleDatabaseSO _roleDatabase;
     [SerializeField] private GameObject _firstPersonRoot;
     [SerializeField] private GameObject _thirdPersonRoot;
+    [SerializeField] private GameObject _soldierCharacterRoot;
 
+    [Header("Cuerpos por Rol")]
     [SerializeField] private GameObject _infantryModel;
     [SerializeField] private GameObject _gunnerModel;
     [SerializeField] private GameObject _medicModel;
+
+    [Header("Cabezas por Rol")]
+    [SerializeField] private GameObject _infantryHead;
+    [SerializeField] private GameObject _gunnerHead;
+    [SerializeField] private GameObject _medicHead;
 
     [SerializeField] private PlayerRoleType _defaultTestingRole = PlayerRoleType.Tank;
 
@@ -57,6 +67,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private Animator _activeAnimator;
     private readonly HashSet<int> _cachedAnimatorParams = new HashSet<int>();
+    private readonly Collider[] _ceilingHitBuffer = new Collider[4];
 
     public NetworkVariable<PlayerRoleType> selectedRole = new NetworkVariable<PlayerRoleType>(
         PlayerRoleType.Tank,
@@ -95,6 +106,7 @@ public class NetworkPlayerController : NetworkBehaviour
     private PlayerTeam _playerTeam;
     private WeaponInventory _weaponInventory;
     private PlayerMovementAudio _playerMovementAudio;
+    private BombInteractor _bombInteractor;
     private Transform _spineBone;
 
     private float _verticalVelocity;
@@ -107,7 +119,10 @@ public class NetworkPlayerController : NetworkBehaviour
     private bool _jumpRequested;
     private bool _isFirePressed;
     private float _cameraPitch;
-    private float _defaultCameraLocalY;
+    private float _defaultCameraLocalY = DEFAULT_EYE_HEIGHT;
+    private Vector3 _initialCameraRootLocalPos;
+    private Vector3 _initialPlayerCameraLocalPos;
+    private bool _hasSavedInitialCameraPos;
     private bool _hasInitiatedSpectate;
     private PlayerRoleType _lastAppliedRole = (PlayerRoleType)(-1);
 
@@ -116,17 +131,41 @@ public class NetworkPlayerController : NetworkBehaviour
         if (_characterController == null) _characterController = GetComponent<CharacterController>();
         if (_playerCamera == null) _playerCamera = GetComponentInChildren<Camera>(true);
         if (_cameraRoot == null) _cameraRoot = _playerCamera != null ? _playerCamera.transform : transform;
-        if (_cameraRoot != null) _defaultCameraLocalY = _cameraRoot.localPosition.y;
+
+        if (!_hasSavedInitialCameraPos)
+        {
+            if (_cameraRoot != null) _initialCameraRootLocalPos = _cameraRoot.localPosition;
+            if (_playerCamera != null) _initialPlayerCameraLocalPos = _playerCamera.transform.localPosition;
+
+            float prefabEyeY = 0f;
+            if (_cameraRoot != null && _cameraRoot.localPosition.y > 0.1f)
+                prefabEyeY = _cameraRoot.localPosition.y;
+            else if (_playerCamera != null && _playerCamera.transform.localPosition.y > 0.1f)
+                prefabEyeY = _playerCamera.transform.localPosition.y;
+            else
+                prefabEyeY = DEFAULT_EYE_HEIGHT;
+
+            _defaultCameraLocalY = prefabEyeY;
+            _hasSavedInitialCameraPos = true;
+        }
+
         if (_audioListener == null && _playerCamera != null) _audioListener = _playerCamera.GetComponent<AudioListener>();
 
         _networkHealth = GetComponent<NetworkHealth>();
         _playerTeam = GetComponent<PlayerTeam>();
         _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
         _playerMovementAudio = GetComponent<PlayerMovementAudio>();
+        _bombInteractor = GetComponent<BombInteractor>();
 
         EnsureRoleDatabaseReference();
         EnsureModelReferences();
         LocateSpineBone();
+    }
+
+    public override void OnDestroy()
+    {
+        ActiveControllers.Remove(this);
+        base.OnDestroy();
     }
 
     private void EnsureRoleDatabaseReference()
@@ -167,18 +206,20 @@ public class NetworkPlayerController : NetworkBehaviour
         for (int i = 0; i < allChildren.Length; i++)
         {
             string childName = allChildren[i].name;
+
             if (_gunnerModel == null && childName.IndexOf("gunner", System.StringComparison.OrdinalIgnoreCase) >= 0)
-            {
                 _gunnerModel = allChildren[i].gameObject;
-            }
             else if (_medicModel == null && childName.IndexOf("medic", System.StringComparison.OrdinalIgnoreCase) >= 0)
-            {
                 _medicModel = allChildren[i].gameObject;
-            }
             else if (_infantryModel == null && childName.IndexOf("infantry", System.StringComparison.OrdinalIgnoreCase) >= 0)
-            {
                 _infantryModel = allChildren[i].gameObject;
-            }
+
+            if (_gunnerHead == null && childName.Equals("TS_Head_12_gasmask_helmet", System.StringComparison.OrdinalIgnoreCase))
+                _gunnerHead = allChildren[i].gameObject;
+            else if (_medicHead == null && childName.Equals("TS_Head_06_medic_A", System.StringComparison.OrdinalIgnoreCase))
+                _medicHead = allChildren[i].gameObject;
+            else if (_infantryHead == null && childName.Equals("TS_Head_01_infantry", System.StringComparison.OrdinalIgnoreCase))
+                _infantryHead = allChildren[i].gameObject;
         }
     }
 
@@ -228,18 +269,61 @@ public class NetworkPlayerController : NetworkBehaviour
         }
     }
 
+    private bool IsLocalOrRemoteSpectator()
+    {
+        if (_playerTeam == null) _playerTeam = GetComponent<PlayerTeam>();
+        if (_playerTeam != null)
+        {
+            return _playerTeam.CurrentTeam.Value == Team.Neutral;
+        }
+
+        if (MatchDataBridge.PlayersCache != null &&
+            MatchDataBridge.PlayersCache.TryGetValue(OwnerClientId, out var cachedPlayer))
+        {
+            return cachedPlayer.SelectedTeam == Team.Neutral;
+        }
+
+        if (CustomLobbyManager.SavedTeams != null &&
+            CustomLobbyManager.SavedTeams.TryGetValue(OwnerClientId, out Team savedTeam))
+        {
+            return savedTeam == Team.Neutral;
+        }
+
+        return false;
+    }
+
+    private void ApplySafeEyeHeight()
+    {
+        if (_cameraRoot != null)
+        {
+            _cameraRoot.localPosition = _initialCameraRootLocalPos;
+            _cameraRoot.localRotation = Quaternion.identity;
+        }
+
+        if (_playerCamera != null && _playerCamera.transform != _cameraRoot)
+        {
+            _playerCamera.transform.localPosition = _initialPlayerCameraLocalPos;
+            _playerCamera.transform.localRotation = Quaternion.identity;
+        }
+    }
+
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+        if (!ActiveControllers.Contains(this)) ActiveControllers.Add(this);
+
         EnsureRoleDatabaseReference();
         EnsureModelReferences();
         LocateSpineBone();
 
         selectedRole.OnValueChanged += HandleRoleChanged;
+        if (_playerTeam == null) _playerTeam = GetComponent<PlayerTeam>();
+        if (_playerTeam != null) _playerTeam.CurrentTeam.OnValueChanged += HandlePlayerTeamChanged;
         if (_weaponInventory == null) _weaponInventory = GetComponentInChildren<WeaponInventory>(true);
         if (_networkHealth != null) _networkHealth.CurrentHealth.OnValueChanged += HandleHealthChanged;
 
         Canvas localPlayerCanvas = GetComponentInChildren<Canvas>(true);
+        bool isSpectator = IsLocalOrRemoteSpectator();
 
         if (IsOwner)
         {
@@ -247,8 +331,6 @@ public class NetworkPlayerController : NetworkBehaviour
             {
                 InputManager.Instance.EnableAllGameplayActions();
             }
-
-            if (_characterController != null) _characterController.enabled = true;
 
             PlayerInput playerInput = GetComponent<PlayerInput>();
             if (playerInput != null)
@@ -260,9 +342,9 @@ public class NetworkPlayerController : NetworkBehaviour
             if (_playerCamera != null) _playerCamera.gameObject.SetActive(true);
             if (_audioListener != null) _audioListener.enabled = true;
             if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
-
-            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
             if (localPlayerCanvas != null) localPlayerCanvas.gameObject.SetActive(false);
+
+            ApplySafeEyeHeight();
 
             if (CursorStateManager.Instance != null)
             {
@@ -294,6 +376,16 @@ public class NetworkPlayerController : NetworkBehaviour
             Camera lobbyCamera = GameObject.FindWithTag(LOBBY_CAMERA_TAG)?.GetComponent<Camera>();
             if (lobbyCamera != null) lobbyCamera.gameObject.SetActive(false);
 
+            if (isSpectator)
+            {
+                ActivateLocalSpectatorState();
+                return;
+            }
+
+            if (_characterController != null) _characterController.enabled = true;
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
+            if (_soldierCharacterRoot != null) _soldierCharacterRoot.SetActive(true);
+
             PlayerRoleType intendedRole = _defaultTestingRole;
             if (RoleSelectScreenUI.instance != null && RoleSelectScreenUI.instance.hasLockedIn)
             {
@@ -321,9 +413,65 @@ public class NetworkPlayerController : NetworkBehaviour
             if (_playerCamera != null) _playerCamera.gameObject.SetActive(false);
             if (_audioListener != null) _audioListener.enabled = false;
             if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+
+            if (isSpectator)
+            {
+                if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(false);
+                return;
+            }
+
             if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
+            if (_soldierCharacterRoot != null) _soldierCharacterRoot.SetActive(true);
 
             ApplyRoleData(selectedRole.Value);
+        }
+    }
+
+    private void ActivateLocalSpectatorState()
+    {
+        _hasInitiatedSpectate = true;
+        if (_characterController != null) _characterController.enabled = false;
+        if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(false);
+        if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+
+        if (_weaponInventory != null && _weaponInventory.ActiveWeapon != null)
+        {
+            _weaponInventory.ActiveWeapon.gameObject.SetActive(false);
+        }
+
+        if (LoadingScreen.Instance != null && LoadingScreen.Instance.IsVisible)
+        {
+            LoadingScreen.Instance.Dismiss();
+        }
+
+        if (SpectatorManager.Instance != null)
+        {
+            SpectatorManager.Instance.StartSpectating(Team.Neutral, _playerCamera, transform, _defaultCameraLocalY);
+        }
+    }
+
+    [Rpc(SendTo.Owner)]
+    public void EnterSpectatorModeClientRpc()
+    {
+        ActivateLocalSpectatorState();
+    }
+
+    private void HandlePlayerTeamChanged(Team previousTeam, Team currentTeam)
+    {
+        if (currentTeam == Team.Neutral)
+        {
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(false);
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+            if (_characterController != null) _characterController.enabled = false;
+
+            if (IsOwner)
+            {
+                ActivateLocalSpectatorState();
+            }
+        }
+        else if (previousTeam == Team.Neutral && IsOwner && _hasInitiatedSpectate)
+        {
+            ResetToAliveState();
         }
     }
 
@@ -331,6 +479,7 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (IsServer)
         {
+            if (IsLocalOrRemoteSpectator()) return;
             selectedRole.Value = roleType;
             ApplyRoleData(roleType);
             SyncRoleClientRpc(roleType);
@@ -340,6 +489,8 @@ public class NetworkPlayerController : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void RequestSelectRoleServerRpc(PlayerRoleType roleType, RpcParams rpcParams = default)
     {
+        if (IsLocalOrRemoteSpectator()) return;
+
         selectedRole.Value = roleType;
         ApplyRoleData(roleType);
         SyncRoleClientRpc(roleType);
@@ -366,7 +517,7 @@ public class NetworkPlayerController : NetworkBehaviour
         byte phase,
         byte winner)
     {
-        if (LoadingScreen.Instance != null)
+        if (LoadingScreen.Instance != null && LoadingScreen.Instance.IsVisible)
         {
             LoadingScreen.Instance.Dismiss();
         }
@@ -404,7 +555,7 @@ public class NetworkPlayerController : NetworkBehaviour
             netTransform.Teleport(targetPosition, targetRotation, transform.localScale);
         }
 
-        if (_characterController != null && IsOwner) _characterController.enabled = true;
+        if (_characterController != null && IsOwner && !IsLocalOrRemoteSpectator()) _characterController.enabled = true;
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -429,17 +580,31 @@ public class NetworkPlayerController : NetworkBehaviour
 
     public void SetFirstPersonVisibility(bool visible)
     {
-        if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(visible);
-        if (_firstPersonRoot != null) _firstPersonRoot.SetActive(visible);
-        if (_weaponInventory != null && _weaponInventory.ActiveWeapon != null)
+        if (IsLocalOrRemoteSpectator())
         {
-            _weaponInventory.ActiveWeapon.gameObject.SetActive(visible);
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(false);
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+            return;
+        }
+
+        if (_firstPersonRoot != null) _firstPersonRoot.SetActive(visible);
+
+
+        if (visible)
+        {
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
+            if (_weaponInventory != null && _weaponInventory.ActiveWeapon != null)
+            {
+                _weaponInventory.ActiveWeapon.gameObject.SetActive(true);
+            }
         }
     }
 
     public override void OnNetworkDespawn()
     {
+        ActiveControllers.Remove(this);
         selectedRole.OnValueChanged -= HandleRoleChanged;
+        if (_playerTeam != null) _playerTeam.CurrentTeam.OnValueChanged -= HandlePlayerTeamChanged;
         if (_networkHealth != null) _networkHealth.CurrentHealth.OnValueChanged -= HandleHealthChanged;
         if (IsOwner && CursorStateManager.Instance != null) CursorStateManager.Instance.OnCursorLockStateChanged -= HandleCursorLockStateChanged;
     }
@@ -458,20 +623,56 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void HandleHealthChanged(float previousHealth, float currentHealth)
     {
+        if (IsLocalOrRemoteSpectator()) return;
+
         if (previousHealth <= 0f && currentHealth > 0f)
         {
-            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
-
-            RagdollController ragdoll = GetComponentInChildren<RagdollController>(true);
-            if (ragdoll != null) ragdoll.ResetRagdoll();
-
-            PlayerTeamVisualizer visualizer = GetComponent<PlayerTeamVisualizer>();
-            if (visualizer != null) visualizer.RefreshRenderers();
+            RestoreVisualModelState();
 
             if (IsOwner && _hasInitiatedSpectate)
             {
                 ResetToAliveState();
             }
+        }
+    }
+
+    private void RestoreVisualModelState()
+    {
+        if (IsLocalOrRemoteSpectator())
+        {
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(false);
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+            return;
+        }
+
+        if (_thirdPersonRoot != null)
+        {
+            _thirdPersonRoot.SetActive(true);
+            _thirdPersonRoot.transform.localPosition = Vector3.zero;
+            _thirdPersonRoot.transform.localRotation = Quaternion.identity;
+            _thirdPersonRoot.transform.localScale = Vector3.one;
+        }
+
+        if (_soldierCharacterRoot != null)
+        {
+            _soldierCharacterRoot.SetActive(true);
+        }
+
+        ApplyRoleData(selectedRole.Value);
+
+        RagdollController[] ragdolls = GetComponentsInChildren<RagdollController>(true);
+        for (int i = 0; i < ragdolls.Length; i++)
+        {
+            if (ragdolls[i] != null)
+            {
+                ragdolls[i].ResetRagdoll();
+            }
+        }
+
+        PlayerTeamVisualizer visualizer = GetComponent<PlayerTeamVisualizer>();
+        if (visualizer != null)
+        {
+            visualizer.RefreshRenderers();
         }
     }
 
@@ -482,6 +683,13 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void ApplyRoleData(PlayerRoleType roleType)
     {
+        if (IsLocalOrRemoteSpectator())
+        {
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(false);
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+            return;
+        }
+
         EnsureRoleDatabaseReference();
         EnsureModelReferences();
 
@@ -494,16 +702,22 @@ public class NetworkPlayerController : NetworkBehaviour
 
         if (IsServer)
         {
-            NetworkHealth networkHealth = GetComponent<NetworkHealth>();
-            if (networkHealth != null)
+            if (_networkHealth != null)
             {
-                networkHealth.SetMaxStatsServer(_activeRole.maxHealth, _activeRole.maxArmor);
+                _networkHealth.SetMaxStatsServer(_activeRole.maxHealth, _activeRole.maxArmor);
             }
         }
+
+        if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
+        if (_soldierCharacterRoot != null) _soldierCharacterRoot.SetActive(true);
 
         if (_infantryModel != null) _infantryModel.SetActive(roleType == PlayerRoleType.Assault);
         if (_gunnerModel != null) _gunnerModel.SetActive(roleType == PlayerRoleType.Tank);
         if (_medicModel != null) _medicModel.SetActive(roleType == PlayerRoleType.Medic);
+
+        if (_infantryHead != null) _infantryHead.SetActive(roleType == PlayerRoleType.Assault);
+        if (_gunnerHead != null) _gunnerHead.SetActive(roleType == PlayerRoleType.Tank);
+        if (_medicHead != null) _medicHead.SetActive(roleType == PlayerRoleType.Medic);
 
         bool anyActive = (_infantryModel != null && _infantryModel.activeSelf) ||
                          (_gunnerModel != null && _gunnerModel.activeSelf) ||
@@ -511,6 +725,7 @@ public class NetworkPlayerController : NetworkBehaviour
         if (!anyActive && _gunnerModel != null)
         {
             _gunnerModel.SetActive(true);
+            if (_gunnerHead != null) _gunnerHead.SetActive(true);
         }
 
         _activeAnimator = null;
@@ -540,7 +755,7 @@ public class NetworkPlayerController : NetworkBehaviour
             if (tacticalHud != null)
             {
                 tacticalHud.Inventory = _weaponInventory;
-                tacticalHud.PlayerHealth = GetComponent<NetworkHealth>();
+                tacticalHud.PlayerHealth = _networkHealth;
             }
         }
     }
@@ -549,6 +764,15 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         if (IsOwner)
         {
+            if (IsLocalOrRemoteSpectator())
+            {
+                if (SpectatorManager.Instance != null && !SpectatorManager.Instance.IsSpectating)
+                {
+                    ActivateLocalSpectatorState();
+                }
+                return;
+            }
+
             HandleDeathCheck();
             if (SpectatorManager.Instance != null && SpectatorManager.Instance.isSpectating) return;
 
@@ -594,6 +818,8 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void UpdateSoldierAnimator()
     {
+        if (IsLocalOrRemoteSpectator()) return;
+
         Animator anim = ResolveActiveAnimator();
         if (anim == null || anim.runtimeAnimatorController == null) return;
 
@@ -604,8 +830,8 @@ public class NetworkPlayerController : NetworkBehaviour
         {
             if (_characterController != null && _characterController.enabled)
             {
-                Vector3 horizontalVelocity = new Vector3(_characterController.velocity.x, 0f, _characterController.velocity.z);
-                currentSpeed = horizontalVelocity.magnitude;
+                Vector3 velocity = _characterController.velocity;
+                currentSpeed = Mathf.Sqrt((velocity.x * velocity.x) + (velocity.z * velocity.z));
                 isGrounded = _characterController.isGrounded;
             }
 
@@ -720,8 +946,7 @@ public class NetworkPlayerController : NetworkBehaviour
         if (Cursor.lockState != CursorLockMode.Locked) return;
         if (RoundManager.Instance != null && RoundManager.Instance.SyncedPhase != RoundPhase.InProgress) return;
 
-        BombInteractor bombInteractor = GetComponent<BombInteractor>();
-        if (bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing)) return;
+        if (_bombInteractor != null && (_bombInteractor.IsPlanting || _bombInteractor.IsDefusing)) return;
         if (_weaponInventory == null) return;
 
         WeaponBase currentWeapon = _weaponInventory.ActiveWeapon;
@@ -801,12 +1026,8 @@ public class NetworkPlayerController : NetworkBehaviour
             _isWalkingSlow = false;
 
             if (_characterController != null) _characterController.enabled = false;
-            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(false);
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
 
-            if (_weaponInventory != null && _weaponInventory.ActiveWeapon != null)
-            {
-                _weaponInventory.ActiveWeapon.gameObject.SetActive(false);
-            }
 
             if (SpectatorManager.Instance != null && _playerTeam != null && _playerCamera != null)
             {
@@ -817,14 +1038,12 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void ResetToAliveState()
     {
+        if (IsLocalOrRemoteSpectator()) return;
+
         _hasInitiatedSpectate = false;
         if (SpectatorManager.Instance != null) SpectatorManager.Instance.StopSpectating();
 
-        if (_cameraRoot != null)
-        {
-            _cameraRoot.localPosition = new Vector3(0f, _defaultCameraLocalY, 0f);
-            _cameraRoot.localRotation = Quaternion.identity;
-        }
+        ApplySafeEyeHeight();
 
         _cameraPitch = 0f;
         _verticalVelocity = 0f;
@@ -834,7 +1053,7 @@ public class NetworkPlayerController : NetworkBehaviour
         _hasInitiatedSpectate = false;
         _isWalkingSlow = false;
 
-        if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(true);
+        RestoreVisualModelState();
 
         if (IsOwner)
         {
@@ -846,8 +1065,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void UpdateInputStates()
     {
-        BombInteractor bombInteractor = GetComponent<BombInteractor>();
-        bool isInteractingBomb = bombInteractor != null && (bombInteractor.IsPlanting || bombInteractor.IsDefusing);
+        bool isInteractingBomb = _bombInteractor != null && (_bombInteractor.IsPlanting || _bombInteractor.IsDefusing);
         bool isMovementFrozen = isInteractingBomb || (RoundManager.Instance != null && RoundManager.Instance.SyncedPhase == RoundPhase.Warmup);
 
         if (isMovementFrozen)
@@ -977,10 +1195,13 @@ public class NetworkPlayerController : NetworkBehaviour
 
         if (pointTop.y <= pointBottom.y) return false;
 
-        Collider[] hits = Physics.OverlapCapsule(pointBottom, pointTop, radius, _obstacleLayers, QueryTriggerInteraction.Ignore);
-        for (int i = 0; i < hits.Length; i++)
+        int hitCount = Physics.OverlapCapsuleNonAlloc(pointBottom, pointTop, radius, _ceilingHitBuffer, _obstacleLayers, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < hitCount; i++)
         {
-            if (hits[i].gameObject != gameObject && !hits[i].transform.IsChildOf(transform)) return true;
+            if (_ceilingHitBuffer[i] != null && _ceilingHitBuffer[i].gameObject != gameObject && !_ceilingHitBuffer[i].transform.IsChildOf(transform))
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -1001,19 +1222,29 @@ public class NetworkPlayerController : NetworkBehaviour
     {
         bool crouched = IsOwner ? _isCrouching : isCrouchedNet.Value;
 
-        if (_characterController != null && IsOwner)
+        if (_characterController != null && IsOwner && !IsLocalOrRemoteSpectator())
         {
             float targetHeight = crouched ? CROUCH_HEIGHT : STANDING_HEIGHT;
             _characterController.height = Mathf.Lerp(_characterController.height, targetHeight, Time.deltaTime * CROUCH_TRANSITION_SPEED);
             _characterController.center = new Vector3(0f, _characterController.height * 0.5f, 0f);
         }
 
-        if (_cameraRoot != null && IsOwner && !_hasInitiatedSpectate)
+        if (_cameraRoot != null && IsOwner && !_hasInitiatedSpectate && !IsLocalOrRemoteSpectator())
         {
-            float targetCameraY = crouched ? _defaultCameraLocalY * 0.55f : _defaultCameraLocalY;
-            Vector3 targetCameraPosition = _cameraRoot.localPosition;
-            targetCameraPosition.y = Mathf.Lerp(targetCameraPosition.y, targetCameraY, Time.deltaTime * CROUCH_TRANSITION_SPEED);
-            _cameraRoot.localPosition = targetCameraPosition;
+            if (_initialCameraRootLocalPos.y > 0.1f)
+            {
+                float targetY = crouched ? _initialCameraRootLocalPos.y * 0.55f : _initialCameraRootLocalPos.y;
+                Vector3 pos = _cameraRoot.localPosition;
+                pos.y = Mathf.Lerp(pos.y, targetY, Time.deltaTime * CROUCH_TRANSITION_SPEED);
+                _cameraRoot.localPosition = pos;
+            }
+            else if (_playerCamera != null && _playerCamera.transform != _cameraRoot && _initialPlayerCameraLocalPos.y > 0.1f)
+            {
+                float targetY = crouched ? _initialPlayerCameraLocalPos.y * 0.55f : _initialPlayerCameraLocalPos.y;
+                Vector3 pos = _playerCamera.transform.localPosition;
+                pos.y = Mathf.Lerp(pos.y, targetY, Time.deltaTime * CROUCH_TRANSITION_SPEED);
+                _playerCamera.transform.localPosition = pos;
+            }
         }
 
         if (_thirdPersonRoot != null && _thirdPersonRoot.transform.localScale != Vector3.one)
@@ -1068,45 +1299,35 @@ public class NetworkPlayerController : NetworkBehaviour
 
         transform.SetPositionAndRotation(spawnPosition, spawnRotation);
 
-        if (_cameraRoot != null)
-        {
-            _cameraRoot.localPosition = new Vector3(0f, _defaultCameraLocalY, 0f);
-            _cameraRoot.localRotation = Quaternion.identity;
-        }
+        ApplySafeEyeHeight();
 
         _cameraPitch = 0f;
         _verticalVelocity = 0f;
         _currentMoveInput = Vector2.zero;
         _currentLookRotation = Vector2.zero;
         _eventMoveInput = Vector2.zero;
-        _hasInitiatedSpectate = false;
         _isWalkingSlow = false;
 
-        if (_thirdPersonRoot != null)
+        if (IsLocalOrRemoteSpectator())
         {
-            _thirdPersonRoot.SetActive(true);
-            _thirdPersonRoot.transform.localPosition = Vector3.zero;
-            _thirdPersonRoot.transform.localRotation = Quaternion.identity;
-            _thirdPersonRoot.transform.localScale = Vector3.one;
+            _hasInitiatedSpectate = true;
+            if (_thirdPersonRoot != null) _thirdPersonRoot.SetActive(false);
+            if (_firstPersonRoot != null) _firstPersonRoot.SetActive(false);
+
+            if (IsOwner)
+            {
+                ActivateLocalSpectatorState();
+            }
+            return;
         }
 
-        RagdollController ragdoll = GetComponentInChildren<RagdollController>(true);
-        if (ragdoll != null)
-        {
-            ragdoll.ResetRagdoll();
-        }
-
-        ApplyRoleData(selectedRole.Value);
-
-        PlayerTeamVisualizer visualizer = GetComponent<PlayerTeamVisualizer>();
-        if (visualizer != null)
-        {
-            visualizer.RefreshRenderers();
-        }
+        _hasInitiatedSpectate = false;
+        RestoreVisualModelState();
 
         if (IsOwner)
         {
             if (SpectatorManager.Instance != null) SpectatorManager.Instance.StopSpectating();
+            ApplySafeEyeHeight();
             if (_playerCamera != null) _playerCamera.gameObject.SetActive(true);
             if (_characterController != null) _characterController.enabled = true;
         }
