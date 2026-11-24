@@ -62,7 +62,7 @@ Material:
     - _HeightRef: 1
     - _HeightScale: 0.093
     - _MetalConst: 0
-    - _MetalMax: 0
+    - _MetalMax: 1
     - _MetalMin: 0
     - _NormalFlipY: 0
     - _NormalStrength: 1
@@ -78,7 +78,7 @@ Material:
     - _RoughConst: 0
     - _RoughInvert: 0
     - _RoughMax: 1
-    - _RoughMin: 0.36
+    - _RoughMin: 0.126
     - _TilingX: 50
     - _TilingY: 50
     - _TriAxisOffset: 1
