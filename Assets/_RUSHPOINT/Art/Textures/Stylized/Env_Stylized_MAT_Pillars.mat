@@ -62,7 +62,7 @@ Material:
     - _HeightInARM: 0
     - _HeightInvert: 0
     - _HeightRef: 0.5
-    - _HeightScale: 0.076
+    - _HeightScale: 0.054
     - _MetalConst: 0
     - _MetalMax: 1
     - _MetalMin: 0
@@ -71,7 +71,7 @@ Material:
     - _OffsetX: 0
     - _OffsetY: 0.13
     - _POMMaxSteps: 64
-    - _POMMinSteps: 32
+    - _POMMinSteps: 4
     - _Proj: 4
     - _RandOffset: 0.3
     - _RandRotation: 1
