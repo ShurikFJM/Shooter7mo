@@ -3,6 +3,7 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -22,7 +23,6 @@ public class TutorialManager : MonoBehaviour
 
     public static TutorialManager Instance { get; private set; }
 
-    [Header("UI References")]
     [SerializeField] private GameObject _tutorialUIRoot;
     [SerializeField] private TMP_Text _stepTitleText;
     [SerializeField] private TMP_Text _stepDescriptionText;
@@ -30,17 +30,13 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private GameObject _completionPanel;
     [SerializeField] private Button _returnToMenuButton;
 
-    [Header("Targets / Shooting Range")]
     [SerializeField] private GameObject _targetsContainer;
     [SerializeField] private int _requiredTargetsHit = 3;
 
-    [Header("Bomb & Objectives")]
     [SerializeField] private GameObject _tutorialBombPrefab;
     [SerializeField] private Transform _bombSpawnPoint;
     [SerializeField] private Transform _plantSiteIndicator;
 
-    [Header("Player Spawn")]
-    [Tooltip("Prefab del jugador. Si queda vacío se usa el Player Prefab del NetworkManager.")]
     [SerializeField] private GameObject _playerPrefab;
     [SerializeField] private Transform _playerSpawnPoint;
 
@@ -50,6 +46,7 @@ public class TutorialManager : MonoBehaviour
     private bool _hasJumped;
     private bool _hasSwitchedWeapon;
     private bool _hasReloaded;
+    private bool _isTransitioning;
 
     private BombInteractor _localBombInteractor;
     private WeaponInventory _localWeaponInventory;
@@ -82,6 +79,9 @@ public class TutorialManager : MonoBehaviour
             yield break;
         }
 
+        CustomLobbyManager.ClearLobbyData();
+        CustomLobbyManager.SavePlayerData(NetworkManager.ServerClientId, Team.Red, PlayerRoleType.Assault);
+
         if (!NetworkManager.Singleton.IsListening)
         {
             NetworkManager.Singleton.StartHost();
@@ -92,7 +92,8 @@ public class TutorialManager : MonoBehaviour
             yield return null;
         }
 
-        // Damos unos instantes a que el NetworkManager cree el jugador por su cuenta
+        CustomLobbyManager.SavePlayerData(NetworkManager.Singleton.LocalClientId, Team.Red, PlayerRoleType.Assault);
+
         float waited = 0f;
         while (NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject() == null && waited < AUTO_SPAWN_WAIT_SECONDS)
         {
@@ -115,16 +116,33 @@ public class TutorialManager : MonoBehaviour
             yield break;
         }
 
-        // Dejamos pasar un frame para que OnNetworkSpawn y los Awake del jugador terminen
         yield return null;
 
         GameObject localPlayer = playerObject.gameObject;
         _localBombInteractor = localPlayer.GetComponent<BombInteractor>();
         _localWeaponInventory = localPlayer.GetComponent<WeaponInventory>();
 
+        PlayerTeam playerTeam = localPlayer.GetComponent<PlayerTeam>();
+        if (playerTeam == null) playerTeam = localPlayer.GetComponentInChildren<PlayerTeam>(true);
+        if (playerTeam != null)
+        {
+            playerTeam.AssignTeam(Team.Red);
+        }
+
+        NetworkHealth playerHealth = localPlayer.GetComponent<NetworkHealth>();
+        if (playerHealth == null) playerHealth = localPlayer.GetComponentInChildren<NetworkHealth>(true);
+        if (playerHealth != null)
+        {
+            playerHealth.ResetHealthServer();
+        }
+
+        if (SpectatorManager.Instance != null && SpectatorManager.Instance.IsSpectating)
+        {
+            SpectatorManager.Instance.StopSpectating();
+        }
+
         NetworkPlayerController playerController = localPlayer.GetComponent<NetworkPlayerController>();
 
-        // Si lo creó el NetworkManager hay que moverlo al spawn; si lo creamos nosotros ya nace ahí
         if (!spawnedManually && _playerSpawnPoint != null)
         {
             if (playerController != null)
@@ -137,10 +155,17 @@ public class TutorialManager : MonoBehaviour
             }
         }
 
-        // Auto-seleccionar rol Asalto para el tutorial
         if (playerController != null)
         {
             playerController.SetInitialRole(PlayerRoleType.Assault);
+            playerController.SetFirstPersonVisibility(true);
+            playerController.SetCursorLocked(true);
+        }
+
+        PlayerInput playerInput = localPlayer.GetComponent<PlayerInput>();
+        if (playerInput != null)
+        {
+            playerInput.ActivateInput();
         }
 
         SetTutorialStep(TutorialStep.Movement);
@@ -173,6 +198,8 @@ public class TutorialManager : MonoBehaviour
 
     private void Update()
     {
+        if (_isTransitioning) return;
+
         switch (_currentStep)
         {
             case TutorialStep.Movement:
@@ -224,6 +251,7 @@ public class TutorialManager : MonoBehaviour
     public void SetTutorialStep(TutorialStep step)
     {
         _currentStep = step;
+        _isTransitioning = false;
 
         switch (step)
         {
@@ -295,7 +323,7 @@ public class TutorialManager : MonoBehaviour
 
     public void OnTargetDestroyed()
     {
-        if (_currentStep != TutorialStep.AimAndShoot) return;
+        if (_currentStep != TutorialStep.AimAndShoot || _isTransitioning) return;
 
         _targetsHitCount++;
         UpdateTargetsProgress();
@@ -371,6 +399,7 @@ public class TutorialManager : MonoBehaviour
 
     private IEnumerator TransitionDelay(TutorialStep nextStep)
     {
+        _isTransitioning = true;
         if (_stepProgressText != null)
         {
             _stepProgressText.text = "<color=#00FF66>¡Completado!</color>";
