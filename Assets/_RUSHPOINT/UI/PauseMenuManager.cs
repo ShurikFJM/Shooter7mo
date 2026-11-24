@@ -15,8 +15,12 @@ public class PauseMenuManager : MonoBehaviour
     [SerializeField] private GameObject _pauseMenuRoot;
     [SerializeField] private GameObject _mainPausePanel;
     [SerializeField] private GameObject _settingsPanel;
+    [SerializeField] private GameObject _generalSettingsPanel;
+    [SerializeField] private GameObject _audioSettingsPanel;
     [SerializeField] private GameObject _controlsPanel;
     [SerializeField] private Button _resumeButton;
+    [SerializeField] private Button _generalSettingsButton;
+    [SerializeField] private Button _audioSettingsButton;
     [SerializeField] private Button _controlsButton;
     [SerializeField] private Button _settingsButton;
     [SerializeField] private Button _mainMenuButton;
@@ -43,6 +47,8 @@ public class PauseMenuManager : MonoBehaviour
     private void Start()
     {
         if (_resumeButton != null) _resumeButton.onClick.AddListener(ResumeGame);
+        if (_generalSettingsButton != null) _generalSettingsButton.onClick.AddListener(OpenGeneralSettings);
+        if (_audioSettingsButton != null) _audioSettingsButton.onClick.AddListener(OpenAudioSettings);
         if (_controlsButton != null) _controlsButton.onClick.AddListener(OpenControls);
         if (_settingsButton != null) _settingsButton.onClick.AddListener(OpenSettings);
         if (_mainMenuButton != null) _mainMenuButton.onClick.AddListener(ReturnToMainMenu);
@@ -165,33 +171,63 @@ public class PauseMenuManager : MonoBehaviour
     {
         if (_pauseMenuRoot != null) _pauseMenuRoot.SetActive(false);
         if (_mainPausePanel != null) _mainPausePanel.SetActive(false);
-        if (_controlsPanel != null) _controlsPanel.SetActive(false);
         if (_settingsPanel != null) _settingsPanel.SetActive(false);
+        if (_generalSettingsPanel != null) _generalSettingsPanel.SetActive(false);
+        if (_audioSettingsPanel != null) _audioSettingsPanel.SetActive(false);
+        if (_controlsPanel != null) _controlsPanel.SetActive(false);
     }
 
     public void ShowMainPausePanel()
     {
         if (_mainPausePanel != null) _mainPausePanel.SetActive(true);
         if (_settingsPanel != null) _settingsPanel.SetActive(false);
+        if (_generalSettingsPanel != null) _generalSettingsPanel.SetActive(false);
+        if (_audioSettingsPanel != null) _audioSettingsPanel.SetActive(false);
         if (_controlsPanel != null) _controlsPanel.SetActive(false);
 
         SelectUIElement(_resumeButton != null ? _resumeButton.gameObject : null);
     }
 
-    private void OpenControls()
+    private void ShowSettingsSubpanel(GameObject targetSubpanel, GameObject preferredFocusElement = null)
     {
         if (_mainPausePanel != null) _mainPausePanel.SetActive(false);
-        if (_controlsPanel != null) _controlsPanel.SetActive(true);
+        if (_settingsPanel != null && !_settingsPanel.activeSelf) _settingsPanel.SetActive(true);
 
-        SelectFirstSelectableInPanel(_controlsPanel, _closeControlsButton != null ? _closeControlsButton.gameObject : null);
+        if (_generalSettingsPanel != null) _generalSettingsPanel.SetActive(false);
+        if (_audioSettingsPanel != null) _audioSettingsPanel.SetActive(false);
+        if (_controlsPanel != null) _controlsPanel.SetActive(false);
+
+        if (targetSubpanel != null)
+        {
+            targetSubpanel.SetActive(true);
+        }
+
+        if (preferredFocusElement != null && preferredFocusElement.activeInHierarchy)
+        {
+            SelectUIElement(preferredFocusElement);
+        }
     }
 
-    private void OpenSettings()
+    public void OpenSettings()
     {
         if (_mainPausePanel != null) _mainPausePanel.SetActive(false);
         if (_settingsPanel != null) _settingsPanel.SetActive(true);
+        OpenGeneralSettings();
+    }
 
-        SelectFirstSelectableInPanel(_settingsPanel, _closeSettingsButton != null ? _closeSettingsButton.gameObject : null);
+    public void OpenGeneralSettings()
+    {
+        ShowSettingsSubpanel(_generalSettingsPanel, _generalSettingsButton != null ? _generalSettingsButton.gameObject : null);
+    }
+
+    public void OpenAudioSettings()
+    {
+        ShowSettingsSubpanel(_audioSettingsPanel, _audioSettingsButton != null ? _audioSettingsButton.gameObject : null);
+    }
+
+    public void OpenControls()
+    {
+        ShowSettingsSubpanel(_controlsPanel, _controlsButton != null ? _controlsButton.gameObject : null);
     }
 
     private void UpdateLocalPlayerInputState(bool enableInput)
