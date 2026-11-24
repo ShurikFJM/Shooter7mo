@@ -31,11 +31,11 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _ARMTex:
-        m_Texture: {fileID: 2800000, guid: 5bc8d935d90ada642851a0bfce092dfa, type: 3}
+        m_Texture: {fileID: 2800000, guid: cf4f74966815fcc4db22dc2008d89240, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AlbedoTex:
-        m_Texture: {fileID: 2800000, guid: c180b5f42cb7e6047905a0b4a0dd361e, type: 3}
+        m_Texture: {fileID: 2800000, guid: f59ddf0340fe84446af59c4182151f44, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionTex:
@@ -43,11 +43,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightTex:
-        m_Texture: {fileID: 2800000, guid: 0ee9daa987158b646ac5a74349803ee4, type: 3}
+        m_Texture: {fileID: 2800000, guid: d5b687d042ec53a4792f33c6c4bfe523, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalTex:
-        m_Texture: {fileID: 2800000, guid: cff345924d9bbaa40bf9254d612b60d7, type: 3}
+        m_Texture: {fileID: 2800000, guid: 0665cd6bfafc04348803bd5eb5e594d2, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
@@ -78,7 +78,7 @@ Material:
     - _RoughConst: 0.6
     - _RoughInvert: 0
     - _RoughMax: 1
-    - _RoughMin: 0
+    - _RoughMin: 1
     - _TilingX: 0.1
     - _TilingY: 0.1
     - _TriAxisOffset: 1

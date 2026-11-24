@@ -35,7 +35,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AlbedoTex:
-        m_Texture: {fileID: 2800000, guid: 2e26e2819392039408b31dac856a8869, type: 3}
+        m_Texture: {fileID: 2800000, guid: aaead481c6bf37040bcb28841285564e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionTex:
@@ -47,12 +47,12 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalTex:
-        m_Texture: {fileID: 2800000, guid: be169b2396e3bc34c9655bb59e83769f, type: 3}
+        m_Texture: {fileID: 2800000, guid: bb690a352d74ae34498d5d27d32bc151, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AOStrength: 1
+    - _AOStrength: 0.492
     - _Disp: 2
     - _EmissionSrc: 0
     - _FadeRange: 0
@@ -60,16 +60,16 @@ Material:
     - _HeightInARM: 0
     - _HeightInvert: 0
     - _HeightRef: 1
-    - _HeightScale: 0.032
+    - _HeightScale: 0.093
     - _MetalConst: 0
     - _MetalMax: 1
     - _MetalMin: 0
     - _NormalFlipY: 0
-    - _NormalStrength: 2
+    - _NormalStrength: 1
     - _OffsetX: 0
     - _OffsetY: 0
-    - _POMMaxSteps: 64
-    - _POMMinSteps: 32
+    - _POMMaxSteps: 40
+    - _POMMinSteps: 20
     - _Proj: 0
     - _RandOffset: 0.3
     - _RandRotation: 0
@@ -78,7 +78,7 @@ Material:
     - _RoughConst: 0
     - _RoughInvert: 0
     - _RoughMax: 1
-    - _RoughMin: 0.25
+    - _RoughMin: 0.126
     - _TilingX: 50
     - _TilingY: 50
     - _TriAxisOffset: 1
@@ -100,7 +100,7 @@ Material:
     - _VoronoiJitter: 1
     - _VoronoiScale: 5
     m_Colors:
-    - _BaseColor: {r: 0.7433963, g: 0.705976, b: 0.6269776, a: 1}
+    - _BaseColor: {r: 0.83396226, g: 0.83396226, b: 0.83396226, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _TriAxisWeights: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []

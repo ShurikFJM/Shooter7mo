@@ -5841,6 +5841,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c2cd5403745811498d5f420cbadf9b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TacticalHUD
+  _combatHudRoot: {fileID: 0}
   _healthText: {fileID: 1666127966}
   _armorText: {fileID: 1902040191}
   _healthSlider: {fileID: 0}
@@ -13444,7 +13445,7 @@ Light:
   serializedVersion: 13
   m_Type: 1
   m_Color: {r: 1, g: 0.99394655, b: 0.98679245, a: 1}
-  m_Intensity: 1.3
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -48450,6 +48451,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7876bdceabb1b543bfb6d1c8492ba63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GlobalUIFocusManager
+  _menuBackEntries: []
 --- !u!1001 &936740247
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -81635,7 +81637,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
   GlobalObjectIdHash: 651164208
   InScenePlacedSourceGlobalObjectIdHash: 0
-  m_InScenePlacedDisabledByDefault: 1
+  m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
