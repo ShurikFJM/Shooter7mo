@@ -12,6 +12,7 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private Button _creditsButton;
 
     [SerializeField] private Button _settingsButton;
+    [SerializeField] private Button _generalSettingsButton;
     [SerializeField] private Button _audioSettingsButton;
     [SerializeField] private Button _controlsButton;
     [SerializeField] private Button _quitButton;
@@ -19,6 +20,7 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private GameObject _mainMenuRootPanel;
     [SerializeField] private GameObject _customGameConnectionPanel;
     [SerializeField] private GameObject _settingsPanel;
+    [SerializeField] private GameObject _generalSettingsPanel;
     [SerializeField] private GameObject _audioSettingsPanel;
     [SerializeField] private GameObject _controlsPanel;
     [SerializeField] private GameObject _creditsPanel;
@@ -30,9 +32,6 @@ public class MainMenuController : MonoBehaviour
 
     [SerializeField] private string _tutorialScene;
 
-    private GameObject _panelBeforeSubmenu;
-    private GameObject _focusBeforeSubmenu;
-
     private void Awake()
     {
         if (_customGameButton != null) _customGameButton.onClick.AddListener(OpenCustomGameConnection);
@@ -42,6 +41,7 @@ public class MainMenuController : MonoBehaviour
         if (_creditsButton != null) _creditsButton.onClick.AddListener(OpenCredits);
 
         if (_settingsButton != null) _settingsButton.onClick.AddListener(OpenSettings);
+        if (_generalSettingsButton != null) _generalSettingsButton.onClick.AddListener(OpenGeneralSettings);
         if (_audioSettingsButton != null) _audioSettingsButton.onClick.AddListener(OpenAudioSettings);
         if (_controlsButton != null) _controlsButton.onClick.AddListener(OpenControls);
         if (_quitButton != null) _quitButton.onClick.AddListener(QuitGame);
@@ -64,14 +64,34 @@ public class MainMenuController : MonoBehaviour
         if (_mainMenuRootPanel != null) _mainMenuRootPanel.SetActive(false);
         if (_customGameConnectionPanel != null) _customGameConnectionPanel.SetActive(false);
         if (_settingsPanel != null) _settingsPanel.SetActive(false);
-        if (_audioSettingsPanel != null) _audioSettingsPanel.SetActive(false);
-        if (_controlsPanel != null) _controlsPanel.SetActive(false);
         if (_creditsPanel != null) _creditsPanel.SetActive(false);
 
         if (targetPanel != null)
         {
             targetPanel.SetActive(true);
             SelectFirstInPanel(targetPanel, preferredFocusElement);
+        }
+    }
+
+    private void ShowSettingsSubpanel(GameObject targetSubpanel, GameObject preferredFocusElement = null)
+    {
+        if (_settingsPanel != null && !_settingsPanel.activeSelf)
+        {
+            ShowExclusivePanel(_settingsPanel);
+        }
+
+        if (_generalSettingsPanel != null) _generalSettingsPanel.SetActive(false);
+        if (_audioSettingsPanel != null) _audioSettingsPanel.SetActive(false);
+        if (_controlsPanel != null) _controlsPanel.SetActive(false);
+
+        if (targetSubpanel != null)
+        {
+            targetSubpanel.SetActive(true);
+        }
+
+        if (preferredFocusElement != null && preferredFocusElement.activeInHierarchy)
+        {
+            SelectUIElement(preferredFocusElement);
         }
     }
 
@@ -97,7 +117,8 @@ public class MainMenuController : MonoBehaviour
 
     public void OpenSettings()
     {
-        ShowExclusivePanel(_settingsPanel, _audioSettingsButton != null ? _audioSettingsButton.gameObject : null);
+        ShowExclusivePanel(_settingsPanel);
+        OpenGeneralSettings();
     }
 
     public void CloseSettings()
@@ -105,32 +126,29 @@ public class MainMenuController : MonoBehaviour
         ShowExclusivePanel(_mainMenuRootPanel, _settingsButton != null ? _settingsButton.gameObject : null);
     }
 
+    public void OpenGeneralSettings()
+    {
+        ShowSettingsSubpanel(_generalSettingsPanel, _generalSettingsButton != null ? _generalSettingsButton.gameObject : null);
+    }
+
     public void OpenAudioSettings()
     {
-        _panelBeforeSubmenu = (_settingsPanel != null && _settingsPanel.activeSelf) ? _settingsPanel : _mainMenuRootPanel;
-        _focusBeforeSubmenu = (_audioSettingsButton != null) ? _audioSettingsButton.gameObject : (_settingsButton != null ? _settingsButton.gameObject : null);
-
-        ShowExclusivePanel(_audioSettingsPanel, _backAudioSettingsButton != null ? _backAudioSettingsButton.gameObject : null);
+        ShowSettingsSubpanel(_audioSettingsPanel, _audioSettingsButton != null ? _audioSettingsButton.gameObject : null);
     }
 
     public void CloseAudioSettings()
     {
-        GameObject returnPanel = _panelBeforeSubmenu != null ? _panelBeforeSubmenu : _mainMenuRootPanel;
-        ShowExclusivePanel(returnPanel, _focusBeforeSubmenu);
+        CloseSettings();
     }
 
     public void OpenControls()
     {
-        _panelBeforeSubmenu = (_settingsPanel != null && _settingsPanel.activeSelf) ? _settingsPanel : _mainMenuRootPanel;
-        _focusBeforeSubmenu = (_controlsButton != null) ? _controlsButton.gameObject : (_settingsButton != null ? _settingsButton.gameObject : null);
-
-        ShowExclusivePanel(_controlsPanel, _backControlsButton != null ? _backControlsButton.gameObject : null);
+        ShowSettingsSubpanel(_controlsPanel, _controlsButton != null ? _controlsButton.gameObject : null);
     }
 
     public void CloseControls()
     {
-        GameObject returnPanel = _panelBeforeSubmenu != null ? _panelBeforeSubmenu : _mainMenuRootPanel;
-        ShowExclusivePanel(returnPanel, _focusBeforeSubmenu);
+        CloseSettings();
     }
 
     private void OnMatchmakingComingSoon()
