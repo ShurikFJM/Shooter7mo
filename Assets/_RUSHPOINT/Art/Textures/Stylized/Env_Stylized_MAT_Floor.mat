@@ -78,7 +78,7 @@ Material:
     - _RoughConst: 0
     - _RoughInvert: 0
     - _RoughMax: 1
-    - _RoughMin: 0.126
+    - _RoughMin: 0.56
     - _TilingX: 50
     - _TilingY: 50
     - _TriAxisOffset: 1

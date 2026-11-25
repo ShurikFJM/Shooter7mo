@@ -35,7 +35,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AlbedoTex:
-        m_Texture: {fileID: 2800000, guid: 9b0cfa360a4c8384989b795bbeb70bbb, type: 3}
+        m_Texture: {fileID: 2800000, guid: e3018b0f6c9584341af82868b3ba76ac, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionTex:
@@ -43,11 +43,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightTex:
-        m_Texture: {fileID: 2800000, guid: de0470f11a146d442aa285224244ae25, type: 3}
+        m_Texture: {fileID: 2800000, guid: 3b898ab3a2ddcf445a44417ae9c9f0e0, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalTex:
-        m_Texture: {fileID: 2800000, guid: 17011939fcaa0a044b0e6ea100f4b736, type: 3}
+        m_Texture: {fileID: 2800000, guid: 586d56f7fee98a54aa3838c90de0685a, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
@@ -100,7 +100,7 @@ Material:
     - _VoronoiJitter: 1
     - _VoronoiScale: 2
     m_Colors:
-    - _BaseColor: {r: 0.5471698, g: 0.40371478, b: 0.30042717, a: 1}
+    - _BaseColor: {r: 0.6830188, g: 0.5324028, b: 0.42656454, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _TriAxisWeights: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []

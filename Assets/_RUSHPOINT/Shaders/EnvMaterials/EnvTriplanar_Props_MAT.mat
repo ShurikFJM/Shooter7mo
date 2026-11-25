@@ -14,7 +14,6 @@ Material:
   m_ValidKeywords:
   - _ARMMAP
   - _DISP_OFFSET
-  - _EMISSION
   - _EMISSIONSRC_TEXTURE
   - _NORMALMAP
   - _PROJ_MESH
@@ -93,7 +92,7 @@ Material:
     - _TriSpace: 0
     - _TriTwoAxes: 0
     - _UseARM: 1
-    - _UseEmission: 1
+    - _UseEmission: 0
     - _UseNormal: 1
     - _UseVoronoi: 0
     - _VertexDispScale: 0.1
