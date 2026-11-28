@@ -1,23 +1,50 @@
-Key,English,Spanish,Portuguese,Japanese
-Play,Play,Jugar,Jogar,プレイ
-Exit,Exit,Salir,Saída,終了
-Pause,Pause,Pausa,Pausa,一時停止
-Credits,Credits,Créditos,Créditos,クレジット
-Settings,Settings,Ajustes,Configurações,設定
-Music Volume,Music Volume,Volumen Música,Volume da música,BGMボリューム
-SFX Volume,SFX Volume,Volumen SFX,Volume da SFX,SEボリューム
-Resolution,Resolution,Resolución,Resoluções,表示解像度
-Restart,Restart,Reiniciar,Reiniciar,やり直す
-English,English,English,English,English
-Spanish,Español,Español,Español,Español
-Portuguese,Português,Português,Português,Português
-Game over,Game over,Fin del juego,Fim do jogo,GAME　OVER
-Language,Language,Idioma,Linguagem,言語
-Full Screen,Full Screen,Pantalla Completa,Tela cheia,フルスクリーンモード
-Back,Back,Volver,Voltar,戻る
-Resume,Resume,Continuar,Retomar,ゲーム再開
-Paused,Paused,Pausa,Pausa,一時停止
-Master Volume,Master Volume,Volumen General,Volume Geral,マスターボリューム
-Graphics,Graphics,Gráficos,Gráficos,グラフィックす
-Main Menu,Main Menu,Menú Principal,Menu Principal,メインメニュ
-Japanese,日本語,日本語,日本語,日本語
+Key,English,Spanish,Portuguese,Russian,French
+Play,Play,Jugar,Jogar,Играть,Jouer
+Exit,Exit,Salir,Saída,Выход,Quitter
+Pause,Pause,Pausa,Pausa,Пауза,Pause
+Credits,Credits,Créditos,Créditos,Авторы,Crédits
+Settings,Settings,Ajustes,Configurações,Настройки,Paramètres
+Music Volume,Music Volume,Volumen Música,Volume da música,Громкость музыки,Volume de la musique
+SFX Volume,SFX Volume,Volumen SFX,Volume da SFX,Громкость звуков,Volume SFX
+Resolution,Resolution,Resolución,Resoluções,Разрешение,Résolution
+Restart,Restart,Reiniciar,Reiniciar,Начать заново,Recommencer
+English,English,English,English,English,English
+Spanish,Español,Español,Español,Español,Español
+Portuguese,Português,Português,Português,Português,Português
+Game over,Game over,Fin del juego,Fim do jogo,Игра окончена,Fin de partie
+Language,Language,Idioma,Linguagem,Язык,Langue
+Full Screen,Full Screen,Pantalla Completa,Tela cheia,Полный экран,Plein écran
+Back,Back,Volver,Voltar,Назад,Retour
+Resume,Resume,Continuar,Retomar,Продолжить,Reprendre
+Paused,Paused,Pausa,Pausa,Пауза,En pause
+Master Volume,Master Volume,Volumen General,Volume Geral,Общая громкость,Volume principal
+Graphics,Graphics,Gráficos,Gráficos,Графика,Graphismes
+Main Menu,Main Menu,Menú Principal,Menu Principal,Главное меню,Menu principal
+Tutorial,Tutorial,Tutorial,Tutorial,Обучение,Tutoriel
+Control,Controls,Controles,Controle,Управление,Commandes
+ColorBlind,ColorBlind,Daltonismo,Daltonismo,Дальтонизм,Daltonisme
+Strength,Strength,Intensidad,Intensidade,Интенсивность,Intensité
+Correct ,Correct filter,Corregir Filtro,Corrigir filtro,Корректирующий фильтр,Filtre correcteur
+Japanese,日本語,日本語,日本語,日本語,日本語
+Tank,Tank,Tanque,Tanque,Танк,Tank
+Assault,Assault,Asalto,Assalto,Штурм,Assaut
+Healer,Healer,Medico,Médico,Медик,Médecin
+Mobility,Mobility,Movilidad,Mobilidade,Мобильность,Mobilité
+Sniper,Sniper,Francotirador,Atirador de elite,Снайпер,Sniper
+Support,Support,Soporte,Suporte,Поддержка,Soutien
+Health,Health,Vida,Saúde,Здоровье,Santé
+Shield,Shield,Escudo,Escudo,Щит,Bouclier
+Speed,Speed,Velocidad,Velocidade,Скорость,Vitesse
+Select,Select Team,Seleccionar ,Selecionar ,Выбрать,Sélectionner
+Team,Select Team,Seleccionar equipo,Selecionar equipe,Выбрать команду,Sélectionner l'équipe
+PickupBomb,Press [E] to pick up bomb,Presiona [E] para recoger la bomba,Pressione [E] para pegar a bomba,"Нажмите [E], чтобы подобрать бомбу",Appuyez sur [E] pour ramasser la bombe
+DropBomb,Press [E] to drop bomb,Presiona [E] para soltar la bomba,Pressione [E] para soltar a bomba,"Нажмите [E], чтобы сбросить бомбу",Appuyez sur [E] pour lâcher la bombe
+PlantBomb,Hold [E] to plant bomb,Mantén [E] para plantar la bomba,Segure [E] para plantar a bomba,"Удерживайте [E], чтобы установить бомбу",Maintenez [E] pour poser la bombe
+DefuseBomb,Hold [E] to defuse bomb,Mantén [E] para desactivar la bomba,Segure [E] para desarmar a bomba,"Удерживайте [E], чтобы обезвредить бомбу",Maintenez [E] pour désamorcer la bombe
+PlantingBomb,Planting...,Plantando...,Plantando...,Установка...,Pose en cours...
+DefusingBomb,Defusing...,Desactivando...,Desarmando...,Обезвреживание...,Désamorçage...
+Host,Host,Hospedar,Hospedar,Хост,Héberger
+Join,Join,Unirse,Entrar,Присоединиться,Rejoindre
+code to Join,Code to Join,Código para unirse,Código para entrar,Код для входа,Code pour rejoindre
+CurrentDevice,Current Device:Keyboard and mouse,Dispositivo actual: Teclado y ratón,Dispositivo atual: Teclado e mouse,Текущее устройство: клавиатура и мышь,Périphérique actuel : Clavier et souris
+Master Volume,Master Volume,Volumen General,Volume Geral,Общая громкость,Volume principal
