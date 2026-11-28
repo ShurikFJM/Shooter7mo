@@ -1,4 +1,4 @@
-// Colócalo en cualquier carpeta llamada "Editor" (ej. Assets/Water/Editor/StylizedWaterGUI.cs)
+
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using UnityEngine.Rendering.Universal;
 
 public class StylizedWaterGUI : ShaderGUI
 {
-    // ---------------------------------------------------------------- keywords
+    
     const string K_WAVES_OFF   = "_WAVES_OFF";
     const string K_NORMALMAP   = "_NORMALMAP";
     const string K_DEPTH_OFF   = "_DEPTH_OFF";
@@ -35,7 +35,7 @@ public class StylizedWaterGUI : ShaderGUI
     Material _mat;
     readonly Dictionary<string, MaterialProperty> _props = new Dictionary<string, MaterialProperty>();
 
-    // ---------------------------------------------------------------- helpers
+   
     MaterialProperty P(string n) => _props[n];
     bool Kw(string k) => _mat.IsKeywordEnabled(k);
     bool On(string k, bool inverted) => inverted ? !Kw(k) : Kw(k);
@@ -56,7 +56,7 @@ public class StylizedWaterGUI : ShaderGUI
     static Color HeaderBg => EditorGUIUtility.isProSkin ? new Color(0.20f, 0.23f, 0.25f) : new Color(0.78f, 0.86f, 0.89f);
     static readonly Color Accent = new Color(0.18f, 0.72f, 0.78f);
 
-    // ---------------------------------------------------------------- OnGUI
+    
     public override void OnGUI(MaterialEditor ed, MaterialProperty[] props)
     {
         _ed = ed;
@@ -64,7 +64,7 @@ public class StylizedWaterGUI : ShaderGUI
         _props.Clear();
         foreach (var p in props) _props[p.name] = p;
 
-        // Mantén _NORMALMAP sincronizado con el slot de textura (menos clics, menos errores)
+        
         bool hasNormal = P("_NormalMap").textureValue != null;
         if (hasNormal != Kw(K_NORMALMAP)) SetKw(K_NORMALMAP, hasNormal);
 
@@ -92,7 +92,7 @@ public class StylizedWaterGUI : ShaderGUI
         Section("Advanced", "adv", DrawAdvanced, null, false, null, false);
     }
 
-    // ---------------------------------------------------------------- UI chrome
+  
     void DrawBanner()
     {
         Rect r = GUILayoutUtility.GetRect(0, 40, GUILayout.ExpandWidth(true));
@@ -174,7 +174,7 @@ public class StylizedWaterGUI : ShaderGUI
         }
     }
 
-    // ---------------------------------------------------------------- sección plegable con toggle
+    
     void Section(string title, string key, Action body, string kw = null, bool inverted = false,
                  string tip = null, bool defaultOpen = true)
     {
@@ -227,7 +227,7 @@ public class StylizedWaterGUI : ShaderGUI
         EditorGUILayout.Space(2);
     }
 
-    // ---------------------------------------------------------------- contenido de secciones
+   
     void DrawColor()
     {
         Prop("_ShallowColor", "Shallow Color", "Color cerca de la orilla. El alfa es la opacidad.");
@@ -302,7 +302,7 @@ public class StylizedWaterGUI : ShaderGUI
 
     void DrawSurface()
     {
-        // ---- Normal map ----
+        
         EditorGUI.BeginChangeCheck();
         _ed.TexturePropertySingleLine(new GUIContent("Normal Map", "Se mezclan 2 capas con scroll opuesto."), P("_NormalMap"));
         if (EditorGUI.EndChangeCheck()) SetKw(K_NORMALMAP, P("_NormalMap").textureValue != null);
@@ -321,7 +321,7 @@ public class StylizedWaterGUI : ShaderGUI
 
         EditorGUILayout.Space(6);
 
-        // ---- Modo de mapas de superficie ----
+       
         int cur = Kw(K_ARM) ? 1 : Kw(K_SEPARATE) ? 2 : 0;
         Rect rr = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, 20));
         EditorGUI.BeginChangeCheck();
@@ -407,7 +407,7 @@ public class StylizedWaterGUI : ShaderGUI
         Prop("_Cull", "Cull Mode");
     }
 
-    // ---------------------------------------------------------------- avisos de importación
+    
     void LinearWarning(Texture tex)
     {
         if (tex == null) return;
@@ -438,7 +438,7 @@ public class StylizedWaterGUI : ShaderGUI
         }
     }
 
-    // ---------------------------------------------------------------- presets
+    
     static void C(Material m, string n, float r, float g, float b, float a) => m.SetColor(n, new Color(r, g, b, a));
     static void F(Material m, string n, float v) => m.SetFloat(n, v);
 
@@ -448,11 +448,11 @@ public class StylizedWaterGUI : ShaderGUI
         foreach (UnityEngine.Object t in _ed.targets)
         {
             var m = (Material)t;
-            foreach (string k in AllKeywords) m.DisableKeyword(k);   // estado base: todo activo excepto normal/reflejos/refracción/mapas
+            foreach (string k in AllKeywords) m.DisableKeyword(k);  
 
             switch (i)
             {
-                case 0: // Tropical (default) - coincide con la vista del juego
+                case 0: 
                     C(m, "_ShallowColor", 0.33f, 0.80f, 0.82f, 0.60f);
                     C(m, "_DeepColor", 0.07f, 0.52f, 0.63f, 0.95f);
                     C(m, "_PatternColor", 0.70f, 0.95f, 0.97f, 1f);
@@ -460,7 +460,7 @@ public class StylizedWaterGUI : ShaderGUI
                     F(m, "_DepthDistance", 2f); F(m, "_PatternScale", 0.6f); F(m, "_PatternIntensity", 0.55f);
                     F(m, "_WaveAmplitude", 0.04f); F(m, "_FoamWidth", 0.5f);
                     break;
-                case 1: // Deep Ocean
+                case 1: 
                     C(m, "_ShallowColor", 0.10f, 0.55f, 0.70f, 0.75f);
                     C(m, "_DeepColor", 0.01f, 0.12f, 0.30f, 1f);
                     C(m, "_PatternColor", 0.45f, 0.80f, 0.95f, 1f);
@@ -469,7 +469,7 @@ public class StylizedWaterGUI : ShaderGUI
                     F(m, "_WaveAmplitude", 0.10f); F(m, "_WaveFrequency", 0.8f); F(m, "_FoamWidth", 0.8f);
                     m.EnableKeyword(K_REFLECT);
                     break;
-                case 2: // Lagoon Pool
+                case 2: 
                     C(m, "_ShallowColor", 0.45f, 0.95f, 0.90f, 0.45f);
                     C(m, "_DeepColor", 0.10f, 0.65f, 0.75f, 0.80f);
                     C(m, "_PatternColor", 0.90f, 1f, 1f, 1f);
@@ -478,7 +478,7 @@ public class StylizedWaterGUI : ShaderGUI
                     F(m, "_WaveAmplitude", 0.015f);
                     m.EnableKeyword(K_REFRACT);
                     break;
-                case 3: // Mobile Lite
+                case 3:
                     C(m, "_ShallowColor", 0.33f, 0.80f, 0.82f, 0.65f);
                     C(m, "_DeepColor", 0.07f, 0.52f, 0.63f, 0.95f);
                     F(m, "_WaveAmplitude", 0.03f);

@@ -2,13 +2,6 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// Zona capturable del modo Dominación. Requiere un Collider marcado como Trigger.
-/// El progreso de captura vive en el servidor (CaptureValue: -1 = Azul total,
-/// +1 = Rojo total, 0 = neutral) y se replica a todos los clientes, que solo
-/// leen el valor para actualizar su propia UI/material — ningún cliente decide
-/// el resultado de la captura.
-/// </summary>
 [RequireComponent(typeof(Collider))]
 public class DominationZone : NetworkBehaviour
 {

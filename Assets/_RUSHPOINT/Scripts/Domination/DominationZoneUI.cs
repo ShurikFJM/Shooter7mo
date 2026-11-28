@@ -2,13 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// UI en world-space sobre una DominationZone: nombre de la zona, estado
-/// (neutral / capturando / disputada / dominada) y barra de progreso coloreada
-/// según el equipo. Colocar como hijo del GameObject de la zona, dentro de un
-/// Canvas en modo "World Space" (Render Mode = World Space, escala pequeña,
-/// ej. 0.01 en los 3 ejes, y bien arriba de la zona en el eje Y).
-/// </summary>
+
 public class DominationZoneUI : MonoBehaviour
 {
     [SerializeField] private DominationZone zone;
@@ -60,7 +54,7 @@ public class DominationZoneUI : MonoBehaviour
 
     private void RefreshUI()
     {
-        float value = zone.CaptureValue.Value; // -1..1
+        float value = zone.CaptureValue.Value; 
         float absValue = Mathf.Abs(value);
 
         if (progressFill != null)

@@ -1,8 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// SOLO para pipeline Built-in. Ponlo en la cámara. En URP no hace falta (usa el Fullscreen Pass).
-/// </summary>
 [RequireComponent(typeof(Camera))]
 public class ColorBlindImageEffect : MonoBehaviour
 {

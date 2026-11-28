@@ -2,11 +2,7 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// Prompt de pantalla (mismo Canvas que BombPromptUI) que le dice al jugador
-/// local si está capturando, defendiendo, o disputando una zona de dominación.
-/// No es un NetworkBehaviour: busca automáticamente al jugador local.
-/// </summary>
+
 public class DominationHUD : MonoBehaviour
 {
     [SerializeField] private GameObject promptRoot;

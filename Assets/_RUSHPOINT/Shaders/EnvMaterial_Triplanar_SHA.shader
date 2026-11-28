@@ -748,7 +748,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             return EnvHeightLOD0At(ax.uv, vor);
         }
 
-        // posP / nPIn salen de EnvProjInputs (malla sin desplazar)
+        
         float3 EnvDisplaceVertex(float3 posOS, float3 normalOS, float2 uv, float3 posP, float3 nPIn)
         {
             float4 R = EnvRotMatrix(EnvSinCos());
@@ -778,12 +778,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         }
         #endif
 
-        // ---- Evaluacion del material ----------------------------------------
-        //   uv           : UV0 (solo Mesh)
-        //   posP / nPIn  : posicion y normal en el espacio de proyeccion
-        //   normalWS     : normal de la malla en mundo
-        //   tangentWS    : xyz tangente, w signo (solo Mesh con normal map / parallax)
-        //   viewVectorWS : camaraPos - positionWS (sin normalizar)
+       
         EnvSurface EvaluateEnvMaterial(float2 uv, float3 posP, float3 nPIn, float3 normalWS,
                                        float4 tangentWS, float3 viewVectorWS, float2 sinCos)
         {
@@ -791,7 +786,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
 
             float4 R = EnvRotMatrix(sinCos);
 
-            // Vista en mundo + fade por distancia (solo parallax)
+            
             float  distFade = 1.0;
             float3 vWS      = float3(0, 0, 1);
         #ifdef ENV_PARALLAX
@@ -807,17 +802,15 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             float3 nW  = normalize(normalWS);
 
         #if defined(ENV_TRIPLANAR)
-            // =================================================================
-            //  TRIPLANAR
-            // =================================================================
+            
             float3 nP  = normalize(nPIn);
-            float3 sgn = step(0.0, nP) * 2.0 - 1.0;          // +1 / -1 (nunca 0)
+            float3 sgn = step(0.0, nP) * 2.0 - 1.0;         
 
-            // Derivadas de la posicion: fuera de cualquier branch
+            
             float3 dpx = ddx(posP);
             float3 dpy = ddy(posP);
 
-            // Vista en el espacio de proyeccion
+            
             float3 vP = float3(0, 0, 1);
           #ifdef ENV_PARALLAX
             #if defined(ENV_PSPACE_OBJSCALED)
@@ -836,7 +829,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             EnvAxis axZ = EnvMakeAxis(2, posP, dpx, dpy, sgn, vP, R);
 
           #ifdef USE_TRI_HEIGHTBLEND
-            // Mezcla guiada por height: el relieve "gana" en las transiciones.
+            
             float3 hgt = float3(0, 0, 0);
             [branch] if (w.x > 0.0) hgt.x = EnvSampleHeightGrad(axX.uv, axX.gx, axX.gy);
             [branch] if (w.y > 0.0) hgt.y = EnvSampleHeightGrad(axY.uv, axY.gx, axY.gy);
@@ -848,13 +841,13 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             w = EnvNormalizeCull(hb);
           #endif
 
-            // Acumulacion: solo se evaluan los ejes con peso
+            
             [branch] if (w.x > 0.0) EnvAccumAxis(acc, 0, axX, w.x, R, distFade, nP);
             [branch] if (w.y > 0.0) EnvAccumAxis(acc, 1, axY, w.y, R, distFade, nP);
             [branch] if (w.z > 0.0) EnvAccumAxis(acc, 2, axZ, w.z, R, distFade, nP);
 
           #ifdef USE_NORMAL_MAP
-            // Normal: de espacio de proyeccion a mundo
+            
             float3 nBlend = normalize(acc.n);
             #if defined(ENV_PSPACE_OBJSCALED)
             nW = normalize(TransformObjectToWorldNormal(nBlend * EnvObjectScale()));
@@ -866,9 +859,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
           #endif
 
         #else
-            // =================================================================
-            //  UV (Mesh o planar en mundo): UNA sola proyeccion, 1 muestra por textura
-            // =================================================================
+           
           #if defined(USE_NORMAL_MAP) || defined(ENV_PARALLAX)
             float3 N = nW;
             float3 T, B;
@@ -877,7 +868,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
 
             EnvAxis ax;
             ax.uv    = EnvTransformUV(EnvGetBaseUV(uv, posP), R);
-            ax.gx    = ddx(ax.uv);       // gradientes de la UV original (fuera de branches)
+            ax.gx    = ddx(ax.uv);      
             ax.gy    = ddy(ax.uv);
             ax.flipU = 1.0;
           #ifdef ENV_PARALLAX
@@ -896,14 +887,14 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
           #endif
         #endif
 
-            // ---- Albedo
+            
             o.albedo = acc.alb.rgb * _BaseColor.rgb;
 
-            // ---- ARM
+           
         #ifdef USE_ARM_MAP
             float rg = acc.arm.g;
           #ifdef USE_ROUGH_INVERT
-            rg = 1.0 - rg;                      // solo si la textura trae GLOSS
+            rg = 1.0 - rg;                      
           #endif
             o.ao        = 1.0 + (acc.arm.r - 1.0) * _AOStrength;
             o.roughness = lerp(_RoughMin, _RoughMax, rg);
@@ -914,15 +905,15 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             o.metallic  = _MetalConst;
         #endif
 
-            // ---- Normal
+            
             o.normalWS = nW;
 
-            // ---- Emisivo
+            
         #ifdef USE_EMISSIVE
           #if defined(EMISSION_ALBEDO_A)
-            o.emissive = _EmissionColor.rgb * acc.alb.a;       // mascara en alpha del Albedo
+            o.emissive = _EmissionColor.rgb * acc.alb.a;       
           #elif defined(EMISSION_ARM_A)
-            o.emissive = _EmissionColor.rgb * acc.arm.a;       // mascara en alpha de la ARM
+            o.emissive = _EmissionColor.rgb * acc.arm.a;       
           #else
             o.emissive = acc.emis * _EmissionColor.rgb;
           #endif
@@ -934,7 +925,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
         }
         ENDHLSL
 
-        // ---------------------------------------------------------------- Forward
+        
         Pass
         {
             Name "ForwardLit"
@@ -975,7 +966,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-            // La tangente solo hace falta en modo Mesh con normal map o parallax
+            
             #if defined(ENV_UV_MESH) && (defined(USE_NORMAL_MAP) || defined(ENV_PARALLAX))
                 #define ENV_NEED_TANGENT 1
             #endif
@@ -996,10 +987,10 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
                 float3 positionWS : TEXCOORD0;
                 float3 normalWS   : TEXCOORD1;
             #if defined(ENV_TRIPLANAR) || defined(ENV_UV_WORLD)
-                float3 positionP  : TEXCOORD2;       // posicion en espacio de proyeccion
+                float3 positionP  : TEXCOORD2;       
             #endif
             #if defined(ENV_TRIPLANAR) && !defined(ENV_PSPACE_WORLD)
-                float3 normalP    : TEXCOORD3;       // normal en espacio de proyeccion
+                float3 normalP    : TEXCOORD3;      
             #endif
                 half   fogFactor  : TEXCOORD4;
                 half3  vertexLight: TEXCOORD5;
@@ -1009,7 +1000,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
                 float2 uv         : TEXCOORD8;
             #endif
             #if defined(ENV_NEED_TANGENT)
-                float4 tangentWS  : TEXCOORD9;       // w = signo de bitangente
+                float4 tangentWS  : TEXCOORD9;       
             #endif
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -1024,7 +1015,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
 
                 float3 posOS = input.positionOS.xyz;
 
-                // Proyeccion con la malla ORIGINAL (la textura no "nada" al desplazar)
+               
                 float3 posP, nP;
                 EnvProjInputs(posOS, input.normalOS, posP, nP);
 
@@ -1069,7 +1060,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
 
                 float3 viewVectorWS = GetWorldSpaceViewDir(input.positionWS);
 
-                // Entradas de la proyeccion segun el modo
+                
                 float2 uv        = float2(0, 0);
                 float4 tangentWS = float4(1, 0, 0, 1);
                 float3 posP      = input.positionWS;
@@ -1127,7 +1118,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             ENDHLSL
         }
 
-        // ---------------------------------------------------------------- ShadowCaster
+        
         Pass
         {
             Name "ShadowCaster"
@@ -1213,7 +1204,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             ENDHLSL
         }
 
-        // ---------------------------------------------------------------- DepthOnly
+        
         Pass
         {
             Name "DepthOnly"
@@ -1276,7 +1267,7 @@ Shader "Env/Universal environment Material (UV + Triplanar)"
             ENDHLSL
         }
 
-        // ---------------------------------------------------------------- DepthNormals (SSAO, etc.)
+        
         Pass
         {
             Name "DepthNormals"
