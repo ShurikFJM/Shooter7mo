@@ -194,7 +194,7 @@ public class CustomLobbyManager : NetworkBehaviour
         if (_friendlyFireToggle != null)
         {
             _friendlyFireToggle.SetIsOnWithoutNotify(isEnabled);
-            // Solo el anfitrión/servidor puede modificar los ajustes de la partida
+            
             _friendlyFireToggle.interactable = IsServer;
         }
     }
